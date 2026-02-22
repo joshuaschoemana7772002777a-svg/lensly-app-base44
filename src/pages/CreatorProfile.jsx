@@ -166,7 +166,7 @@ export default function CreatorProfile() {
 
           {/* Areas */}
           <div className="mt-4">
-            <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">Service Areas</h3>
+            <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">Operating Areas</h3>
             <div className="flex flex-wrap gap-2">
               {(creator.service_areas || []).map((area) => (
                 <div key={area} className="flex items-center gap-1 px-3 py-1.5 bg-neutral-100 rounded-full">

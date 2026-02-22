@@ -227,7 +227,7 @@ export default function EditProfile() {
 
         {/* Service Areas */}
         <div>
-          <Label className="text-xs text-neutral-500 mb-2 block">Service Areas *</Label>
+          <Label className="text-xs text-neutral-500 mb-2 block">Operating Areas *</Label>
           <div className="flex flex-wrap gap-2">
             {AREAS.map((area) => (
               <button

@@ -38,7 +38,7 @@ export default function CreatorCard({ creator, isFavourite, onToggleFavourite, i
             <h3 className="text-white font-semibold text-lg leading-tight">{creator.display_name}</h3>
             <div className="flex items-center gap-1.5 mt-1">
               <MapPin className="w-3 h-3 text-white/70" />
-              <span className="text-white/70 text-xs">{creator.service_areas?.slice(0, 2).join(", ")}</span>
+              <span className="text-white/70 text-xs">Operates in {creator.service_areas?.slice(0, 2).join(", ")}</span>
             </div>
             {creator.starting_price && (
               <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-full bg-blue-500/90 backdrop-blur-sm">

@@ -73,7 +73,7 @@ export default function Home() {
               <span className="text-blue-500">creative</span> match
             </h1>
             <p className="text-neutral-500 mt-3 text-sm max-w-xs leading-relaxed">
-              Discover top photographers & videographers near you in South Africa
+              Discover top photographers & videographers operating across South Africa
             </p>
           </motion.div>
           
