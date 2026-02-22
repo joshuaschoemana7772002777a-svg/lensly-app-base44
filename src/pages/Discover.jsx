@@ -7,7 +7,7 @@ import AreaFilterChips from "../components/lensly/AreaFilterChips";
 import CategoryFilterChips from "../components/lensly/CategoryFilterChips";
 import MapView from "../components/lensly/MapView";
 
-export default function Explore() {
+export default function Discover() {
   const [creators, setCreators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("list");
@@ -82,7 +82,7 @@ export default function Explore() {
       <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-neutral-100">
         <div className="px-5 pt-5 pb-3">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-bold text-neutral-900">Explore</h1>
+            <h1 className="text-xl font-bold text-neutral-900">Discover</h1>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setViewMode("list")}

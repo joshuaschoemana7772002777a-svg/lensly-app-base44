@@ -49,20 +49,20 @@
  */
 import CreatorProfile from './pages/CreatorProfile';
 import EditProfile from './pages/EditProfile';
-import Explore from './pages/Explore';
 import Favourites from './pages/Favourites';
 import Home from './pages/Home';
 import MyRequests from './pages/MyRequests';
+import Discover from './pages/Discover';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "CreatorProfile": CreatorProfile,
     "EditProfile": EditProfile,
-    "Explore": Explore,
     "Favourites": Favourites,
     "Home": Home,
     "MyRequests": MyRequests,
+    "Discover": Discover,
 }
 
 export const pagesConfig = {

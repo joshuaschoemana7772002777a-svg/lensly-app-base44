@@ -80,8 +80,8 @@ export default function Favourites() {
             </div>
             <h3 className="font-medium text-neutral-700">No favourites yet</h3>
             <p className="text-sm text-neutral-400 mt-1">Tap the heart icon on any creator to save them</p>
-            <Link to={createPageUrl("Explore")} className="inline-block mt-4 text-blue-500 text-sm font-medium">
-              Explore Creators
+            <Link to={createPageUrl("Discover")} className="inline-block mt-4 text-blue-500 text-sm font-medium">
+              Discover Creators
             </Link>
           </div>
         ) : (

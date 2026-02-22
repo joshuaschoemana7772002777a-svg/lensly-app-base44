@@ -67,8 +67,8 @@ export default function CreatorProfile() {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 p-5">
         <h2 className="text-lg font-semibold">Creator not found</h2>
-        <Link to={createPageUrl("Explore")} className="text-blue-500 text-sm">
-          Back to Explore
+        <Link to={createPageUrl("Discover")} className="text-blue-500 text-sm">
+          Back to Discover
         </Link>
       </div>
     );
@@ -95,7 +95,7 @@ export default function CreatorProfile() {
         {/* Nav */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 z-10">
           <Link
-            to={createPageUrl("Explore")}
+            to={createPageUrl("Discover")}
             className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center"
           >
             <ArrowLeft className="w-5 h-5 text-white" />
