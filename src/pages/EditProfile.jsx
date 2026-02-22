@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Save, Loader2, Camera, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import PortfolioUploader from "../components/lensly/PortfolioUploader";
+import OnboardingSuccessModal from "../components/lensly/OnboardingSuccessModal";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -22,6 +23,7 @@ export default function EditProfile() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profileImageUploading, setProfileImageUploading] = useState(false);
   const [isOnboarding, setIsOnboarding] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -70,8 +72,8 @@ export default function EditProfile() {
     
     if (wasOnboarding && profile.is_published) {
       setTimeout(() => {
-        window.location.href = createPageUrl("Home");
-      }, 1500);
+        setShowSuccessModal(true);
+      }, 500);
     } else {
       setTimeout(() => setSaved(false), 2000);
     }
@@ -370,6 +372,14 @@ export default function EditProfile() {
           {saved ? (isOnboarding && profile?.is_published ? "Welcome to Lensly!" : "Saved!") : saving ? "Saving..." : (isOnboarding && profile?.is_published ? "Publish & Continue" : "Save Profile")}
         </Button>
       </div>
+
+      <OnboardingSuccessModal
+        open={showSuccessModal}
+        profile={profile}
+        onContinue={() => {
+          window.location.href = createPageUrl("Home");
+        }}
+      />
     </div>
   );
 }
