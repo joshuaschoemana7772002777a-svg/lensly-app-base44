@@ -265,6 +265,9 @@ export default function EditProfile() {
         {/* Service Areas */}
         <div>
           <Label className="text-xs text-neutral-500 mb-2 block">Operating Areas *</Label>
+          <p className="text-xs text-neutral-400 mb-3">
+            Select the areas you are happy to shoot in. You do not need to share your exact location.
+          </p>
           <div className="flex flex-wrap gap-2">
             {AREAS.map((area) => (
               <button
