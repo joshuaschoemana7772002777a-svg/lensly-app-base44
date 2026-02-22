@@ -1,0 +1,312 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Save, Loader2, Camera, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import PortfolioUploader from "../components/lensly/PortfolioUploader";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+
+const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Lifestyle", "Social Media Content"];
+const AREAS = ["Sandton", "Johannesburg", "Pretoria", "Cape Town"];
+
+export default function EditProfile() {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profileImageUploading, setProfileImageUploading] = useState(false);
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    const authed = await base44.auth.isAuthenticated();
+    setIsAuthenticated(authed);
+    if (!authed) { setLoading(false); return; }
+    const user = await base44.auth.me();
+    const profiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
+    if (profiles.length > 0) {
+      setProfile(profiles[0]);
+    } else {
+      setProfile({
+        display_name: user.full_name || "",
+        bio: "",
+        profile_image: "",
+        categories: [],
+        service_areas: [],
+        starting_price: null,
+        portfolio_items: [],
+        is_published: false,
+        creator_type: "photographer",
+        contact_email: user.email || "",
+        instagram_handle: "",
+        website_url: "",
+      });
+    }
+    setLoading(false);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    if (profile.id) {
+      await base44.entities.CreatorProfile.update(profile.id, profile);
+    } else {
+      const created = await base44.entities.CreatorProfile.create(profile);
+      setProfile(created);
+    }
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const toggleCategory = (cat) => {
+    setProfile(p => ({
+      ...p,
+      categories: p.categories.includes(cat)
+        ? p.categories.filter(c => c !== cat)
+        : [...p.categories, cat],
+    }));
+  };
+
+  const toggleArea = (area) => {
+    setProfile(p => ({
+      ...p,
+      service_areas: p.service_areas.includes(area)
+        ? p.service_areas.filter(a => a !== area)
+        : [...p.service_areas, area],
+    }));
+  };
+
+  const handleProfileImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setProfileImageUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setProfile(p => ({ ...p, profile_image: file_url }));
+    setProfileImageUploading(false);
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-5">
+        <div className="w-20 h-20 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
+          <Camera className="w-8 h-8 text-neutral-300" />
+        </div>
+        <h2 className="text-lg font-semibold text-neutral-800">Sign in to create your profile</h2>
+        <button
+          onClick={() => base44.auth.redirectToLogin(window.location.href)}
+          className="mt-6 px-6 py-3 bg-neutral-900 text-white rounded-2xl text-sm font-medium"
+        >
+          Sign In
+        </button>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-neutral-300 border-t-amber-500 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-neutral-50 pb-32">
+      <div className="px-5 pt-6 pb-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-neutral-900">
+            {profile?.id ? "Edit Profile" : "Create Profile"}
+          </h1>
+          {profile?.id && profile?.is_published && (
+            <Link
+              to={createPageUrl("CreatorProfile") + `?id=${profile.id}`}
+              className="text-xs text-amber-600 font-medium flex items-center gap-1"
+            >
+              <Eye className="w-3 h-3" /> View Live
+            </Link>
+          )}
+        </div>
+      </div>
+
+      <div className="px-5 space-y-6">
+        {/* Profile Image */}
+        <div className="flex items-center gap-4">
+          <label className="relative cursor-pointer">
+            <div className="w-20 h-20 rounded-2xl bg-neutral-200 overflow-hidden flex items-center justify-center">
+              {profile?.profile_image ? (
+                <img src={profile.profile_image} alt="" className="w-full h-full object-cover" />
+              ) : profileImageUploading ? (
+                <Loader2 className="w-6 h-6 text-neutral-400 animate-spin" />
+              ) : (
+                <Camera className="w-6 h-6 text-neutral-400" />
+              )}
+            </div>
+            <input type="file" accept="image/*" onChange={handleProfileImageUpload} className="hidden" />
+          </label>
+          <div>
+            <p className="text-sm font-medium text-neutral-700">Profile Photo</p>
+            <p className="text-xs text-neutral-400">Tap to change</p>
+          </div>
+        </div>
+
+        {/* Basic Info */}
+        <div className="space-y-4">
+          <div>
+            <Label className="text-xs text-neutral-500 mb-1 block">Display Name *</Label>
+            <Input
+              value={profile?.display_name || ""}
+              onChange={(e) => setProfile({ ...profile, display_name: e.target.value })}
+              placeholder="Your name or studio name"
+              className="rounded-xl"
+            />
+          </div>
+          <div>
+            <Label className="text-xs text-neutral-500 mb-1 block">Bio</Label>
+            <Textarea
+              value={profile?.bio || ""}
+              onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+              placeholder="Tell potential clients about yourself..."
+              className="rounded-xl min-h-[100px]"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs text-neutral-500 mb-1 block">Creator Type</Label>
+              <Select
+                value={profile?.creator_type || "photographer"}
+                onValueChange={(v) => setProfile({ ...profile, creator_type: v })}
+              >
+                <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="photographer">Photographer</SelectItem>
+                  <SelectItem value="videographer">Videographer</SelectItem>
+                  <SelectItem value="both">Both</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs text-neutral-500 mb-1 block">Starting Price (ZAR)</Label>
+              <Input
+                type="number"
+                value={profile?.starting_price || ""}
+                onChange={(e) => setProfile({ ...profile, starting_price: parseFloat(e.target.value) || null })}
+                placeholder="e.g. 2500"
+                className="rounded-xl"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Categories */}
+        <div>
+          <Label className="text-xs text-neutral-500 mb-2 block">Categories *</Label>
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => toggleCategory(cat)}
+                className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
+                  profile?.categories?.includes(cat)
+                    ? "bg-neutral-900 text-white"
+                    : "bg-white border border-neutral-200 text-neutral-600"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Service Areas */}
+        <div>
+          <Label className="text-xs text-neutral-500 mb-2 block">Service Areas *</Label>
+          <div className="flex flex-wrap gap-2">
+            {AREAS.map((area) => (
+              <button
+                key={area}
+                onClick={() => toggleArea(area)}
+                className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
+                  profile?.service_areas?.includes(area)
+                    ? "bg-amber-600 text-white"
+                    : "bg-white border border-neutral-200 text-neutral-600"
+                }`}
+              >
+                {area}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Contact */}
+        <div className="space-y-3">
+          <Label className="text-xs text-neutral-500 block">Contact & Social</Label>
+          <Input
+            value={profile?.contact_email || ""}
+            onChange={(e) => setProfile({ ...profile, contact_email: e.target.value })}
+            placeholder="Contact email"
+            className="rounded-xl"
+          />
+          <Input
+            value={profile?.instagram_handle || ""}
+            onChange={(e) => setProfile({ ...profile, instagram_handle: e.target.value })}
+            placeholder="Instagram handle (without @)"
+            className="rounded-xl"
+          />
+          <Input
+            value={profile?.website_url || ""}
+            onChange={(e) => setProfile({ ...profile, website_url: e.target.value })}
+            placeholder="Website URL"
+            className="rounded-xl"
+          />
+        </div>
+
+        {/* Portfolio */}
+        <div>
+          <Label className="text-xs text-neutral-500 mb-2 block">Portfolio</Label>
+          <PortfolioUploader
+            items={profile?.portfolio_items || []}
+            onChange={(items) => setProfile({ ...profile, portfolio_items: items })}
+          />
+        </div>
+
+        {/* Publish */}
+        <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-neutral-100">
+          <div>
+            <p className="text-sm font-medium text-neutral-800">Publish Profile</p>
+            <p className="text-xs text-neutral-400 mt-0.5">Make your profile visible to clients</p>
+          </div>
+          <Switch
+            checked={profile?.is_published || false}
+            onCheckedChange={(v) => setProfile({ ...profile, is_published: v })}
+          />
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-xl border-t border-neutral-100 z-30">
+        <Button
+          onClick={handleSave}
+          disabled={saving || !profile?.display_name || !profile?.categories?.length || !profile?.service_areas?.length}
+          className="w-full h-14 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-base"
+        >
+          {saving ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          ) : saved ? (
+            <CheckCircle2 className="w-4 h-4 mr-2 text-green-400" />
+          ) : (
+            <Save className="w-4 h-4 mr-2" />
+          )}
+          {saved ? "Saved!" : saving ? "Saving..." : "Save Profile"}
+        </Button>
+      </div>
+    </div>
+  );
+}
