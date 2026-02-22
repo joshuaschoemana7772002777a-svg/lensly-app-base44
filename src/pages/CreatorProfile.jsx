@@ -57,17 +57,17 @@ export default function CreatorProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-neutral-300 border-t-amber-500 animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-neutral-300 border-t-blue-500 animate-spin" />
       </div>
     );
   }
 
   if (!creator) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center gap-4 p-5">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 p-5">
         <h2 className="text-lg font-semibold">Creator not found</h2>
-        <Link to={createPageUrl("Explore")} className="text-amber-600 text-sm">
+        <Link to={createPageUrl("Explore")} className="text-blue-500 text-sm">
           Back to Explore
         </Link>
       </div>
@@ -158,9 +158,9 @@ export default function CreatorProfile() {
 
           {/* Price */}
           {creator.starting_price && (
-            <div className="mt-4 p-3 bg-amber-50 rounded-xl">
-              <span className="text-xs text-amber-700 font-medium">Starting from</span>
-              <div className="text-2xl font-bold text-amber-700">R{creator.starting_price?.toLocaleString()}</div>
+            <div className="mt-4 p-3 bg-blue-50 rounded-xl">
+              <span className="text-xs text-blue-600 font-medium">Starting from</span>
+              <div className="text-2xl font-bold text-blue-600">R{creator.starting_price?.toLocaleString()}</div>
             </div>
           )}
 
@@ -182,7 +182,7 @@ export default function CreatorProfile() {
             <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">Specialties</h3>
             <div className="flex flex-wrap gap-2">
               {(creator.categories || []).map((cat) => (
-                <Badge key={cat} variant="secondary" className="bg-neutral-900 text-white text-xs rounded-full px-3">
+                <Badge key={cat} variant="secondary" className="bg-blue-500 text-white text-xs rounded-full px-3">
                   {cat}
                 </Badge>
               ))}
@@ -251,7 +251,7 @@ export default function CreatorProfile() {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-xl border-t border-neutral-100 z-30">
         <Button
           onClick={() => setContactOpen(true)}
-          className="w-full h-14 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-base"
+          className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
         >
           <Send className="w-4 h-4 mr-2" />
           Contact {creator.display_name?.split(" ")[0]}

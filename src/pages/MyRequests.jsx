@@ -42,14 +42,14 @@ export default function MyRequests() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-5">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-5">
         <div className="w-20 h-20 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
           <Mail className="w-8 h-8 text-neutral-300" />
         </div>
         <h2 className="text-lg font-semibold text-neutral-800">Sign in to view requests</h2>
         <button
           onClick={() => base44.auth.redirectToLogin(window.location.href)}
-          className="mt-6 px-6 py-3 bg-neutral-900 text-white rounded-2xl text-sm font-medium"
+          className="mt-6 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl text-sm font-medium"
         >
           Sign In
         </button>
@@ -58,13 +58,13 @@ export default function MyRequests() {
   }
 
   const statusConfig = {
-    pending: { icon: Clock, color: "bg-amber-100 text-amber-700", label: "New" },
-    read: { icon: CheckCircle2, color: "bg-blue-100 text-blue-700", label: "Read" },
+    pending: { icon: Clock, color: "bg-blue-100 text-blue-600", label: "New" },
+    read: { icon: CheckCircle2, color: "bg-neutral-100 text-neutral-600", label: "Read" },
     replied: { icon: MessageCircle, color: "bg-green-100 text-green-700", label: "Replied" },
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       <div className="px-5 pt-6 pb-4">
         <h1 className="text-xl font-bold text-neutral-900">Requests</h1>
         <p className="text-sm text-neutral-400 mt-1">Messages from potential clients</p>
@@ -94,7 +94,7 @@ export default function MyRequests() {
                 key={req.id}
                 onClick={() => markAsRead(req)}
                 className={`w-full text-left p-4 rounded-2xl bg-white border transition-all ${
-                  req.status === "pending" ? "border-amber-200 shadow-sm" : "border-neutral-100"
+                  req.status === "pending" ? "border-blue-200 shadow-sm" : "border-neutral-100"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">

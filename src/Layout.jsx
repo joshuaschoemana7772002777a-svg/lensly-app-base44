@@ -16,7 +16,7 @@ export default function Layout({ children, currentPageName }) {
   const hideNav = currentPageName === "CreatorProfile";
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-white">
       <style>{`
         :root {
           --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -24,6 +24,7 @@ export default function Layout({ children, currentPageName }) {
         body {
           font-family: var(--font-sans);
           -webkit-font-smoothing: antialiased;
+          background: white;
         }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
@@ -42,7 +43,7 @@ export default function Layout({ children, currentPageName }) {
                   key={item.page}
                   to={createPageUrl(item.page)}
                   className={`flex flex-col items-center gap-0.5 px-3 py-1 transition-colors ${
-                    isActive ? "text-neutral-900" : "text-neutral-400"
+                    isActive ? "text-blue-500" : "text-neutral-400"
                   }`}
                 >
                   <Icon className={`w-5 h-5 ${isActive ? "stroke-[2.5px]" : ""}`} />

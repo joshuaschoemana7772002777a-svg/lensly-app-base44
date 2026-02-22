@@ -14,8 +14,8 @@ export default function AreaFilterChips({ selected, onChange }) {
             onClick={() => onChange(area === "All Areas" ? null : area)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
               isActive
-                ? "bg-neutral-900 text-white shadow-lg"
-                : "bg-white text-neutral-600 border border-neutral-200 hover:border-neutral-400"
+                ? "bg-blue-500 text-white shadow-lg"
+                : "bg-white text-neutral-600 border border-neutral-200 hover:border-blue-300"
             }`}
           >
             {area !== "All Areas" && <MapPin className="w-3 h-3" />}

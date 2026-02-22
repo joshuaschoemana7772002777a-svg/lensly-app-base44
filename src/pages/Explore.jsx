@@ -77,22 +77,22 @@ export default function Explore() {
   const activeFilters = [selectedCategory, selectedArea].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-neutral-50/90 backdrop-blur-xl border-b border-neutral-100">
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-neutral-100">
         <div className="px-5 pt-5 pb-3">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-bold text-neutral-900">Explore</h1>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-2 rounded-xl transition-colors ${viewMode === "list" ? "bg-neutral-900 text-white" : "bg-white text-neutral-500 border border-neutral-200"}`}
+                className={`p-2 rounded-xl transition-colors ${viewMode === "list" ? "bg-blue-500 text-white" : "bg-white text-neutral-500 border border-neutral-200"}`}
               >
                 <List className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode("map")}
-                className={`p-2 rounded-xl transition-colors ${viewMode === "map" ? "bg-neutral-900 text-white" : "bg-white text-neutral-500 border border-neutral-200"}`}
+                className={`p-2 rounded-xl transition-colors ${viewMode === "map" ? "bg-blue-500 text-white" : "bg-white text-neutral-500 border border-neutral-200"}`}
               >
                 <MapIcon className="w-4 h-4" />
               </button>

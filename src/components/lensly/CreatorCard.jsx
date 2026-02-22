@@ -41,7 +41,7 @@ export default function CreatorCard({ creator, isFavourite, onToggleFavourite, i
               <span className="text-white/70 text-xs">{creator.service_areas?.slice(0, 2).join(", ")}</span>
             </div>
             {creator.starting_price && (
-              <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm">
+              <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-full bg-blue-500/90 backdrop-blur-sm">
                 <span className="text-white text-xs font-medium">From R{creator.starting_price?.toLocaleString()}</span>
               </div>
             )}

@@ -53,16 +53,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-white">
       {/* Hero */}
-      <div className="relative overflow-hidden bg-neutral-900 px-5 pt-14 pb-10">
-        <div className="absolute inset-0 opacity-20">
-          <img
-            src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=800&q=80"
-            alt=""
-            className="w-full h-full object-cover"
-          />
-        </div>
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-white px-5 pt-14 pb-10">
         <div className="relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -70,16 +63,16 @@ export default function Home() {
             transition={{ duration: 0.6 }}
           >
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
                 <Camera className="w-4 h-4 text-white" />
               </div>
-              <span className="text-white/80 font-medium text-sm tracking-wide">LENSLY</span>
+              <span className="text-neutral-600 font-medium text-sm tracking-wide">LENSLY</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 leading-tight">
               Find your perfect<br />
-              <span className="text-amber-400">creative</span> match
+              <span className="text-blue-500">creative</span> match
             </h1>
-            <p className="text-white/60 mt-3 text-sm max-w-xs leading-relaxed">
+            <p className="text-neutral-500 mt-3 text-sm max-w-xs leading-relaxed">
               Discover top photographers & videographers near you in South Africa
             </p>
           </motion.div>
@@ -92,7 +85,7 @@ export default function Home() {
           >
             <Link
               to={createPageUrl("Explore")}
-              className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3.5 text-white/50 hover:bg-white/20 transition-all"
+              className="flex items-center gap-3 bg-white border border-neutral-200 rounded-2xl px-4 py-3.5 text-neutral-400 hover:border-blue-300 transition-all shadow-sm"
             >
               <Search className="w-4 h-4" />
               <span className="text-sm">Search photographers, videographers...</span>
@@ -105,7 +98,7 @@ export default function Home() {
       <div className="px-5 pt-8 pb-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-neutral-900">Browse by Category</h2>
-          <Link to={createPageUrl("Explore")} className="text-amber-600 text-xs font-medium flex items-center gap-1">
+          <Link to={createPageUrl("Explore")} className="text-blue-500 text-xs font-medium flex items-center gap-1">
             See all <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
@@ -123,7 +116,7 @@ export default function Home() {
         <div className="px-5 pt-6 pb-24">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-neutral-900">Featured Creators</h2>
-            <Link to={createPageUrl("Explore")} className="text-amber-600 text-xs font-medium flex items-center gap-1">
+            <Link to={createPageUrl("Explore")} className="text-blue-500 text-xs font-medium flex items-center gap-1">
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>

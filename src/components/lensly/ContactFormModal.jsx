@@ -124,7 +124,7 @@ export default function ContactFormModal({ open, onClose, creator }) {
               <Button
                 type="submit"
                 disabled={sending}
-                className="w-full rounded-xl bg-neutral-900 hover:bg-neutral-800 h-12 text-sm font-medium"
+                className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 h-12 text-sm font-medium"
               >
                 {sending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
                 Send Request

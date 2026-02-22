@@ -95,14 +95,14 @@ export default function EditProfile() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-5">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-5">
         <div className="w-20 h-20 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
           <Camera className="w-8 h-8 text-neutral-300" />
         </div>
         <h2 className="text-lg font-semibold text-neutral-800">Sign in to create your profile</h2>
         <button
           onClick={() => base44.auth.redirectToLogin(window.location.href)}
-          className="mt-6 px-6 py-3 bg-neutral-900 text-white rounded-2xl text-sm font-medium"
+          className="mt-6 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl text-sm font-medium"
         >
           Sign In
         </button>
@@ -112,14 +112,14 @@ export default function EditProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-neutral-300 border-t-amber-500 animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-neutral-300 border-t-blue-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-32">
+    <div className="min-h-screen bg-white pb-32">
       <div className="px-5 pt-6 pb-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-neutral-900">
@@ -128,7 +128,7 @@ export default function EditProfile() {
           {profile?.id && profile?.is_published && (
             <Link
               to={createPageUrl("CreatorProfile") + `?id=${profile.id}`}
-              className="text-xs text-amber-600 font-medium flex items-center gap-1"
+              className="text-xs text-blue-500 font-medium flex items-center gap-1"
             >
               <Eye className="w-3 h-3" /> View Live
             </Link>
@@ -215,7 +215,7 @@ export default function EditProfile() {
                 onClick={() => toggleCategory(cat)}
                 className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
                   profile?.categories?.includes(cat)
-                    ? "bg-neutral-900 text-white"
+                    ? "bg-blue-500 text-white"
                     : "bg-white border border-neutral-200 text-neutral-600"
                 }`}
               >
@@ -235,7 +235,7 @@ export default function EditProfile() {
                 onClick={() => toggleArea(area)}
                 className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
                   profile?.service_areas?.includes(area)
-                    ? "bg-amber-600 text-white"
+                    ? "bg-blue-500 text-white"
                     : "bg-white border border-neutral-200 text-neutral-600"
                 }`}
               >
@@ -295,7 +295,7 @@ export default function EditProfile() {
         <Button
           onClick={handleSave}
           disabled={saving || !profile?.display_name || !profile?.categories?.length || !profile?.service_areas?.length}
-          className="w-full h-14 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-base"
+          className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
         >
           {saving ? (
             <Loader2 className="w-4 h-4 animate-spin mr-2" />

@@ -57,7 +57,7 @@ export default function MapView({ creators }) {
                       <Link
                         key={c.id}
                         to={createPageUrl("CreatorProfile") + `?id=${c.id}`}
-                        className="block text-amber-700 hover:underline text-xs"
+                        className="block text-blue-500 hover:underline text-xs"
                       >
                         {c.display_name}
                       </Link>

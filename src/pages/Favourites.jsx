@@ -45,7 +45,7 @@ export default function Favourites() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-5">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-5">
         <div className="w-20 h-20 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
           <Heart className="w-8 h-8 text-neutral-300" />
         </div>
@@ -53,7 +53,7 @@ export default function Favourites() {
         <p className="text-sm text-neutral-400 mt-2 text-center">Log in to save and view your favourite creators</p>
         <button
           onClick={() => base44.auth.redirectToLogin(window.location.href)}
-          className="mt-6 px-6 py-3 bg-neutral-900 text-white rounded-2xl text-sm font-medium"
+          className="mt-6 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl text-sm font-medium"
         >
           Sign In
         </button>
@@ -62,7 +62,7 @@ export default function Favourites() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       <div className="px-5 pt-6 pb-4">
         <h1 className="text-xl font-bold text-neutral-900">Favourites</h1>
         <p className="text-sm text-neutral-400 mt-1">{creators.length} saved creator{creators.length !== 1 ? "s" : ""}</p>
@@ -80,7 +80,7 @@ export default function Favourites() {
             </div>
             <h3 className="font-medium text-neutral-700">No favourites yet</h3>
             <p className="text-sm text-neutral-400 mt-1">Tap the heart icon on any creator to save them</p>
-            <Link to={createPageUrl("Explore")} className="inline-block mt-4 text-amber-600 text-sm font-medium">
+            <Link to={createPageUrl("Explore")} className="inline-block mt-4 text-blue-500 text-sm font-medium">
               Explore Creators
             </Link>
           </div>

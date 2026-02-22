@@ -3,12 +3,12 @@ import { motion } from "framer-motion";
 import { Camera, Briefcase, Heart, PartyPopper, Sparkles, Share2 } from "lucide-react";
 
 const categoryConfig = {
-  "Corporate": { icon: Briefcase, gradient: "from-slate-800 to-slate-600", image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=80" },
-  "Brand / Commercial": { icon: Sparkles, gradient: "from-amber-700 to-amber-500", image: "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=400&q=80" },
-  "Weddings": { icon: Heart, gradient: "from-rose-700 to-rose-500", image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80" },
-  "Events": { icon: PartyPopper, gradient: "from-violet-700 to-violet-500", image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&q=80" },
-  "Lifestyle": { icon: Camera, gradient: "from-emerald-700 to-emerald-500", image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80" },
-  "Social Media Content": { icon: Share2, gradient: "from-sky-700 to-sky-500", image: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=400&q=80" },
+  "Corporate": { icon: Briefcase, gradient: "from-blue-500 to-blue-400", image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=80" },
+  "Brand / Commercial": { icon: Sparkles, gradient: "from-blue-600 to-blue-400", image: "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=400&q=80" },
+  "Weddings": { icon: Heart, gradient: "from-blue-500 to-blue-300", image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80" },
+  "Events": { icon: PartyPopper, gradient: "from-blue-600 to-blue-400", image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&q=80" },
+  "Lifestyle": { icon: Camera, gradient: "from-blue-500 to-blue-300", image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80" },
+  "Social Media Content": { icon: Share2, gradient: "from-blue-600 to-blue-400", image: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=400&q=80" },
 };
 
 export default function CategoryCard({ category, onClick, index = 0 }) {
