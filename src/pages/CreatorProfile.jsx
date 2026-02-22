@@ -139,59 +139,61 @@ export default function CreatorProfile() {
       {/* Content */}
       <div className="px-5 -mt-6 relative z-10">
         <div className="bg-white rounded-2xl shadow-xl p-5 border border-neutral-100">
-          <div className="flex items-start gap-4">
-            {creator.profile_image && (
-              <img
-                src={creator.profile_image}
-                alt={creator.display_name}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-md flex-shrink-0"
-              />
-            )}
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold text-neutral-900 leading-tight">{creator.display_name}</h1>
-              <div className="flex items-center gap-1.5 mt-1">
-                <Camera className="w-3 h-3 text-neutral-400" />
-                <span className="text-xs text-neutral-500 capitalize">{creator.creator_type || "Photographer"}</span>
-              </div>
+          <h1 className="text-2xl font-bold text-neutral-900 leading-tight">{creator.display_name}</h1>
+
+          {creator.categories?.[0] && (
+            <div className="mt-2">
+              <Badge variant="secondary" className="bg-blue-500 text-white text-xs rounded-full px-3">
+                {creator.categories[0]}
+              </Badge>
             </div>
-          </div>
+          )}
 
           {/* Price */}
           {creator.starting_price && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-xl">
-              <span className="text-xs text-blue-600 font-medium">Starting from</span>
-              <div className="text-2xl font-bold text-blue-600">R{creator.starting_price?.toLocaleString()}</div>
+            <div className="mt-4 p-4 bg-blue-50 rounded-xl">
+              <span className="text-xs text-blue-600 font-medium uppercase tracking-wide">Starting from</span>
+              <div className="text-3xl font-bold text-blue-600 mt-1">R{creator.starting_price?.toLocaleString()}</div>
             </div>
           )}
 
           {/* Areas */}
           <div className="mt-4">
-            <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">Operating Areas</h3>
-            <div className="flex flex-wrap gap-2">
-              {(creator.service_areas || []).map((area) => (
-                <div key={area} className="flex items-center gap-1 px-3 py-1.5 bg-neutral-100 rounded-full">
-                  <MapPin className="w-3 h-3 text-neutral-500" />
-                  <span className="text-xs font-medium text-neutral-700">{area}</span>
-                </div>
-              ))}
+            <div className="flex items-center gap-1.5 text-sm text-neutral-600">
+              <MapPin className="w-4 h-4 text-neutral-400" />
+              <span>Operates in: {(creator.service_areas || []).join(" · ")}</span>
             </div>
           </div>
 
+          {/* Primary CTA */}
+          <Button
+            onClick={() => setContactOpen(true)}
+            className="w-full h-14 mt-5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-base shadow-lg"
+          >
+            <Send className="w-5 h-5 mr-2" />
+            Contact {creator.display_name?.split(" ")[0]}
+          </Button>
+        </div>
+
+        {/* Additional Details */}
+        <div className="mt-5 bg-white rounded-2xl shadow-sm p-5 border border-neutral-100">
           {/* Categories */}
-          <div className="mt-4">
-            <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">Specialties</h3>
-            <div className="flex flex-wrap gap-2">
-              {(creator.categories || []).map((cat) => (
-                <Badge key={cat} variant="secondary" className="bg-blue-500 text-white text-xs rounded-full px-3">
-                  {cat}
-                </Badge>
-              ))}
+          {creator.categories?.length > 1 && (
+            <div className="mb-4">
+              <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">All Specialties</h3>
+              <div className="flex flex-wrap gap-2">
+                {creator.categories.map((cat) => (
+                  <Badge key={cat} variant="secondary" className="bg-neutral-100 text-neutral-700 text-xs rounded-full px-3">
+                    {cat}
+                  </Badge>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Bio */}
           {creator.bio && (
-            <div className="mt-5">
+            <div className={creator.categories?.length > 1 ? "mt-4" : ""}>
               <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">About</h3>
               <p className="text-sm text-neutral-600 leading-relaxed">{creator.bio}</p>
             </div>
@@ -220,7 +222,7 @@ export default function CreatorProfile() {
               </a>
             )}
           </div>
-        </div>
+          </div>
 
         {/* Portfolio Grid */}
         {portfolio.length > 0 && (
@@ -247,16 +249,7 @@ export default function CreatorProfile() {
         )}
       </div>
 
-      {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-neutral-200 z-30 shadow-2xl">
-        <Button
-          onClick={() => setContactOpen(true)}
-          className="w-full h-16 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-lg shadow-lg"
-        >
-          <Send className="w-5 h-5 mr-2" />
-          Contact {creator.display_name?.split(" ")[0]}
-        </Button>
-      </div>
+
 
       <ContactFormModal open={contactOpen} onClose={() => setContactOpen(false)} creator={creator} />
     </div>
