@@ -230,7 +230,7 @@ export default function EditProfile() {
               </Select>
             </div>
             <div>
-              <Label className="text-xs text-neutral-500 mb-1 block">Starting Price (ZAR)</Label>
+              <Label className="text-xs text-neutral-500 mb-1 block">Starting From Price (ZAR)</Label>
               <Input
                 type="number"
                 value={profile?.starting_price || ""}
@@ -238,6 +238,9 @@ export default function EditProfile() {
                 placeholder="e.g. 2500"
                 className="rounded-xl"
               />
+              <p className="text-xs text-neutral-400 mt-1">
+                Helps clients filter and set expectations
+              </p>
             </div>
           </div>
         </div>
