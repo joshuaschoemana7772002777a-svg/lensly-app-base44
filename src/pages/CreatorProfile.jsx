@@ -191,33 +191,6 @@ export default function CreatorProfile() {
             </div>
           )}
 
-          {/* Links */}
-          {(creator.instagram_handle || creator.website_url) && (
-            <div className={creator.categories?.length > 1 ? "mt-4" : ""}>
-              <div className="flex flex-wrap gap-3">
-                {creator.instagram_handle && (
-                  <a
-                    href={`https://instagram.com/${creator.instagram_handle}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-2 bg-neutral-100 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-200 transition"
-                  >
-                    <Instagram className="w-3.5 h-3.5" /> @{creator.instagram_handle}
-                  </a>
-                )}
-                {creator.website_url && (
-                  <a
-                    href={creator.website_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-2 bg-neutral-100 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-200 transition"
-                  >
-                    <Globe className="w-3.5 h-3.5" /> Website
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Portfolio Grid */}
@@ -249,6 +222,35 @@ export default function CreatorProfile() {
           <div className="mt-6 bg-white rounded-2xl shadow-sm p-5 border border-neutral-100">
             <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">About</h3>
             <p className="text-sm text-neutral-600 leading-relaxed">{creator.bio}</p>
+          </div>
+        )}
+
+        {/* Social Links */}
+        {(creator.instagram_handle || creator.website_url) && (
+          <div className="mt-4 bg-white rounded-2xl shadow-sm p-5 border border-neutral-100">
+            <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-3">Connect</h3>
+            <div className="flex flex-wrap gap-3">
+              {creator.instagram_handle && (
+                <a
+                  href={`https://instagram.com/${creator.instagram_handle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-neutral-100 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-200 transition"
+                >
+                  <Instagram className="w-3.5 h-3.5" /> @{creator.instagram_handle}
+                </a>
+              )}
+              {creator.website_url && (
+                <a
+                  href={creator.website_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-neutral-100 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-200 transition"
+                >
+                  <Globe className="w-3.5 h-3.5" /> Website
+                </a>
+              )}
+            </div>
           </div>
         )}
       </div>
