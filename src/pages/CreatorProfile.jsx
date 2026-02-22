@@ -167,7 +167,14 @@ export default function CreatorProfile() {
 
           {/* Primary CTA */}
           <Button
-            onClick={() => setContactOpen(true)}
+            onClick={async () => {
+              const authed = await base44.auth.isAuthenticated();
+              if (!authed) {
+                base44.auth.redirectToLogin(window.location.href);
+              } else {
+                setContactOpen(true);
+              }
+            }}
             className="w-full h-14 mt-5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-base shadow-lg"
           >
             <Send className="w-5 h-5 mr-2" />
