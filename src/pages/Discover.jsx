@@ -45,7 +45,25 @@ export default function Discover() {
   const loadCreators = async () => {
     setLoading(true);
     const data = await base44.entities.CreatorProfile.filter({ is_published: true }, "-created_date", 100);
-    setCreators(data);
+    
+    // Sort by profile completeness, then price, then creation date
+    const sorted = data.sort((a, b) => {
+      const aComplete = a.profile_image && a.portfolio_items?.length > 0 && a.starting_price;
+      const bComplete = b.profile_image && b.portfolio_items?.length > 0 && b.starting_price;
+      
+      if (aComplete && !bComplete) return -1;
+      if (!aComplete && bComplete) return 1;
+      
+      if (a.starting_price && b.starting_price) {
+        if (a.starting_price !== b.starting_price) {
+          return a.starting_price - b.starting_price;
+        }
+      }
+      
+      return new Date(a.created_date) - new Date(b.created_date);
+    });
+    
+    setCreators(sorted);
     setLoading(false);
   };
 
