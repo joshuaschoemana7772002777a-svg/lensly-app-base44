@@ -4,6 +4,7 @@ import { Search, ArrowRight, Camera } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
+import { Button } from "@/components/ui/button";
 import CategoryCard from "../components/lensly/CategoryCard";
 import CreatorCard from "../components/lensly/CreatorCard";
 
@@ -82,12 +83,10 @@ export default function Home() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="mt-6"
           >
-            <Link
-              to={createPageUrl("Discover")}
-              className="flex items-center gap-3 bg-white border border-neutral-200 rounded-2xl px-4 py-3.5 text-neutral-400 hover:border-blue-300 transition-all shadow-sm"
-            >
-              <Search className="w-4 h-4" />
-              <span className="text-sm">Search photographers, videographers...</span>
+            <Link to={createPageUrl("Discover")}>
+              <Button className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-base shadow-lg">
+                Discover creators
+              </Button>
             </Link>
           </motion.div>
         </div>
