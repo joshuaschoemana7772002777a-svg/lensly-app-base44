@@ -1,54 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { Search, ArrowRight, Camera } from "lucide-react";
+import { ArrowRight, Camera } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import CategoryCard from "../components/lensly/CategoryCard";
-import CreatorCard from "../components/lensly/CreatorCard";
 
 const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Lifestyle", "Social Media Content"];
 
 export default function Home() {
-  const [featuredCreators, setFeaturedCreators] = useState([]);
-  const [favouriteIds, setFavouriteIds] = useState(new Set());
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    const creators = await base44.entities.CreatorProfile.filter({ is_published: true }, "-created_date", 6);
-    setFeaturedCreators(creators);
-    const authed = await base44.auth.isAuthenticated();
-    setIsAuthenticated(authed);
-    if (authed) {
-      const favs = await base44.entities.Favourite.list();
-      setFavouriteIds(new Set(favs.map(f => f.creator_profile_id)));
-    }
-  };
-
-  const toggleFavourite = async (creator) => {
-    if (!isAuthenticated) {
-      base44.auth.redirectToLogin(window.location.href);
-      return;
-    }
-    if (favouriteIds.has(creator.id)) {
-      const favs = await base44.entities.Favourite.filter({ creator_profile_id: creator.id });
-      if (favs.length > 0) await base44.entities.Favourite.delete(favs[0].id);
-      setFavouriteIds(prev => { const next = new Set(prev); next.delete(creator.id); return next; });
-    } else {
-      await base44.entities.Favourite.create({
-        creator_profile_id: creator.id,
-        creator_name: creator.display_name,
-        creator_image: creator.profile_image,
-      });
-      setFavouriteIds(prev => new Set(prev).add(creator.id));
-    }
-  };
-
   const navigateToCategory = (category) => {
     return createPageUrl("Discover") + `?category=${encodeURIComponent(category)}`;
   };
@@ -93,7 +53,7 @@ export default function Home() {
       </div>
 
       {/* Categories */}
-      <div className="px-5 pt-8 pb-4">
+      <div className="px-5 pt-8 pb-24">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-neutral-900">Browse by Category</h2>
           <Link to={createPageUrl("Discover")} className="text-blue-500 text-xs font-medium flex items-center gap-1">
@@ -108,29 +68,6 @@ export default function Home() {
           ))}
         </div>
       </div>
-
-      {/* Featured Creators */}
-      {featuredCreators.length > 0 && (
-        <div className="px-5 pt-6 pb-24">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-neutral-900">Featured Creators</h2>
-            <Link to={createPageUrl("Discover")} className="text-blue-500 text-xs font-medium flex items-center gap-1">
-              View all <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {featuredCreators.map((creator, i) => (
-              <CreatorCard
-                key={creator.id}
-                creator={creator}
-                index={i}
-                isFavourite={favouriteIds.has(creator.id)}
-                onToggleFavourite={toggleFavourite}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
