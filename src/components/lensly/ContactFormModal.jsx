@@ -12,10 +12,8 @@ const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Li
 
 export default function ContactFormModal({ open, onClose, creator }) {
   const [form, setForm] = useState({
-    sender_name: "",
-    sender_email: "",
-    sender_phone: "",
     category: "",
+    service_area: "",
     preferred_date: "",
     message: "",
   });
@@ -34,7 +32,7 @@ export default function ContactFormModal({ open, onClose, creator }) {
     setSent(true);
     setTimeout(() => {
       setSent(false);
-      setForm({ sender_name: "", sender_email: "", sender_phone: "", category: "", preferred_date: "", message: "" });
+      setForm({ category: "", service_area: "", preferred_date: "", message: "" });
       onClose();
     }, 2000);
   };
@@ -60,55 +58,23 @@ export default function ContactFormModal({ open, onClose, creator }) {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 mt-2">
               <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <Label className="text-xs text-neutral-500 mb-1 block">Your Name *</Label>
-                  <Input
-                    required
-                    value={form.sender_name}
-                    onChange={(e) => setForm({ ...form, sender_name: e.target.value })}
-                    placeholder="Full name"
-                    className="rounded-xl"
-                  />
-                </div>
                 <div>
-                  <Label className="text-xs text-neutral-500 mb-1 block">Email *</Label>
-                  <Input
-                    required
-                    type="email"
-                    value={form.sender_email}
-                    onChange={(e) => setForm({ ...form, sender_email: e.target.value })}
-                    placeholder="email@example.com"
-                    className="rounded-xl"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs text-neutral-500 mb-1 block">Phone</Label>
-                  <Input
-                    value={form.sender_phone}
-                    onChange={(e) => setForm({ ...form, sender_phone: e.target.value })}
-                    placeholder="+27..."
-                    className="rounded-xl"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs text-neutral-500 mb-1 block">Category</Label>
-                  <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-                    <SelectTrigger className="rounded-xl"><SelectValue placeholder="Select" /></SelectTrigger>
+                  <Label className="text-xs text-neutral-500 mb-1 block">Shoot Type *</Label>
+                  <Select required value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                    <SelectTrigger className="rounded-xl"><SelectValue placeholder="Select type" /></SelectTrigger>
                     <SelectContent>
                       {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs text-neutral-500 mb-1 block">Preferred Date</Label>
-                  <Input
-                    type="date"
-                    value={form.preferred_date}
-                    onChange={(e) => setForm({ ...form, preferred_date: e.target.value })}
-                    className="rounded-xl"
-                  />
+                  <Label className="text-xs text-neutral-500 mb-1 block">Operating Area *</Label>
+                  <Select required value={form.service_area} onValueChange={(v) => setForm({ ...form, service_area: v })}>
+                    <SelectTrigger className="rounded-xl"><SelectValue placeholder="Select area" /></SelectTrigger>
+                    <SelectContent>
+                      {creator?.service_areas?.map((area) => <SelectItem key={area} value={area}>{area}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div>
@@ -117,8 +83,17 @@ export default function ContactFormModal({ open, onClose, creator }) {
                   required
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  placeholder="Tell them about your project, vision, and any specific requirements..."
+                  placeholder="Tell them about your project..."
                   className="rounded-xl min-h-[100px]"
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-neutral-500 mb-1 block">Shoot Date (Optional)</Label>
+                <Input
+                  type="date"
+                  value={form.preferred_date}
+                  onChange={(e) => setForm({ ...form, preferred_date: e.target.value })}
+                  className="rounded-xl"
                 />
               </div>
               <Button
