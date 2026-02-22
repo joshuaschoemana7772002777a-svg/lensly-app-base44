@@ -45,9 +45,12 @@ export default function ContactFormModal({ open, onClose, creator }) {
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-green-600" />
             </div>
-            <h3 className="text-lg font-semibold">Request Sent!</h3>
-            <p className="text-neutral-500 text-sm text-center">
-              {creator?.display_name} will get back to you soon.
+            <h3 className="text-lg font-semibold">Request Sent Successfully!</h3>
+            <p className="text-neutral-600 text-sm text-center max-w-xs">
+              Your contact request has been sent to {creator?.display_name}.
+            </p>
+            <p className="text-neutral-500 text-xs text-center max-w-xs">
+              They will respond to you directly via email or phone.
             </p>
           </div>
         ) : (
