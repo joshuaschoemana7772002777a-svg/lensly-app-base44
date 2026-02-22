@@ -49,7 +49,7 @@ export default function Home() {
   };
 
   const navigateToCategory = (category) => {
-    return createPageUrl("Explore") + `?category=${encodeURIComponent(category)}`;
+    return createPageUrl("Discover") + `?category=${encodeURIComponent(category)}`;
   };
 
   return (
@@ -84,7 +84,7 @@ export default function Home() {
             className="mt-6"
           >
             <Link
-              to={createPageUrl("Explore")}
+              to={createPageUrl("Discover")}
               className="flex items-center gap-3 bg-white border border-neutral-200 rounded-2xl px-4 py-3.5 text-neutral-400 hover:border-blue-300 transition-all shadow-sm"
             >
               <Search className="w-4 h-4" />
@@ -98,7 +98,7 @@ export default function Home() {
       <div className="px-5 pt-8 pb-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-neutral-900">Browse by Category</h2>
-          <Link to={createPageUrl("Explore")} className="text-blue-500 text-xs font-medium flex items-center gap-1">
+          <Link to={createPageUrl("Discover")} className="text-blue-500 text-xs font-medium flex items-center gap-1">
             See all <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
@@ -116,7 +116,7 @@ export default function Home() {
         <div className="px-5 pt-6 pb-24">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-neutral-900">Featured Creators</h2>
-            <Link to={createPageUrl("Explore")} className="text-blue-500 text-xs font-medium flex items-center gap-1">
+            <Link to={createPageUrl("Discover")} className="text-blue-500 text-xs font-medium flex items-center gap-1">
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
