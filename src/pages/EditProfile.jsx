@@ -314,9 +314,18 @@ export default function EditProfile() {
         {/* Portfolio */}
         <div>
           <Label className="text-xs text-neutral-500 mb-2 block">Portfolio</Label>
+          <p className="text-xs text-neutral-400 mb-3">
+            Your first image will be used as your cover photo
+          </p>
           <PortfolioUploader
             items={profile?.portfolio_items || []}
-            onChange={(items) => setProfile({ ...profile, portfolio_items: items })}
+            onChange={(items) => {
+              const updated = { ...profile, portfolio_items: items };
+              if (items.length > 0 && !profile?.profile_image) {
+                updated.profile_image = items[0].url;
+              }
+              setProfile(updated);
+            }}
           />
         </div>
 
