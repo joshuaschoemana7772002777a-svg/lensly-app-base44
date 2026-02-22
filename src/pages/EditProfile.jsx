@@ -21,6 +21,7 @@ export default function EditProfile() {
   const [saved, setSaved] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profileImageUploading, setProfileImageUploading] = useState(false);
+  const [isOnboarding, setIsOnboarding] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -34,6 +35,7 @@ export default function EditProfile() {
     const profiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
     if (profiles.length > 0) {
       setProfile(profiles[0]);
+      setIsOnboarding(!profiles[0].is_published);
     } else {
       setProfile({
         display_name: user.full_name || "",
@@ -49,12 +51,14 @@ export default function EditProfile() {
         instagram_handle: "",
         website_url: "",
       });
+      setIsOnboarding(true);
     }
     setLoading(false);
   };
 
   const handleSave = async () => {
     setSaving(true);
+    const wasOnboarding = isOnboarding && !profile.is_published;
     if (profile.id) {
       await base44.entities.CreatorProfile.update(profile.id, profile);
     } else {
@@ -63,7 +67,14 @@ export default function EditProfile() {
     }
     setSaving(false);
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    
+    if (wasOnboarding && profile.is_published) {
+      setTimeout(() => {
+        window.location.href = createPageUrl("Home");
+      }, 1500);
+    } else {
+      setTimeout(() => setSaved(false), 2000);
+    }
   };
 
   const toggleCategory = (cat) => {
@@ -118,13 +129,29 @@ export default function EditProfile() {
     );
   }
 
+  const steps = [
+    { name: "Basic Info", complete: !!(profile?.display_name && profile?.profile_image) },
+    { name: "Categories", complete: !!(profile?.categories?.length > 0) },
+    { name: "Service Areas", complete: !!(profile?.service_areas?.length > 0) },
+    { name: "Portfolio", complete: !!(profile?.portfolio_items?.length > 0) },
+    { name: "Publish", complete: profile?.is_published },
+  ];
+  const completedSteps = steps.filter(s => s.complete).length;
+
   return (
     <div className="min-h-screen bg-white pb-32">
       <div className="px-5 pt-6 pb-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-neutral-900">
-            {profile?.id ? "Edit Profile" : "Create Profile"}
-          </h1>
+          <div>
+            <h1 className="text-xl font-bold text-neutral-900">
+              {isOnboarding ? "Complete Your Profile" : "Edit Profile"}
+            </h1>
+            {isOnboarding && (
+              <p className="text-xs text-neutral-500 mt-1">
+                {completedSteps} of {steps.length} steps completed
+              </p>
+            )}
+          </div>
           {profile?.id && profile?.is_published && (
             <Link
               to={createPageUrl("CreatorProfile") + `?id=${profile.id}`}
@@ -134,6 +161,16 @@ export default function EditProfile() {
             </Link>
           )}
         </div>
+        
+        {isOnboarding && (
+          <div className="mt-4 flex gap-1">
+            {steps.map((step, i) => (
+              <div key={i} className="flex-1 h-1.5 rounded-full bg-neutral-100 overflow-hidden">
+                <div className={`h-full transition-all ${step.complete ? "bg-blue-500 w-full" : "bg-transparent w-0"}`} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="px-5 space-y-6">
@@ -278,15 +315,26 @@ export default function EditProfile() {
         </div>
 
         {/* Publish */}
-        <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-neutral-100">
-          <div>
-            <p className="text-sm font-medium text-neutral-800">Publish Profile</p>
-            <p className="text-xs text-neutral-400 mt-0.5">Make your profile visible to clients</p>
+        <div className={`p-4 rounded-2xl border transition-all ${profile?.is_published ? "bg-green-50 border-green-200" : "bg-white border-neutral-100"}`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-neutral-800">Publish Profile</p>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                {profile?.is_published ? "Your profile is live!" : "Make your profile visible to clients"}
+              </p>
+            </div>
+            <Switch
+              checked={profile?.is_published || false}
+              onCheckedChange={(v) => setProfile({ ...profile, is_published: v })}
+            />
           </div>
-          <Switch
-            checked={profile?.is_published || false}
-            onCheckedChange={(v) => setProfile({ ...profile, is_published: v })}
-          />
+          {isOnboarding && !profile?.is_published && (
+            <div className="mt-3 pt-3 border-t border-neutral-100">
+              <p className="text-xs text-neutral-600">
+                Complete all steps above, then publish to start receiving client requests.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -304,7 +352,7 @@ export default function EditProfile() {
           ) : (
             <Save className="w-4 h-4 mr-2" />
           )}
-          {saved ? "Saved!" : saving ? "Saving..." : "Save Profile"}
+          {saved ? (isOnboarding && profile?.is_published ? "Welcome to Lensly!" : "Saved!") : saving ? "Saving..." : (isOnboarding && profile?.is_published ? "Publish & Continue" : "Save Profile")}
         </Button>
       </div>
     </div>

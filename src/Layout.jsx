@@ -13,7 +13,39 @@ const NAV_ITEMS = [
 ];
 
 export default function Layout({ children, currentPageName }) {
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
+
+  useEffect(() => {
+    checkOnboarding();
+  }, [currentPageName]);
+
+  const checkOnboarding = async () => {
+    const authed = await base44.auth.isAuthenticated();
+    if (!authed || currentPageName === "EditProfile") {
+      setCheckingOnboarding(false);
+      return;
+    }
+    const user = await base44.auth.me();
+    const profiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
+    const hasPublishedProfile = profiles.length > 0 && profiles[0].is_published;
+    
+    if (!hasPublishedProfile && currentPageName !== "EditProfile") {
+      window.location.href = createPageUrl("EditProfile");
+      return;
+    }
+    setCheckingOnboarding(false);
+  };
+
   const hideNav = currentPageName === "CreatorProfile";
+
+  if (checkingOnboarding) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-neutral-300 border-t-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
