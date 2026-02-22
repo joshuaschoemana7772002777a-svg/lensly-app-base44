@@ -69,11 +69,10 @@ export default function Home() {
               <span className="text-neutral-600 font-medium text-sm tracking-wide">LENSLY</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 leading-tight">
-              Find your perfect<br />
-              <span className="text-blue-500">creative</span> match
+              Find photographers and videographers near you.
             </h1>
-            <p className="text-neutral-500 mt-3 text-sm max-w-xs leading-relaxed">
-              Discover top photographers & videographers operating across South Africa
+            <p className="text-neutral-500 mt-3 text-sm max-w-md leading-relaxed">
+              Browse by shoot type and operating area, view portfolios, and contact creators when you're ready.
             </p>
           </motion.div>
           
