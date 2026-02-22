@@ -36,15 +36,15 @@ export default function CreatorCard({ creator, isFavourite, onToggleFavourite, i
 
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <h3 className="text-white font-semibold text-lg leading-tight">{creator.display_name}</h3>
-            <div className="flex items-center gap-1.5 mt-1">
+            {creator.starting_price && (
+              <div className="mt-2 inline-flex items-center px-3 py-1.5 rounded-full bg-blue-500 backdrop-blur-sm">
+                <span className="text-white text-sm font-semibold">From R{creator.starting_price?.toLocaleString()}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 mt-2">
               <MapPin className="w-3 h-3 text-white/70" />
               <span className="text-white/70 text-xs">Operates in {creator.service_areas?.slice(0, 2).join(", ")}</span>
             </div>
-            {creator.starting_price && (
-              <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-full bg-blue-500/90 backdrop-blur-sm">
-                <span className="text-white text-xs font-medium">From R{creator.starting_price?.toLocaleString()}</span>
-              </div>
-            )}
           </div>
         </div>
       </Link>
