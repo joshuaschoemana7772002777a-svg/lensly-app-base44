@@ -102,9 +102,9 @@ export default function CreatorProfile() {
           </Link>
           <button
             onClick={toggleFavourite}
-            className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
           >
-            <Heart className={`w-5 h-5 ${isFavourite ? "fill-red-500 text-red-500" : "text-white"}`} />
+            <Heart className={`w-4 h-4 ${isFavourite ? "fill-red-500 text-red-500" : "text-white"}`} />
           </button>
         </div>
 
@@ -248,12 +248,12 @@ export default function CreatorProfile() {
       </div>
 
       {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-xl border-t border-neutral-100 z-30">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-neutral-200 z-30 shadow-2xl">
         <Button
           onClick={() => setContactOpen(true)}
-          className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
+          className="w-full h-16 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-lg shadow-lg"
         >
-          <Send className="w-4 h-4 mr-2" />
+          <Send className="w-5 h-5 mr-2" />
           Contact {creator.display_name?.split(" ")[0]}
         </Button>
       </div>
