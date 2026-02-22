@@ -23,10 +23,13 @@ export default function ContactFormModal({ open, onClose, creator }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
+    const user = await base44.auth.me();
     await base44.entities.ContactRequest.create({
       ...form,
       creator_profile_id: creator.id,
       creator_name: creator.display_name,
+      sender_name: user.full_name,
+      sender_email: user.email,
     });
     setSending(false);
     setSent(true);

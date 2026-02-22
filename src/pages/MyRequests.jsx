@@ -106,9 +106,11 @@ export default function MyRequests() {
                         {status.label}
                       </Badge>
                     </div>
-                    {req.category && (
-                      <span className="text-xs text-neutral-500">{req.category}</span>
-                    )}
+                    <div className="flex items-center gap-2 text-xs text-neutral-500 mb-1">
+                      {req.category && <span>{req.category}</span>}
+                      {req.category && req.service_area && <span>·</span>}
+                      {req.service_area && <span>{req.service_area}</span>}
+                    </div>
                     <p className="text-sm text-neutral-600 mt-1 line-clamp-2">{req.message}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs text-neutral-400">
                       <span>{req.sender_email}</span>
