@@ -41,9 +41,8 @@ export default function CreatorCard({ creator, isFavourite, onToggleFavourite, i
                 <span className="text-white text-sm font-semibold">From R{creator.starting_price?.toLocaleString()}</span>
               </div>
             )}
-            <div className="flex items-center gap-1.5 mt-2">
-              <MapPin className="w-3 h-3 text-white/70" />
-              <span className="text-white/70 text-xs">Operates in {creator.service_areas?.slice(0, 2).join(", ")}</span>
+            <div className="mt-2">
+              <span className="text-white/70 text-xs">Operates in: {creator.service_areas?.slice(0, 2).join(" · ")}</span>
             </div>
           </div>
         </div>
