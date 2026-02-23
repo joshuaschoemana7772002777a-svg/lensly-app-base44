@@ -13,31 +13,34 @@ const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Li
 export default function Home() {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
 
   useEffect(() => {
     checkAuth();
+    checkRoleSelectionParam();
   }, []);
 
   const checkAuth = async () => {
     const authed = await base44.auth.isAuthenticated();
     setIsAuthenticated(authed);
+  };
+
+  const checkRoleSelectionParam = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const selectRole = params.get("select_role");
     
-    if (authed) {
-      const user = await base44.auth.me();
-      if (!user.account_type) {
-        setNeedsRoleSelection(true);
-        setShowRoleModal(true);
+    if (selectRole) {
+      const authed = await base44.auth.isAuthenticated();
+      if (authed) {
+        const user = await base44.auth.me();
+        if (!user.account_type) {
+          setShowRoleModal(true);
+        }
       }
     }
   };
 
   const navigateToCategory = (category) => {
     return createPageUrl("Discover") + `?category=${encodeURIComponent(category)}`;
-  };
-
-  const handleGetStarted = () => {
-    setShowRoleModal(true);
   };
 
   return (
