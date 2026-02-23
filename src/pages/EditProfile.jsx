@@ -73,6 +73,26 @@ export default function EditProfile() {
     setLoading(false);
   };
 
+  const handleAutoSave = async () => {
+    if (!profile || autoSaving || saving) return;
+    
+    try {
+      setAutoSaving(true);
+      if (profile.id) {
+        await base44.entities.CreatorProfile.update(profile.id, profile);
+      } else {
+        const created = await base44.entities.CreatorProfile.create(profile);
+        setProfile({ ...profile, id: created.id });
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+    } finally {
+      setAutoSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     const wasOnboarding = isOnboarding && !profile.is_published;
@@ -80,7 +100,7 @@ export default function EditProfile() {
       await base44.entities.CreatorProfile.update(profile.id, profile);
     } else {
       const created = await base44.entities.CreatorProfile.create(profile);
-      setProfile(created);
+      setProfile({ ...profile, id: created.id });
     }
     setSaving(false);
     setSaved(true);
@@ -169,14 +189,22 @@ export default function EditProfile() {
               </p>
             )}
           </div>
-          {profile?.id && profile?.is_published && (
-            <Link
-              to={createPageUrl("CreatorProfile") + `?id=${profile.id}`}
-              className="text-xs text-blue-500 font-medium flex items-center gap-1"
-            >
-              <Eye className="w-3 h-3" /> View Live
-            </Link>
-          )}
+          <div className="flex items-center gap-3">
+            {(saved && !saving && !isOnboarding) && (
+              <div className="flex items-center gap-1.5 text-green-600 text-xs">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Saved</span>
+              </div>
+            )}
+            {profile?.id && profile?.is_published && (
+              <Link
+                to={createPageUrl("CreatorProfile") + `?id=${profile.id}`}
+                className="text-xs text-blue-500 font-medium flex items-center gap-1"
+              >
+                <Eye className="w-3 h-3" /> View Live
+              </Link>
+            )}
+          </div>
         </div>
         
         {isOnboarding && (
