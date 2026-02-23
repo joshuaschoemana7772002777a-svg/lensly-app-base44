@@ -96,10 +96,13 @@ export default function EditProfile() {
   const handleSave = async () => {
     setSaving(true);
     const wasOnboarding = isOnboarding && !profile.is_published;
+    let savedProfileId = profile.id;
+    
     if (profile.id) {
       await base44.entities.CreatorProfile.update(profile.id, profile);
     } else {
       const created = await base44.entities.CreatorProfile.create(profile);
+      savedProfileId = created.id;
       setProfile({ ...profile, id: created.id });
     }
     setSaving(false);
@@ -109,6 +112,10 @@ export default function EditProfile() {
       setTimeout(() => {
         setShowSuccessModal(true);
       }, 500);
+    } else if (!isOnboarding && profile.is_published) {
+      setTimeout(() => {
+        window.location.href = createPageUrl("CreatorProfile") + `?id=${savedProfileId}`;
+      }, 800);
     } else {
       setTimeout(() => setSaved(false), 2000);
     }
@@ -411,7 +418,7 @@ export default function EditProfile() {
           ) : (
             <Save className="w-4 h-4 mr-2" />
           )}
-          {saved ? (isOnboarding && profile?.is_published ? "Welcome to Lensly!" : "Saved!") : saving ? "Saving..." : (isOnboarding && profile?.is_published ? "Publish & Continue" : "Save Profile")}
+          {saved ? (isOnboarding && profile?.is_published ? "Welcome to Lensly!" : !isOnboarding && profile?.is_published ? "Profile updated" : "Saved!") : saving ? "Saving..." : (isOnboarding && profile?.is_published ? "Publish & Continue" : "Save Profile")}
         </Button>
       </div>
 
