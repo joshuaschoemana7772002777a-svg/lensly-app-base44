@@ -57,6 +57,7 @@ import Settings from './pages/Settings';
 import Messages from './pages/Messages';
 import Conversation from './pages/Conversation';
 import CreateRequest from './pages/CreateRequest';
+import Notifications from './pages/Notifications';
 import __Layout from './Layout.jsx';
 
 
@@ -71,6 +72,7 @@ export const PAGES = {
     "Messages": Messages,
     "Conversation": Conversation,
     "CreateRequest": CreateRequest,
+    "Notifications": Notifications,
 }
 
 export const pagesConfig = {
