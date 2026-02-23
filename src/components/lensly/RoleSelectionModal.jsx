@@ -48,7 +48,7 @@ export default function RoleSelectionModal({ open, onClose }) {
         <DialogHeader>
           <DialogTitle className="text-xl text-center">How will you use Lensly?</DialogTitle>
           <DialogDescription className="text-center">
-            Choose how you'd like to get started
+            Choose what you're here to do. You can always change this later.
           </DialogDescription>
         </DialogHeader>
 
@@ -62,8 +62,8 @@ export default function RoleSelectionModal({ open, onClose }) {
                 <User className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
               </div>
               <div className="text-left flex-1">
-                <h3 className="font-semibold text-neutral-900 mb-1">I'm looking to hire</h3>
-                <p className="text-sm text-neutral-600">Find and connect with talented photographers and videographers</p>
+                <h3 className="font-semibold text-neutral-900 mb-1">I'm a Client</h3>
+                <p className="text-sm text-neutral-600">Hire photographers & videographers</p>
               </div>
             </div>
           </button>
@@ -77,8 +77,8 @@ export default function RoleSelectionModal({ open, onClose }) {
                 <Camera className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
               </div>
               <div className="text-left flex-1">
-                <h3 className="font-semibold text-neutral-900 mb-1">I'm a creator</h3>
-                <p className="text-sm text-neutral-600">Showcase your work and get discovered by clients</p>
+                <h3 className="font-semibold text-neutral-900 mb-1">I'm a Creator</h3>
+                <p className="text-sm text-neutral-600">Offer photography or video services</p>
               </div>
             </div>
           </button>
