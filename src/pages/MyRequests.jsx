@@ -104,11 +104,11 @@ export default function MyRequests() {
   }
 
   const statusConfig = {
-    pending: { icon: Clock, color: "bg-blue-100 text-blue-600", label: "New" },
-    read: { icon: CheckCircle2, color: "bg-neutral-100 text-neutral-600", label: "Read" },
-    accepted: { icon: CheckCircle2, color: "bg-green-100 text-green-700", label: "Accepted" },
-    declined: { icon: X, color: "bg-red-100 text-red-600", label: "Declined" },
-    messaged: { icon: MessageCircle, color: "bg-purple-100 text-purple-700", label: "Messaged" },
+    pending: { icon: Clock, color: "bg-blue-500 text-white", label: "New" },
+    read: { icon: Clock, color: "bg-blue-500 text-white", label: "New" },
+    messaged: { icon: MessageCircle, color: "bg-purple-500 text-white", label: "In Discussion" },
+    accepted: { icon: CheckCircle2, color: "bg-green-500 text-white", label: "Booked" },
+    declined: { icon: X, color: "bg-neutral-400 text-white", label: "Closed" },
   };
 
   return (
@@ -153,78 +153,140 @@ export default function MyRequests() {
           requests.map((req) => {
             const status = statusConfig[req.status || "pending"];
             const StatusIcon = status.icon;
-            const isExpanded = selectedRequest === req.id;
             
             return (
               <div
                 key={req.id}
-                className={`rounded-2xl bg-white border transition-all ${
-                  req.status === "pending" ? "border-blue-200 shadow-sm" : "border-neutral-100"
-                }`}
+                className="rounded-2xl bg-white border border-neutral-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
               >
-                <button
-                  onClick={() => setSelectedRequest(isExpanded ? null : req.id)}
-                  className="w-full text-left p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <User className="w-3.5 h-3.5 text-neutral-400" />
-                        <span className="text-sm font-semibold text-neutral-800 truncate">
+                {/* Card Header */}
+                <div className="p-4 bg-neutral-50 border-b border-neutral-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
+                        <User className="w-4 h-4 text-neutral-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-neutral-900">
                           {isCreator ? req.sender_name : req.creator_name}
-                        </span>
-                        <Badge className={`${status.color} text-[10px] px-2`}>
-                          {status.label}
-                        </Badge>
+                        </h3>
+                        <p className="text-xs text-neutral-500">
+                          {req.created_date && format(new Date(req.created_date), "MMM d, yyyy")}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-neutral-500 mb-1">
-                        {req.category && <span>{req.category}</span>}
-                        {req.category && req.service_area && <span>·</span>}
-                        {req.service_area && <span>{req.service_area}</span>}
-                        {req.budget && <span>· R{req.budget.toLocaleString()}</span>}
-                      </div>
-                      <p className="text-sm text-neutral-600 mt-1 line-clamp-2">{req.message}</p>
-                      {req.preferred_date && (
-                        <div className="text-xs text-neutral-400 mt-2">
-                          Preferred: {format(new Date(req.preferred_date), "MMM d, yyyy")}
-                        </div>
-                      )}
                     </div>
+                    <Badge className={`${status.color} text-xs px-2.5 py-1 rounded-full font-medium`}>
+                      {status.label}
+                    </Badge>
                   </div>
-                  {req.created_date && (
-                    <div className="text-[10px] text-neutral-400 mt-2">
-                      {format(new Date(req.created_date), "MMM d, yyyy 'at' HH:mm")}
+                </div>
+
+                {/* Card Body */}
+                <div className="p-4 space-y-3">
+                  {/* Category & Location */}
+                  <div className="flex flex-wrap gap-2">
+                    {req.category && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 rounded-full">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                        <span className="text-xs font-medium text-blue-700">{req.category}</span>
+                      </div>
+                    )}
+                    {req.service_area && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 rounded-full">
+                        <div className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
+                        <span className="text-xs font-medium text-neutral-700">{req.service_area}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Date */}
+                  {req.preferred_date && (
+                    <div className="flex items-center gap-2 text-sm text-neutral-600">
+                      <Clock className="w-4 h-4 text-neutral-400" />
+                      <span>Preferred: {format(new Date(req.preferred_date), "MMMM d, yyyy")}</span>
                     </div>
                   )}
-                </button>
-                
-                {isExpanded && isCreator && (req.status === "pending" || req.status === "read") && (
-                  <div className="px-4 pb-4 flex gap-2">
-                    <Button
-                      onClick={() => handleRequestAction(req.id, "accept")}
-                      className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-xl"
-                    >
-                      <CheckCircle2 className="w-4 h-4 mr-1" />
-                      Accept
-                    </Button>
-                    <Button
-                      onClick={() => handleRequestAction(req.id, "message")}
-                      variant="outline"
-                      className="flex-1 rounded-xl"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-1" />
-                      Message
-                    </Button>
-                    <Button
-                      onClick={() => handleRequestAction(req.id, "decline")}
-                      variant="outline"
-                      className="flex-1 border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Decline
-                    </Button>
+
+                  {/* Budget */}
+                  {req.budget && (
+                    <div className="flex items-center gap-2">
+                      <div className="px-3 py-1.5 bg-green-50 rounded-lg">
+                        <span className="text-sm font-semibold text-green-700">
+                          R{req.budget.toLocaleString()}
+                        </span>
+                        <span className="text-xs text-green-600 ml-1">budget</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  <div>
+                    <p className="text-sm text-neutral-700 leading-relaxed line-clamp-3">
+                      {req.message}
+                    </p>
                   </div>
-                )}
+
+                  {/* Actions */}
+                  {isCreator ? (
+                    <div className="pt-2">
+                      {(req.status === "pending" || req.status === "read") ? (
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleRequestAction(req.id, "message")}
+                            className="flex-1 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium"
+                          >
+                            <MessageCircle className="w-4 h-4 mr-1.5" />
+                            Message
+                          </Button>
+                          <Button
+                            onClick={() => handleRequestAction(req.id, "accept")}
+                            className="flex-1 h-10 bg-green-500 hover:bg-green-600 text-white rounded-xl font-medium"
+                          >
+                            <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                            Accept
+                          </Button>
+                          <Button
+                            onClick={() => handleRequestAction(req.id, "decline")}
+                            variant="outline"
+                            className="h-10 px-3 border-neutral-300 text-neutral-600 hover:bg-neutral-50 rounded-xl"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : req.status === "messaged" ? (
+                        <Button
+                          onClick={() => handleRequestAction(req.id, "message")}
+                          variant="outline"
+                          className="w-full h-10 rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-1.5" />
+                          Continue Conversation
+                        </Button>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="pt-2">
+                      <Button
+                        onClick={async () => {
+                          const user = await base44.auth.me();
+                          const existingConvos = await base44.entities.Conversation.filter({
+                            creator_profile_id: req.creator_profile_id,
+                            client_email: user.email,
+                          });
+                          
+                          if (existingConvos.length > 0) {
+                            window.location.href = createPageUrl("Conversation") + `?id=${existingConvos[0].id}`;
+                          }
+                        }}
+                        variant="outline"
+                        className="w-full h-10 rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-1.5" />
+                        View Conversation
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })
