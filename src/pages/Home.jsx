@@ -1,16 +1,39 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Camera } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
+import { base44 } from "@/api/base44Client";
 import CategoryCard from "../components/lensly/CategoryCard";
+import RoleSelectionModal from "../components/lensly/RoleSelectionModal";
 
 const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Lifestyle", "Social Media Content"];
 
 export default function Home() {
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    const authed = await base44.auth.isAuthenticated();
+    setIsAuthenticated(authed);
+  };
+
   const navigateToCategory = (category) => {
     return createPageUrl("Discover") + `?category=${encodeURIComponent(category)}`;
+  };
+
+  const handleGetStarted = async () => {
+    const authed = await base44.auth.isAuthenticated();
+    if (!authed) {
+      setShowRoleModal(true);
+    } else {
+      window.location.href = createPageUrl("Discover");
+    }
   };
 
   return (
@@ -41,13 +64,22 @@ export default function Home() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="mt-6"
+            className="mt-6 flex gap-3"
           >
-            <Link to={createPageUrl("Discover")}>
+            <Link to={createPageUrl("Discover")} className="flex-1">
               <Button className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-base shadow-lg">
                 Discover creators
               </Button>
             </Link>
+            {!isAuthenticated && (
+              <Button
+                onClick={() => setShowRoleModal(true)}
+                variant="outline"
+                className="h-14 px-6 rounded-2xl border-2 border-blue-500 text-blue-500 hover:bg-blue-50 font-semibold text-base"
+              >
+                Get Started
+              </Button>
+            )}
           </motion.div>
         </div>
       </div>
@@ -68,6 +100,8 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      <RoleSelectionModal open={showRoleModal} onClose={() => setShowRoleModal(false)} />
     </div>
   );
 }

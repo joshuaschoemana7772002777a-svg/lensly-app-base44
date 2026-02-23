@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Search, Heart, Camera, Mail } from "lucide-react";
+import { Home, Search, Heart, Camera, Mail, Settings } from "lucide-react";
 
 const NAV_ITEMS = [
   { name: "Home", icon: Home, page: "Home" },
   { name: "Discover", icon: Search, page: "Discover" },
   { name: "Favourites", icon: Heart, page: "Favourites" },
-  { name: "Profile", icon: Camera, page: "EditProfile" },
   { name: "Requests", icon: Mail, page: "MyRequests" },
+  { name: "Settings", icon: Settings, page: "Settings" },
 ];
 
 export default function Layout({ children, currentPageName }) {
