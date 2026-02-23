@@ -7,8 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, CheckCircle2, Loader2 } from "lucide-react";
+import { Send, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { createNotification } from "./NotificationService";
+import { checkRequestAbuseLimit, trackRequestActivity } from "./RequestAbuseDetection";
 
 const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Lifestyle", "Social Media Content"];
 
@@ -21,37 +22,69 @@ export default function ContactFormModal({ open, onClose, creator }) {
   });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [abuseError, setAbuseError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
-    const user = await base44.auth.me();
-    const request = await base44.entities.ContactRequest.create({
-      ...form,
-      creator_profile_id: creator.id,
-      creator_name: creator.display_name,
-      sender_name: user.full_name,
-      sender_email: user.email,
-    });
+    setAbuseError(null);
 
-    // Notify creator of new request (with throttling)
-    await createNotification({
-      recipientEmail: creator.created_by,
-      type: "request_new",
-      title: "New Request",
-      message: `${user.full_name} sent you a request for ${form.category || "a shoot"}.`,
-      linkUrl: createPageUrl("MyRequests"),
-      relatedId: request.id,
-      senderName: user.full_name,
-    });
+    try {
+      const user = await base44.auth.me();
 
-    setSending(false);
-    setSent(true);
-    setTimeout(() => {
-      setSent(false);
-      setForm({ category: "", service_area: "", preferred_date: "", message: "" });
-      onClose();
-    }, 2000);
+      // Check for abuse patterns
+      const abuseCheck = await checkRequestAbuseLimit(
+        user.email,
+        creator.id,
+        form.message
+      );
+
+      if (!abuseCheck.allowed) {
+        setAbuseError(abuseCheck.message);
+        setSending(false);
+        return;
+      }
+
+      const request = await base44.entities.ContactRequest.create({
+        ...form,
+        creator_profile_id: creator.id,
+        creator_name: creator.display_name,
+        sender_name: user.full_name,
+        sender_email: user.email,
+      });
+
+      // Track request activity
+      await trackRequestActivity(
+        user.email,
+        creator.id,
+        request.id,
+        form.message,
+        form.category
+      );
+
+      // Notify creator of new request (with throttling)
+      await createNotification({
+        recipientEmail: creator.created_by,
+        type: "request_new",
+        title: "New Request",
+        message: `${user.full_name} sent you a request for ${form.category || "a shoot"}.`,
+        linkUrl: createPageUrl("MyRequests"),
+        relatedId: request.id,
+        senderName: user.full_name,
+      });
+
+      setSending(false);
+      setSent(true);
+      setTimeout(() => {
+        setSent(false);
+        setForm({ category: "", service_area: "", preferred_date: "", message: "" });
+        setAbuseError(null);
+        onClose();
+      }, 2000);
+    } catch (error) {
+      console.error("Error sending request:", error);
+      setSending(false);
+    }
   };
 
   return (
@@ -79,6 +112,12 @@ export default function ContactFormModal({ open, onClose, creator }) {
               <DialogTitle className="text-xl">Contact {creator?.display_name}</DialogTitle>
               <DialogDescription>Tell them about your project</DialogDescription>
             </DialogHeader>
+            {abuseError && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800">{abuseError}</p>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4 mt-2">
               <div className="grid grid-cols-2 gap-3">
                 <div>
