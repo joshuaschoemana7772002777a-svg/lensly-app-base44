@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Home, Search, Heart, Camera, Mail, Settings } from "lucide-react";
+import RoleSelectionModal from "./components/lensly/RoleSelectionModal";
 
 const NAV_ITEMS = [
   { name: "Home", icon: Home, page: "Home" },
@@ -14,10 +15,27 @@ const NAV_ITEMS = [
 
 export default function Layout({ children, currentPageName }) {
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
+  const [showRoleModal, setShowRoleModal] = useState(false);
 
   useEffect(() => {
     setCheckingOnboarding(false);
+    checkRoleSelection();
   }, [currentPageName]);
+
+  const checkRoleSelection = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const nextAction = params.get("next");
+    
+    if (nextAction === "creator") {
+      const authed = await base44.auth.isAuthenticated();
+      if (authed) {
+        const user = await base44.auth.me();
+        if (!user.account_type) {
+          setShowRoleModal(true);
+        }
+      }
+    }
+  };
 
   const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile" || currentPageName === "Conversation";
 
@@ -62,6 +80,8 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </nav>
       )}
+
+      <RoleSelectionModal open={showRoleModal} onClose={() => setShowRoleModal(false)} />
     </div>
   );
 }

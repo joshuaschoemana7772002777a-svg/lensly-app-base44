@@ -13,6 +13,7 @@ const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Li
 export default function Home() {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -21,6 +22,14 @@ export default function Home() {
   const checkAuth = async () => {
     const authed = await base44.auth.isAuthenticated();
     setIsAuthenticated(authed);
+    
+    if (authed) {
+      const user = await base44.auth.me();
+      if (!user.account_type) {
+        setNeedsRoleSelection(true);
+        setShowRoleModal(true);
+      }
+    }
   };
 
   const navigateToCategory = (category) => {

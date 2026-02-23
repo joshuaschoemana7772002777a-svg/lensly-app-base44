@@ -9,7 +9,7 @@ export default function RoleSelectionModal({ open, onClose }) {
   const handleSelectCreator = async () => {
     const authed = await base44.auth.isAuthenticated();
     if (!authed) {
-      base44.auth.redirectToLogin(createPageUrl("EditProfile"));
+      base44.auth.redirectToLogin(createPageUrl("Home") + "?next=creator");
     } else {
       const user = await base44.auth.me();
       const currentRole = user.account_type || "client";
@@ -21,10 +21,12 @@ export default function RoleSelectionModal({ open, onClose }) {
 
   const handleSelectClient = async () => {
     const authed = await base44.auth.isAuthenticated();
-    if (authed) {
+    if (!authed) {
+      base44.auth.redirectToLogin(createPageUrl("Discover"));
+    } else {
       await base44.auth.updateMe({ account_type: "client" });
+      onClose();
     }
-    onClose();
   };
 
   return (
