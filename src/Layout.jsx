@@ -19,7 +19,7 @@ export default function Layout({ children, currentPageName }) {
     setCheckingOnboarding(false);
   }, [currentPageName]);
 
-  const hideNav = currentPageName === "CreatorProfile";
+  const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile";
 
 
 
