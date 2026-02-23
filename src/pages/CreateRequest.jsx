@@ -5,9 +5,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Send, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Send, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { createNotification } from "../components/lensly/NotificationService";
+import { checkRequestAbuseLimit, trackRequestActivity } from "../components/lensly/RequestAbuseDetection";
 
 const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Lifestyle", "Social Media Content"];
 const AREAS = ["Sandton", "Johannesburg", "Pretoria", "Cape Town"];
@@ -26,6 +28,7 @@ export default function CreateRequest() {
   const [sent, setSent] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [abuseError, setAbuseError] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -58,29 +61,68 @@ export default function CreateRequest() {
     if (!request.category || !request.service_area || !request.message || selectedCreators.length === 0) return;
 
     setSending(true);
+    setAbuseError(null);
 
-    for (const creatorId of selectedCreators) {
-      const creator = creators.find(c => c.id === creatorId);
-      await base44.entities.ContactRequest.create({
-        creator_profile_id: creatorId,
-        creator_name: creator.display_name,
-        sender_name: user.full_name,
-        sender_email: user.email,
-        category: request.category,
-        service_area: request.service_area,
-        message: request.message,
-        preferred_date: request.preferred_date || null,
-        budget: request.budget ? parseFloat(request.budget) : null,
-        status: "pending",
-      });
+    try {
+      for (const creatorId of selectedCreators) {
+        // Check abuse limits before each request
+        const abuseCheck = await checkRequestAbuseLimit(
+          user.email,
+          creatorId,
+          request.message
+        );
+
+        if (!abuseCheck.allowed) {
+          setAbuseError(abuseCheck.message);
+          setSending(false);
+          return;
+        }
+
+        const creator = creators.find(c => c.id === creatorId);
+        const newRequest = await base44.entities.ContactRequest.create({
+          creator_profile_id: creatorId,
+          creator_name: creator.display_name,
+          sender_name: user.full_name,
+          sender_email: user.email,
+          category: request.category,
+          service_area: request.service_area,
+          message: request.message,
+          preferred_date: request.preferred_date || null,
+          budget: request.budget ? parseFloat(request.budget) : null,
+          status: "pending",
+        });
+
+        // Track request activity
+        await trackRequestActivity(
+          user.email,
+          creatorId,
+          newRequest.id,
+          request.message,
+          request.category
+        );
+
+        // Notify creator (with throttling)
+        await createNotification({
+          recipientEmail: creator.created_by,
+          type: "request_new",
+          title: "New Request",
+          message: `${user.full_name} sent you a request for ${request.category || "a shoot"}.`,
+          linkUrl: createPageUrl("MyRequests"),
+          relatedId: newRequest.id,
+          senderName: user.full_name,
+        });
+      }
+
+      setSending(false);
+      setSent(true);
+
+      setTimeout(() => {
+        window.location.href = createPageUrl("MyRequests");
+      }, 1500);
+    } catch (error) {
+      console.error("Error submitting requests:", error);
+      setSending(false);
     }
-
-    setSending(false);
-    setSent(true);
-
-    setTimeout(() => {
-      window.location.href = createPageUrl("MyRequests");
-    }, 1500);
   };
 
   const filteredCreators = creators.filter(c => {
@@ -109,6 +151,12 @@ export default function CreateRequest() {
       </div>
 
       <div className="px-5 py-6 space-y-6">
+        {abuseError && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-800">{abuseError}</p>
+          </div>
+        )}
         <div>
           <Label className="text-xs text-neutral-500 mb-2 block">What type of shoot? *</Label>
           <Select value={request.category} onValueChange={(v) => setRequest({ ...request, category: v })}>
