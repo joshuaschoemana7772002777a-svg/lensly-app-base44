@@ -27,18 +27,19 @@ export default function Discover() {
 
   useEffect(() => {
     loadCreators();
-  }, []);
-
-  useEffect(() => {
     loadAuth();
   }, []);
 
   const loadAuth = async () => {
-    const authed = await base44.auth.isAuthenticated();
-    setIsAuthenticated(authed);
-    if (authed) {
-      const favs = await base44.entities.Favourite.list();
-      setFavouriteIds(new Set(favs.map(f => f.creator_profile_id)));
+    try {
+      const authed = await base44.auth.isAuthenticated();
+      setIsAuthenticated(authed);
+      if (authed) {
+        const favs = await base44.entities.Favourite.list();
+        setFavouriteIds(new Set(favs.map(f => f.creator_profile_id)));
+      }
+    } catch (error) {
+      setIsAuthenticated(false);
     }
   };
 
