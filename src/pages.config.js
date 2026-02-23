@@ -54,6 +54,8 @@ import Favourites from './pages/Favourites';
 import Home from './pages/Home';
 import MyRequests from './pages/MyRequests';
 import Settings from './pages/Settings';
+import Messages from './pages/Messages';
+import Conversation from './pages/Conversation';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +67,8 @@ export const PAGES = {
     "Home": Home,
     "MyRequests": MyRequests,
     "Settings": Settings,
+    "Messages": Messages,
+    "Conversation": Conversation,
 }
 
 export const pagesConfig = {

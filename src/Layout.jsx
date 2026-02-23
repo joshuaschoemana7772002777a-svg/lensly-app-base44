@@ -7,8 +7,8 @@ import { Home, Search, Heart, Camera, Mail, Settings } from "lucide-react";
 const NAV_ITEMS = [
   { name: "Home", icon: Home, page: "Home" },
   { name: "Discover", icon: Search, page: "Discover" },
+  { name: "Messages", icon: Mail, page: "Messages" },
   { name: "Favourites", icon: Heart, page: "Favourites" },
-  { name: "Requests", icon: Mail, page: "MyRequests" },
   { name: "Settings", icon: Settings, page: "Settings" },
 ];
 
@@ -19,7 +19,7 @@ export default function Layout({ children, currentPageName }) {
     setCheckingOnboarding(false);
   }, [currentPageName]);
 
-  const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile";
+  const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile" || currentPageName === "Conversation";
 
 
 

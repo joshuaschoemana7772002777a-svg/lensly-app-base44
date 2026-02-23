@@ -172,13 +172,31 @@ export default function CreatorProfile() {
               if (!authed) {
                 base44.auth.redirectToLogin(window.location.href);
               } else {
-                setContactOpen(true);
+                const user = await base44.auth.me();
+                const existingConvos = await base44.entities.Conversation.filter({
+                  creator_profile_id: creator.id,
+                  client_email: user.email,
+                });
+
+                if (existingConvos.length > 0) {
+                  window.location.href = createPageUrl("Conversation") + `?id=${existingConvos[0].id}`;
+                } else {
+                  const newConvo = await base44.entities.Conversation.create({
+                    creator_profile_id: creator.id,
+                    creator_name: creator.display_name,
+                    creator_image: creator.profile_image,
+                    client_email: user.email,
+                    client_name: user.full_name,
+                    last_message_at: new Date().toISOString(),
+                  });
+                  window.location.href = createPageUrl("Conversation") + `?id=${newConvo.id}`;
+                }
               }
             }}
             className="w-full h-14 mt-5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-base shadow-lg"
           >
             <Send className="w-5 h-5 mr-2" />
-            Contact {creator.display_name?.split(" ")[0]}
+            Message {creator.display_name?.split(" ")[0]}
           </Button>
         </div>
 
