@@ -55,7 +55,7 @@ export default function Messages() {
       <div className="px-5 pt-6 pb-4 border-b border-neutral-100">
         <h1 className="text-2xl font-bold text-neutral-900">Messages</h1>
         <p className="text-sm text-neutral-500 mt-1">
-          {userRole === "creator" ? "Respond to client inquiries" : "Your conversations with creators"}
+          {userRole === "creator" ? "Respond to client inquiries" : "Follow up with creators"}
         </p>
       </div>
 
@@ -64,11 +64,10 @@ export default function Messages() {
           <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
             <MessageCircle className="w-7 h-7 text-neutral-400" />
           </div>
-          <h2 className="text-lg font-semibold text-neutral-800">No messages yet</h2>
-          <p className="text-sm text-neutral-500 text-center mt-2 max-w-xs">
+          <p className="text-sm text-neutral-500 text-center mt-2 max-w-sm">
             {userRole === "creator" 
-              ? "When clients contact you, their messages will appear here"
-              : "Start a conversation by contacting a creator"}
+              ? "You don't have any inquiries yet. Make sure your profile is complete and visible on Discover."
+              : "You don't have any conversations yet. Message a creator or send a request to get started."}
           </p>
           {userRole === "client" && (
             <Link
