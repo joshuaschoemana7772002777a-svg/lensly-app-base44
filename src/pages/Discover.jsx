@@ -57,6 +57,25 @@ export default function Discover() {
       const hasAreas = creator.service_areas?.length > 0;
       return hasPortfolio && hasCategories && hasAreas;
     });
+
+    // Load reviews for all creators
+    const allReviews = await base44.entities.Review.list("-created_date", 1000);
+    const reviewsByCreator = {};
+    allReviews.forEach(review => {
+      if (!reviewsByCreator[review.creator_profile_id]) {
+        reviewsByCreator[review.creator_profile_id] = [];
+      }
+      reviewsByCreator[review.creator_profile_id].push(review);
+    });
+
+    // Attach review stats to creators
+    complete.forEach(creator => {
+      const reviews = reviewsByCreator[creator.id] || [];
+      creator.reviewCount = reviews.length;
+      creator.averageRating = reviews.length > 0
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        : 0;
+    });
     
     // Sort by price, then creation date
     const sorted = complete.sort((a, b) => {
@@ -162,6 +181,8 @@ export default function Discover() {
                 index={i}
                 isFavourite={favouriteIds.has(creator.id)}
                 onToggleFavourite={toggleFavourite}
+                averageRating={creator.averageRating || 0}
+                reviewCount={creator.reviewCount || 0}
               />
             ))}
           </div>

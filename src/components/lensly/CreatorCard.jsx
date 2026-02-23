@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import { Heart, MapPin, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import StarRating from "./StarRating";
 
-export default function CreatorCard({ creator, isFavourite, onToggleFavourite, index = 0 }) {
+export default function CreatorCard({ creator, isFavourite, onToggleFavourite, index = 0, averageRating, reviewCount }) {
   const mainImage = creator.portfolio_items?.[0]?.url || creator.profile_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=80";
 
   return (
@@ -36,6 +37,16 @@ export default function CreatorCard({ creator, isFavourite, onToggleFavourite, i
 
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <h3 className="text-white font-semibold text-lg leading-tight">{creator.display_name}</h3>
+            {averageRating > 0 && (
+              <div className="mt-1.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm">
+                  <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                  <span className="text-xs font-semibold text-neutral-900">
+                    {averageRating.toFixed(1)} ({reviewCount})
+                  </span>
+                </div>
+              </div>
+            )}
             {creator.starting_price && (
               <div className="mt-2 inline-flex items-center px-3 py-1.5 rounded-full bg-blue-500 backdrop-blur-sm">
                 <span className="text-white text-sm font-semibold">From R{creator.starting_price?.toLocaleString()}</span>
