@@ -47,12 +47,40 @@ export default function MyRequests() {
   };
 
   const handleRequestAction = async (requestId, action) => {
+    const req = requests.find(r => r.id === requestId);
+    if (!req) return;
+
     if (action === "accept") {
       await base44.entities.ContactRequest.update(requestId, { status: "accepted" });
+      
+      // Notify client
+      await base44.entities.Notification.create({
+        recipient_email: req.sender_email,
+        type: "request_accepted",
+        title: "Request Accepted",
+        message: `${req.creator_name || "A creator"} has accepted your request for ${req.category || "a shoot"}.`,
+        link_url: createPageUrl("MyRequests"),
+        related_id: requestId,
+        sender_name: req.creator_name,
+      });
+      
+      setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: "accepted" } : r));
     } else if (action === "decline") {
       await base44.entities.ContactRequest.update(requestId, { status: "declined" });
+      
+      // Notify client
+      await base44.entities.Notification.create({
+        recipient_email: req.sender_email,
+        type: "request_declined",
+        title: "Request Update",
+        message: `${req.creator_name || "A creator"} is unavailable for your request.`,
+        link_url: createPageUrl("MyRequests"),
+        related_id: requestId,
+        sender_name: req.creator_name,
+      });
+      
+      setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: "declined" } : r));
     } else if (action === "message") {
-      const req = requests.find(r => r.id === requestId);
       const user = await base44.auth.me();
       const profiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
       
@@ -82,7 +110,6 @@ export default function MyRequests() {
       return;
     }
     
-    setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: action === "accept" ? "accepted" : "declined" } : r));
     setSelectedRequest(null);
   };
 

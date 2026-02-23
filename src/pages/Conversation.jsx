@@ -87,6 +87,22 @@ export default function Conversation() {
       [otherUnreadField]: (conversation[otherUnreadField] || 0) + 1,
     });
 
+    // Create notification for recipient
+    const recipientEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
+    const recipientIsCreator = userRole !== "creator";
+    
+    await base44.entities.Notification.create({
+      recipient_email: recipientIsCreator ? recipientEmail : conversation.client_email,
+      type: "message_new",
+      title: "New Message",
+      message: recipientIsCreator 
+        ? `${conversation.client_name} sent you a message`
+        : `${conversation.creator_name} replied to your message`,
+      link_url: createPageUrl("Conversation") + `?id=${conversationId}`,
+      related_id: conversationId,
+      sender_name: user.full_name,
+    });
+
     setNewMessage("");
     await loadConversation();
     setSending(false);

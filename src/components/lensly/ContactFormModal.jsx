@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { createPageUrl } from "@/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,13 +25,25 @@ export default function ContactFormModal({ open, onClose, creator }) {
     e.preventDefault();
     setSending(true);
     const user = await base44.auth.me();
-    await base44.entities.ContactRequest.create({
+    const request = await base44.entities.ContactRequest.create({
       ...form,
       creator_profile_id: creator.id,
       creator_name: creator.display_name,
       sender_name: user.full_name,
       sender_email: user.email,
     });
+
+    // Notify creator of new request
+    await base44.entities.Notification.create({
+      recipient_email: creator.created_by,
+      type: "request_new",
+      title: "New Request",
+      message: `${user.full_name} sent you a request for ${form.category || "a shoot"}.`,
+      link_url: createPageUrl("MyRequests"),
+      related_id: request.id,
+      sender_name: user.full_name,
+    });
+
     setSending(false);
     setSent(true);
     setTimeout(() => {
