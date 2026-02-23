@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import moment from "moment";
 import ReportModal from "../components/lensly/ReportModal";
 import { checkMessagingRateLimit, trackMessagingActivity } from "../components/lensly/MessagingRateLimitCheck";
+import { createNotification } from "../components/lensly/NotificationService";
 
 export default function Conversation() {
   const [conversation, setConversation] = useState(null);
@@ -130,20 +131,20 @@ export default function Conversation() {
         );
       }
 
-      // Create notification for recipient
+      // Create notification for recipient (with throttling)
       const recipientEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
       const recipientIsCreator = userRole !== "creator";
       
-      await base44.entities.Notification.create({
-        recipient_email: recipientIsCreator ? recipientEmail : conversation.client_email,
+      await createNotification({
+        recipientEmail: recipientIsCreator ? recipientEmail : conversation.client_email,
         type: "message_new",
         title: "New Message",
         message: recipientIsCreator 
           ? `${conversation.client_name} sent you a message`
           : `${conversation.creator_name} replied to your message`,
-        link_url: createPageUrl("Conversation") + `?id=${conversationId}`,
-        related_id: conversationId,
-        sender_name: user.full_name,
+        linkUrl: createPageUrl("Conversation") + `?id=${conversationId}`,
+        relatedId: conversationId,
+        senderName: user.full_name,
       });
 
       setNewMessage("");
