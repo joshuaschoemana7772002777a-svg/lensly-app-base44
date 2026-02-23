@@ -16,6 +16,9 @@ export default function Conversation() {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const messagesEndRef = useRef(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportedEmail, setReportedEmail] = useState(null);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   const params = new URLSearchParams(window.location.search);
   const conversationId = params.get("id");
@@ -129,6 +132,16 @@ export default function Conversation() {
 
   const otherPersonName = userRole === "creator" ? conversation.client_name : conversation.creator_name;
   const otherPersonImage = userRole === "creator" ? null : conversation.creator_image;
+  const otherPersonEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
+
+  const handleBlock = async () => {
+    await base44.entities.BlockedUser.create({
+      blocker_email: user.email,
+      blocked_email: otherPersonEmail,
+      blocked_profile_id: userRole === "client" ? conversation.creator_profile_id : null,
+    });
+    setIsBlocked(true);
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -152,6 +165,28 @@ export default function Conversation() {
               <h2 className="text-base font-semibold text-neutral-900 truncate">{otherPersonName || "User"}</h2>
             </div>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-9 h-9 rounded-full hover:bg-neutral-100 flex items-center justify-center">
+                <MoreVertical className="w-5 h-5 text-neutral-600" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => {
+                setReportedEmail(otherPersonEmail);
+                setReportOpen(true);
+              }}>
+                <Flag className="w-4 h-4 mr-2" />
+                Report
+              </DropdownMenuItem>
+              {!isBlocked && (
+                <DropdownMenuItem onClick={handleBlock} className="text-red-600">
+                  <span className="w-4 h-4 mr-2">🚫</span>
+                  Block User
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -178,33 +213,45 @@ export default function Conversation() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="sticky bottom-0 bg-white border-t border-neutral-100 p-4">
-        <div className="flex items-end gap-2">
-          <Textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 min-h-[44px] max-h-32 rounded-2xl resize-none"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
-          />
-          <Button
-            onClick={sendMessage}
-            disabled={!newMessage.trim() || sending}
-            className="h-11 w-11 rounded-full bg-blue-500 hover:bg-blue-600 flex-shrink-0"
-          >
-            {sending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-          </Button>
+      {!isBlocked ? (
+        <div className="sticky bottom-0 bg-white border-t border-neutral-100 p-4">
+          <div className="flex items-end gap-2">
+            <Textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 min-h-[44px] max-h-32 rounded-2xl resize-none"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+            />
+            <Button
+              onClick={sendMessage}
+              disabled={!newMessage.trim() || sending}
+              className="h-11 w-11 rounded-full bg-blue-500 hover:bg-blue-600 flex-shrink-0"
+            >
+              {sending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+            </Button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="sticky bottom-0 bg-neutral-50 border-t border-neutral-200 p-4 text-center">
+          <p className="text-sm text-neutral-600">You have blocked this user</p>
+        </div>
+      )}
+      
+      <ReportModal 
+        open={reportOpen} 
+        onClose={() => setReportOpen(false)} 
+        reportedUserEmail={reportedEmail}
+      />
     </div>
   );
 }

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart, MapPin, Mail, Globe, Instagram, Camera, Send, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Heart, MapPin, Mail, Globe, Instagram, Camera, Send, ChevronLeft, ChevronRight, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ContactFormModal from "../components/lensly/ContactFormModal";
+import ReportModal from "../components/lensly/ReportModal";
 
 export default function CreatorProfile() {
   const [creator, setCreator] = useState(null);
@@ -15,6 +16,8 @@ export default function CreatorProfile() {
   const [isFavourite, setIsFavourite] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   const params = new URLSearchParams(window.location.search);
   const creatorId = params.get("id");
@@ -30,8 +33,16 @@ export default function CreatorProfile() {
     const authed = await base44.auth.isAuthenticated();
     setIsAuthenticated(authed);
     if (authed) {
+      const user = await base44.auth.me();
       const favs = await base44.entities.Favourite.filter({ creator_profile_id: creatorId });
       setIsFavourite(favs.length > 0);
+      
+      // Check if blocked
+      const blocks = await base44.entities.BlockedUser.filter({
+        blocker_email: user.email,
+        blocked_profile_id: creatorId,
+      });
+      setIsBlocked(blocks.length > 0);
     }
     setLoading(false);
   };
@@ -100,12 +111,22 @@ export default function CreatorProfile() {
           >
             <ArrowLeft className="w-5 h-5 text-white" />
           </Link>
-          <button
-            onClick={toggleFavourite}
-            className="w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
-          >
-            <Heart className={`w-4 h-4 ${isFavourite ? "fill-red-500 text-red-500" : "text-white"}`} />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={toggleFavourite}
+              className="w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
+            >
+              <Heart className={`w-4 h-4 ${isFavourite ? "fill-red-500 text-red-500" : "text-white"}`} />
+            </button>
+            {isAuthenticated && (
+              <button
+                onClick={() => setReportOpen(true)}
+                className="w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
+              >
+                <Flag className="w-4 h-4 text-white" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Gallery nav */}
@@ -166,38 +187,58 @@ export default function CreatorProfile() {
           </div>
 
           {/* Primary CTA */}
-          <Button
-            onClick={async () => {
-              const authed = await base44.auth.isAuthenticated();
-              if (!authed) {
-                base44.auth.redirectToLogin(window.location.href);
-              } else {
-                const user = await base44.auth.me();
-                const existingConvos = await base44.entities.Conversation.filter({
-                  creator_profile_id: creator.id,
-                  client_email: user.email,
-                });
-
-                if (existingConvos.length > 0) {
-                  window.location.href = createPageUrl("Conversation") + `?id=${existingConvos[0].id}`;
+          {!isBlocked ? (
+            <Button
+              onClick={async () => {
+                const authed = await base44.auth.isAuthenticated();
+                if (!authed) {
+                  base44.auth.redirectToLogin(window.location.href);
                 } else {
-                  const newConvo = await base44.entities.Conversation.create({
+                  const user = await base44.auth.me();
+
+                  // Check if user has sent a request to this creator
+                  const sentRequests = await base44.entities.ContactRequest.filter({
                     creator_profile_id: creator.id,
-                    creator_name: creator.display_name,
-                    creator_image: creator.profile_image,
-                    client_email: user.email,
-                    client_name: user.full_name,
-                    last_message_at: new Date().toISOString(),
+                    sender_email: user.email,
                   });
-                  window.location.href = createPageUrl("Conversation") + `?id=${newConvo.id}`;
+
+                  if (sentRequests.length === 0) {
+                    // No request sent - open contact form
+                    setContactOpen(true);
+                    return;
+                  }
+
+                  // Has sent request - allow messaging
+                  const existingConvos = await base44.entities.Conversation.filter({
+                    creator_profile_id: creator.id,
+                    client_email: user.email,
+                  });
+
+                  if (existingConvos.length > 0) {
+                    window.location.href = createPageUrl("Conversation") + `?id=${existingConvos[0].id}`;
+                  } else {
+                    const newConvo = await base44.entities.Conversation.create({
+                      creator_profile_id: creator.id,
+                      creator_name: creator.display_name,
+                      creator_image: creator.profile_image,
+                      client_email: user.email,
+                      client_name: user.full_name,
+                      last_message_at: new Date().toISOString(),
+                    });
+                    window.location.href = createPageUrl("Conversation") + `?id=${newConvo.id}`;
+                  }
                 }
-              }
-            }}
-            className="w-full h-14 mt-5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-base shadow-lg"
-          >
-            <Send className="w-5 h-5 mr-2" />
-            Message {creator.display_name?.split(" ")[0]}
-          </Button>
+              }}
+              className="w-full h-14 mt-5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-base shadow-lg"
+            >
+              <Send className="w-5 h-5 mr-2" />
+              Contact {creator.display_name?.split(" ")[0]}
+            </Button>
+          ) : (
+            <div className="mt-5 p-4 bg-neutral-100 rounded-xl text-center">
+              <p className="text-sm text-neutral-600">You have blocked this creator</p>
+            </div>
+          )}
         </div>
 
         {/* Additional Details */}
@@ -283,6 +324,12 @@ export default function CreatorProfile() {
 
 
       <ContactFormModal open={contactOpen} onClose={() => setContactOpen(false)} creator={creator} />
-    </div>
-  );
-}
+      <ReportModal 
+        open={reportOpen} 
+        onClose={() => setReportOpen(false)} 
+        reportedUserEmail={creator?.created_by}
+        reportedProfileId={creator?.id}
+      />
+      </div>
+      );
+      }

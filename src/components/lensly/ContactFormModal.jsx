@@ -66,7 +66,10 @@ export default function ContactFormModal({ open, onClose, creator }) {
               Your contact request has been sent to {creator?.display_name}.
             </p>
             <p className="text-neutral-500 text-xs text-center max-w-xs">
-              They will respond to you directly via email or phone.
+              They can now message you. Check My Requests to continue.
+            </p>
+            <p className="text-amber-600 text-xs text-center max-w-xs font-medium">
+              💳 Payments are arranged directly between you and the creator.
             </p>
           </div>
         ) : (
