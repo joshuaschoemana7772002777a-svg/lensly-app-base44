@@ -10,6 +10,7 @@ import moment from "moment";
 import ReportModal from "../components/lensly/ReportModal";
 import { checkMessagingRateLimit, trackMessagingActivity } from "../components/lensly/MessagingRateLimitCheck";
 import { createNotification } from "../components/lensly/NotificationService";
+import ReviewModal from "../components/lensly/ReviewModal";
 
 export default function Conversation() {
   const [conversation, setConversation] = useState(null);
@@ -24,6 +25,8 @@ export default function Conversation() {
   const [reportedEmail, setReportedEmail] = useState(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const [rateLimitError, setRateLimitError] = useState(null);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [canReview, setCanReview] = useState(false);
 
   const params = new URLSearchParams(window.location.search);
   const conversationId = params.get("id");
@@ -58,6 +61,15 @@ export default function Conversation() {
     const profiles = await base44.entities.CreatorProfile.filter({ created_by: currentUser.email });
     const isCreator = profiles.length > 0 && profiles[0].is_published && convo.creator_profile_id === profiles[0].id;
     setUserRole(isCreator ? "creator" : "client");
+
+    // Check if client can review (conversation closed, no existing review)
+    if (!isCreator && convo.status === "closed") {
+      const existingReviews = await base44.entities.Review.filter({
+        conversation_id: conversationId,
+        client_email: currentUser.email,
+      });
+      setCanReview(existingReviews.length === 0);
+    }
     
     // Check if blocked
     const otherEmail = isCreator ? convo.client_email : convo.created_by;
@@ -217,6 +229,21 @@ export default function Conversation() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              {userRole === "creator" && conversation.status !== "closed" && (
+                <DropdownMenuItem onClick={async () => {
+                  await base44.entities.Conversation.update(conversationId, { status: "closed" });
+                  await loadConversation();
+                }}>
+                  <span className="w-4 h-4 mr-2">✓</span>
+                  Mark as Closed
+                </DropdownMenuItem>
+              )}
+              {userRole === "client" && canReview && (
+                <DropdownMenuItem onClick={() => setReviewModalOpen(true)}>
+                  <span className="w-4 h-4 mr-2">⭐</span>
+                  Leave a Review
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => {
                 setReportedEmail(otherPersonEmail);
                 setReportOpen(true);
@@ -258,7 +285,30 @@ export default function Conversation() {
         <div ref={messagesEndRef} />
       </div>
 
-      {!isBlocked ? (
+      {conversation.status === "closed" && userRole === "client" && canReview && (
+        <div className="sticky bottom-0 bg-blue-50 border-t border-blue-200 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900">How was your experience?</p>
+              <p className="text-xs text-blue-600">Help others by leaving a review</p>
+            </div>
+            <Button
+              onClick={() => setReviewModalOpen(true)}
+              className="rounded-xl bg-blue-500 hover:bg-blue-600"
+            >
+              Leave Review
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {conversation.status === "closed" && !canReview && (
+        <div className="sticky bottom-0 bg-neutral-50 border-t border-neutral-200 p-4 text-center">
+          <p className="text-sm text-neutral-600">This conversation is closed</p>
+        </div>
+      )}
+
+      {conversation.status !== "closed" && !isBlocked ? (
         <div className="sticky bottom-0 bg-white border-t border-neutral-100 p-4">
           {rateLimitError && (
             <div className="mb-3 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
@@ -303,6 +353,17 @@ export default function Conversation() {
         onClose={() => setReportOpen(false)} 
         reportedUserEmail={reportedEmail}
       />
+
+      {canReview && (
+        <ReviewModal
+          open={reviewModalOpen}
+          onClose={() => {
+            setReviewModalOpen(false);
+            loadConversation();
+          }}
+          conversation={conversation}
+        />
+      )}
     </div>
   );
 }
