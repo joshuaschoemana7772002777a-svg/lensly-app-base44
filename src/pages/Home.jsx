@@ -36,13 +36,8 @@ export default function Home() {
     return createPageUrl("Discover") + `?category=${encodeURIComponent(category)}`;
   };
 
-  const handleGetStarted = async () => {
-    const authed = await base44.auth.isAuthenticated();
-    if (!authed) {
-      setShowRoleModal(true);
-    } else {
-      window.location.href = createPageUrl("Discover");
-    }
+  const handleGetStarted = () => {
+    setShowRoleModal(true);
   };
 
   return (

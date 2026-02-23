@@ -17,11 +17,12 @@ export default function Favourites() {
 
   const loadData = async () => {
     const authed = await base44.auth.isAuthenticated();
-    setIsAuthenticated(authed);
     if (!authed) {
+      setIsAuthenticated(false);
       setLoading(false);
       return;
     }
+    setIsAuthenticated(true);
     const favs = await base44.entities.Favourite.list("-created_date");
     setFavourites(favs);
     if (favs.length > 0) {
