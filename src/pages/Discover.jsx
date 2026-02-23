@@ -45,7 +45,10 @@ export default function Discover() {
 
   const loadCreators = async () => {
     setLoading(true);
-    const data = await base44.entities.CreatorProfile.filter({ is_published: true }, "-created_date", 100);
+    const data = await base44.entities.CreatorProfile.filter({ 
+      is_published: true,
+      is_hidden: false 
+    }, "-created_date", 100);
     
     // Filter to only show complete profiles
     const complete = data.filter(creator => {
