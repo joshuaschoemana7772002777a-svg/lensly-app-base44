@@ -19,6 +19,7 @@ export default function Conversation() {
   const [reportOpen, setReportOpen] = useState(false);
   const [reportedEmail, setReportedEmail] = useState(null);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [rateLimitError, setRateLimitError] = useState(null);
 
   const params = new URLSearchParams(window.location.search);
   const conversationId = params.get("id");
@@ -82,40 +83,72 @@ export default function Conversation() {
     if (!newMessage.trim() || sending) return;
 
     setSending(true);
-    const messageData = {
-      conversation_id: conversationId,
-      sender_email: user.email,
-      sender_name: user.full_name,
-      content: newMessage.trim(),
-    };
+    setRateLimitError(null);
 
-    await base44.entities.Message.create(messageData);
+    try {
+      // Check rate limits (only for clients messaging creators)
+      if (userRole === "client") {
+        const rateLimitCheck = await checkMessagingRateLimit(
+          user.email,
+          conversation.creator_profile_id,
+          newMessage.trim()
+        );
 
-    const otherUnreadField = userRole === "creator" ? "unread_count_client" : "unread_count_creator";
-    await base44.entities.Conversation.update(conversationId, {
-      last_message: newMessage.trim(),
-      last_message_at: new Date().toISOString(),
-      [otherUnreadField]: (conversation[otherUnreadField] || 0) + 1,
-    });
+        if (!rateLimitCheck.allowed) {
+          setRateLimitError(rateLimitCheck.message);
+          setSending(false);
+          return;
+        }
+      }
 
-    // Create notification for recipient
-    const recipientEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
-    const recipientIsCreator = userRole !== "creator";
+      const messageData = {
+        conversation_id: conversationId,
+        sender_email: user.email,
+        sender_name: user.full_name,
+        content: newMessage.trim(),
+      };
+
+      await base44.entities.Message.create(messageData);
+
+      const otherUnreadField = userRole === "creator" ? "unread_count_client" : "unread_count_creator";
+      await base44.entities.Conversation.update(conversationId, {
+        last_message: newMessage.trim(),
+        last_message_at: new Date().toISOString(),
+        [otherUnreadField]: (conversation[otherUnreadField] || 0) + 1,
+      });
+
+      // Track messaging activity (only for clients)
+      if (userRole === "client") {
+        await trackMessagingActivity(
+          user.email,
+          conversation.creator_profile_id,
+          newMessage.trim(),
+          conversationId
+        );
+      }
+
+      // Create notification for recipient
+      const recipientEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
+      const recipientIsCreator = userRole !== "creator";
+      
+      await base44.entities.Notification.create({
+        recipient_email: recipientIsCreator ? recipientEmail : conversation.client_email,
+        type: "message_new",
+        title: "New Message",
+        message: recipientIsCreator 
+          ? `${conversation.client_name} sent you a message`
+          : `${conversation.creator_name} replied to your message`,
+        link_url: createPageUrl("Conversation") + `?id=${conversationId}`,
+        related_id: conversationId,
+        sender_name: user.full_name,
+      });
+
+      setNewMessage("");
+      await loadConversation();
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
     
-    await base44.entities.Notification.create({
-      recipient_email: recipientIsCreator ? recipientEmail : conversation.client_email,
-      type: "message_new",
-      title: "New Message",
-      message: recipientIsCreator 
-        ? `${conversation.client_name} sent you a message`
-        : `${conversation.creator_name} replied to your message`,
-      link_url: createPageUrl("Conversation") + `?id=${conversationId}`,
-      related_id: conversationId,
-      sender_name: user.full_name,
-    });
-
-    setNewMessage("");
-    await loadConversation();
     setSending(false);
   };
 
@@ -223,6 +256,12 @@ export default function Conversation() {
 
       {!isBlocked ? (
         <div className="sticky bottom-0 bg-white border-t border-neutral-100 p-4">
+          {rateLimitError && (
+            <div className="mb-3 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-800">{rateLimitError}</p>
+            </div>
+          )}
           <div className="flex items-end gap-2">
             <Textarea
               value={newMessage}

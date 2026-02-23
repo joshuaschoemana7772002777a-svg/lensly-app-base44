@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart, MapPin, Mail, Globe, Instagram, Camera, Send, ChevronLeft, ChevronRight, Flag } from "lucide-react";
+import { ArrowLeft, Heart, MapPin, Mail, Globe, Instagram, Camera, Send, ChevronLeft, ChevronRight, Flag, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ContactFormModal from "../components/lensly/ContactFormModal";
 import ReportModal from "../components/lensly/ReportModal";
+import { checkMessagingRateLimit, trackMessagingActivity } from "../components/lensly/MessagingRateLimitCheck";
 
 export default function CreatorProfile() {
   const [creator, setCreator] = useState(null);
@@ -18,6 +19,7 @@ export default function CreatorProfile() {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [rateLimitError, setRateLimitError] = useState(null);
 
   const params = new URLSearchParams(window.location.search);
   const creatorId = params.get("id");
@@ -187,9 +189,17 @@ export default function CreatorProfile() {
           </div>
 
           {/* Primary CTA */}
+          {rateLimitError && (
+            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-800">{rateLimitError}</p>
+            </div>
+          )}
+
           {!isBlocked ? (
             <Button
               onClick={async () => {
+                setRateLimitError(null);
                 const authed = await base44.auth.isAuthenticated();
                 if (!authed) {
                   base44.auth.redirectToLogin(window.location.href);
@@ -205,6 +215,18 @@ export default function CreatorProfile() {
                   if (sentRequests.length === 0) {
                     // No request sent - open contact form
                     setContactOpen(true);
+                    return;
+                  }
+
+                  // Check rate limits before creating conversation
+                  const rateLimitCheck = await checkMessagingRateLimit(
+                    user.email,
+                    creator.id,
+                    null
+                  );
+
+                  if (!rateLimitCheck.allowed) {
+                    setRateLimitError(rateLimitCheck.message);
                     return;
                   }
 
@@ -225,6 +247,15 @@ export default function CreatorProfile() {
                       client_name: user.full_name,
                       last_message_at: new Date().toISOString(),
                     });
+
+                    // Track initial conversation creation
+                    await trackMessagingActivity(
+                      user.email,
+                      creator.id,
+                      null,
+                      newConvo.id
+                    );
+
                     window.location.href = createPageUrl("Conversation") + `?id=${newConvo.id}`;
                   }
                 }

@@ -47,32 +47,32 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import Conversation from './pages/Conversation';
+import CreateRequest from './pages/CreateRequest';
 import CreatorProfile from './pages/CreatorProfile';
 import Discover from './pages/Discover';
 import EditProfile from './pages/EditProfile';
 import Favourites from './pages/Favourites';
 import Home from './pages/Home';
-import MyRequests from './pages/MyRequests';
-import Settings from './pages/Settings';
 import Messages from './pages/Messages';
-import Conversation from './pages/Conversation';
-import CreateRequest from './pages/CreateRequest';
+import MyRequests from './pages/MyRequests';
 import Notifications from './pages/Notifications';
+import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Conversation": Conversation,
+    "CreateRequest": CreateRequest,
     "CreatorProfile": CreatorProfile,
     "Discover": Discover,
     "EditProfile": EditProfile,
     "Favourites": Favourites,
     "Home": Home,
-    "MyRequests": MyRequests,
-    "Settings": Settings,
     "Messages": Messages,
-    "Conversation": Conversation,
-    "CreateRequest": CreateRequest,
+    "MyRequests": MyRequests,
     "Notifications": Notifications,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {
