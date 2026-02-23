@@ -14,13 +14,9 @@ const NAV_ITEMS = [
 ];
 
 export default function Layout({ children, currentPageName }) {
-  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
-  const [showRoleModal, setShowRoleModal] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    setCheckingOnboarding(false);
-    checkRoleSelection();
     loadUnreadCount();
   }, [currentPageName]);
 
@@ -33,21 +29,6 @@ export default function Layout({ children, currentPageName }) {
       is_read: false,
     });
     setUnreadCount(unread.length);
-  };
-
-  const checkRoleSelection = async () => {
-    const params = new URLSearchParams(window.location.search);
-    const nextAction = params.get("next");
-    
-    if (nextAction === "creator") {
-      const authed = await base44.auth.isAuthenticated();
-      if (authed) {
-        const user = await base44.auth.me();
-        if (!user.account_type) {
-          setShowRoleModal(true);
-        }
-      }
-    }
   };
 
   const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile" || currentPageName === "Conversation";
@@ -100,9 +81,7 @@ export default function Layout({ children, currentPageName }) {
             })}
           </div>
         </nav>
-      )}
-
-      <RoleSelectionModal open={showRoleModal} onClose={() => setShowRoleModal(false)} />
-    </div>
-  );
-}
+        )}
+        </div>
+        );
+        }
