@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart, MapPin, Mail, Globe, Instagram, Camera, Send, ChevronLeft, ChevronRight, Flag, AlertCircle } from "lucide-react";
+import { ArrowLeft, Heart, MapPin, Mail, Globe, Instagram, Camera, Send, ChevronLeft, ChevronRight, Flag, AlertCircle, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
@@ -9,6 +9,7 @@ import { createPageUrl } from "@/utils";
 import ContactFormModal from "../components/lensly/ContactFormModal";
 import ReportModal from "../components/lensly/ReportModal";
 import { checkMessagingRateLimit, trackMessagingActivity } from "../components/lensly/MessagingRateLimitCheck";
+import StarRating from "../components/lensly/StarRating";
 
 export default function CreatorProfile() {
   const [creator, setCreator] = useState(null);
@@ -20,6 +21,9 @@ export default function CreatorProfile() {
   const [reportOpen, setReportOpen] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [rateLimitError, setRateLimitError] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
 
   const params = new URLSearchParams(window.location.search);
   const creatorId = params.get("id");
@@ -32,6 +36,18 @@ export default function CreatorProfile() {
     setLoading(true);
     const data = await base44.entities.CreatorProfile.filter({ id: creatorId });
     if (data.length > 0) setCreator(data[0]);
+    
+    // Load reviews
+    const creatorReviews = await base44.entities.Review.filter({ 
+      creator_profile_id: creatorId 
+    }, "-created_date");
+    setReviews(creatorReviews);
+    setReviewCount(creatorReviews.length);
+    if (creatorReviews.length > 0) {
+      const avgRating = creatorReviews.reduce((sum, r) => sum + r.rating, 0) / creatorReviews.length;
+      setAverageRating(avgRating);
+    }
+    
     const authed = await base44.auth.isAuthenticated();
     setIsAuthenticated(authed);
     if (authed) {
@@ -163,6 +179,12 @@ export default function CreatorProfile() {
       <div className="px-5 -mt-6 relative z-10">
         <div className="bg-white rounded-2xl shadow-xl p-5 border border-neutral-100">
           <h1 className="text-2xl font-bold text-neutral-900 leading-tight">{creator.display_name}</h1>
+
+          {averageRating > 0 && (
+            <div className="mt-3">
+              <StarRating rating={averageRating} count={reviewCount} size="md" />
+            </div>
+          )}
 
           {creator.categories?.[0] && (
             <div className="mt-2">
@@ -319,6 +341,66 @@ export default function CreatorProfile() {
           <div className="mt-6 bg-white rounded-2xl shadow-sm p-5 border border-neutral-100">
             <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">About</h3>
             <p className="text-sm text-neutral-600 leading-relaxed">{creator.bio}</p>
+          </div>
+        )}
+
+        {/* Reviews */}
+        {reviews.length > 0 && (
+          <div className="mt-6 bg-white rounded-2xl shadow-sm p-5 border border-neutral-100">
+            <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-4">
+              Reviews ({reviewCount})
+            </h3>
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <div key={review.id} className="pb-4 border-b border-neutral-100 last:border-0 last:pb-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span className="text-xs font-semibold text-blue-600">
+                          {review.client_name?.charAt(0)}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-neutral-900">
+                          {review.client_name?.split(" ")[0]} {review.client_name?.split(" ")[1]?.charAt(0)}.
+                        </p>
+                        <p className="text-xs text-neutral-400">
+                          {new Date(review.created_date).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-3.5 h-3.5 ${
+                            star <= review.rating
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-neutral-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  {review.review_text && (
+                    <p className="text-sm text-neutral-600 leading-relaxed mt-2">
+                      {review.review_text}
+                    </p>
+                  )}
+                  {isAuthenticated && (
+                    <button
+                      onClick={() => {
+                        // Report review functionality
+                        setReportOpen(true);
+                      }}
+                      className="text-xs text-neutral-400 hover:text-neutral-600 mt-2"
+                    >
+                      Report review
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
