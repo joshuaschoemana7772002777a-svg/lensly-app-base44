@@ -208,12 +208,11 @@ export default function EditProfile() {
         </div>
         
         {isOnboarding && (
-          <div className="mt-4 flex gap-1">
-            {steps.map((step, i) => (
-              <div key={i} className="flex-1 h-1.5 rounded-full bg-neutral-100 overflow-hidden">
-                <div className={`h-full transition-all ${step.complete ? "bg-blue-500 w-full" : "bg-transparent w-0"}`} />
-              </div>
-            ))}
+          <div className="mt-4 h-1.5 rounded-full bg-neutral-100 overflow-hidden">
+            <div 
+              className="h-full bg-blue-500 transition-all duration-300"
+              style={{ width: `${(completedSteps / steps.length) * 100}%` }}
+            />
           </div>
         )}
       </div>
