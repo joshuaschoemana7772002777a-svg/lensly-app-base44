@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Save, Loader2, Camera, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import PortfolioUploader from "../components/lensly/PortfolioUploader";
 import OnboardingSuccessModal from "../components/lensly/OnboardingSuccessModal";
+import ProfileCompletionChecklist from "../components/lensly/ProfileCompletionChecklist";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -225,6 +226,9 @@ export default function EditProfile() {
       </div>
 
       <div className="px-5 space-y-6">
+        {/* Completion Checklist */}
+        <ProfileCompletionChecklist profile={profile} />
+
         {/* Profile Image */}
         <div className="flex items-center gap-4">
           <label className="relative cursor-pointer">
