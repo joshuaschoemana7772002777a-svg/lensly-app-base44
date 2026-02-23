@@ -24,10 +24,25 @@ export default function EditProfile() {
   const [profileImageUploading, setProfileImageUploading] = useState(false);
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [autoSaveTimer, setAutoSaveTimer] = useState(null);
 
   useEffect(() => {
     loadProfile();
   }, []);
+
+  useEffect(() => {
+    if (profile && !isOnboarding && isAuthenticated) {
+      if (autoSaveTimer) clearTimeout(autoSaveTimer);
+      const timer = setTimeout(() => {
+        handleAutoSave();
+      }, 2000);
+      setAutoSaveTimer(timer);
+    }
+    return () => {
+      if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    };
+  }, [profile]);
 
   const loadProfile = async () => {
     const authed = await base44.auth.isAuthenticated();

@@ -11,11 +11,19 @@ export default function RoleSelectionModal({ open, onClose }) {
     if (!authed) {
       base44.auth.redirectToLogin(createPageUrl("EditProfile"));
     } else {
+      const user = await base44.auth.me();
+      const currentRole = user.account_type || "client";
+      const newRole = currentRole === "client" ? "creator" : "both";
+      await base44.auth.updateMe({ account_type: newRole });
       window.location.href = createPageUrl("EditProfile");
     }
   };
 
-  const handleSelectClient = () => {
+  const handleSelectClient = async () => {
+    const authed = await base44.auth.isAuthenticated();
+    if (authed) {
+      await base44.auth.updateMe({ account_type: "client" });
+    }
     onClose();
   };
 
