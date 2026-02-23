@@ -53,6 +53,14 @@ export default function Conversation() {
     const profiles = await base44.entities.CreatorProfile.filter({ created_by: currentUser.email });
     const isCreator = profiles.length > 0 && profiles[0].is_published && convo.creator_profile_id === profiles[0].id;
     setUserRole(isCreator ? "creator" : "client");
+    
+    // Check if blocked
+    const otherEmail = isCreator ? convo.client_email : convo.created_by;
+    const blocks = await base44.entities.BlockedUser.filter({
+      blocker_email: currentUser.email,
+      blocked_email: otherEmail,
+    });
+    setIsBlocked(blocks.length > 0);
 
     const msgs = await base44.entities.Message.filter({ conversation_id: conversationId });
     msgs.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
