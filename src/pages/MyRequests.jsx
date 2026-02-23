@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { createNotification } from "../components/lensly/NotificationService";
 
 export default function MyRequests() {
   const [requests, setRequests] = useState([]);
@@ -53,30 +54,30 @@ export default function MyRequests() {
     if (action === "accept") {
       await base44.entities.ContactRequest.update(requestId, { status: "accepted" });
       
-      // Notify client
-      await base44.entities.Notification.create({
-        recipient_email: req.sender_email,
+      // Notify client (with throttling)
+      await createNotification({
+        recipientEmail: req.sender_email,
         type: "request_accepted",
         title: "Request Accepted",
         message: `${req.creator_name || "A creator"} has accepted your request for ${req.category || "a shoot"}.`,
-        link_url: createPageUrl("MyRequests"),
-        related_id: requestId,
-        sender_name: req.creator_name,
+        linkUrl: createPageUrl("MyRequests"),
+        relatedId: requestId,
+        senderName: req.creator_name,
       });
       
       setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: "accepted" } : r));
     } else if (action === "decline") {
       await base44.entities.ContactRequest.update(requestId, { status: "declined" });
       
-      // Notify client
-      await base44.entities.Notification.create({
-        recipient_email: req.sender_email,
+      // Notify client (with throttling)
+      await createNotification({
+        recipientEmail: req.sender_email,
         type: "request_declined",
         title: "Request Update",
         message: `${req.creator_name || "A creator"} is unavailable for your request.`,
-        link_url: createPageUrl("MyRequests"),
-        related_id: requestId,
-        sender_name: req.creator_name,
+        linkUrl: createPageUrl("MyRequests"),
+        relatedId: requestId,
+        senderName: req.creator_name,
       });
       
       setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: "declined" } : r));

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Send, CheckCircle2, Loader2 } from "lucide-react";
+import { createNotification } from "./NotificationService";
 
 const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Lifestyle", "Social Media Content"];
 
@@ -33,15 +34,15 @@ export default function ContactFormModal({ open, onClose, creator }) {
       sender_email: user.email,
     });
 
-    // Notify creator of new request
-    await base44.entities.Notification.create({
-      recipient_email: creator.created_by,
+    // Notify creator of new request (with throttling)
+    await createNotification({
+      recipientEmail: creator.created_by,
       type: "request_new",
       title: "New Request",
       message: `${user.full_name} sent you a request for ${form.category || "a shoot"}.`,
-      link_url: createPageUrl("MyRequests"),
-      related_id: request.id,
-      sender_name: user.full_name,
+      linkUrl: createPageUrl("MyRequests"),
+      relatedId: request.id,
+      senderName: user.full_name,
     });
 
     setSending(false);
