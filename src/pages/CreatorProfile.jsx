@@ -253,7 +253,7 @@ export default function CreatorProfile() {
                     const newConvo = await base44.entities.Conversation.create({
                       creator_profile_id: creator.id,
                       creator_name: creator.display_name,
-                      creator_image: creator.profile_image,
+                      creator_image: creator.profile_photo,
                       client_email: user.email,
                       client_name: user.full_name,
                       last_message_at: new Date().toISOString(),
