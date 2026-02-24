@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { SlidersHorizontal, Heart } from "lucide-react";
+import { SlidersHorizontal, Heart, ArrowUpDown, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import CreatorCard from "../components/lensly/CreatorCard";
 import AreaFilterChips from "../components/lensly/AreaFilterChips";
 import CategoryFilterChips from "../components/lensly/CategoryFilterChips";
@@ -14,6 +21,7 @@ export default function Discover() {
   const [favouriteIds, setFavouriteIds] = useState(new Set());
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [savedMode, setSavedMode] = useState(false);
+  const [sortBy, setSortBy] = useState("recommended");
 
   // Read URL params
   useEffect(() => {
@@ -194,6 +202,26 @@ export default function Discover() {
     return true;
   });
 
+  // Apply sorting
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "price_low") {
+      const aPrice = a.starting_price || Infinity;
+      const bPrice = b.starting_price || Infinity;
+      return aPrice - bPrice;
+    } else if (sortBy === "price_high") {
+      const aPrice = a.starting_price || 0;
+      const bPrice = b.starting_price || 0;
+      return bPrice - aPrice;
+    } else if (sortBy === "newest") {
+      return new Date(b.created_date) - new Date(a.created_date);
+    } else if (sortBy === "rating") {
+      if (a.averageRating !== b.averageRating) return b.averageRating - a.averageRating;
+      return b.reviewCount - a.reviewCount;
+    }
+    // Default "recommended" - already sorted by score
+    return 0;
+  });
+
   const activeFilters = [selectedCategory, selectedArea].filter(Boolean).length;
 
   return (
@@ -203,18 +231,44 @@ export default function Discover() {
         <div className="px-5 pt-5 pb-3">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-bold text-neutral-900">Discover</h1>
-            <button
-              onClick={() => {
-                if (!isAuthenticated) {
-                  base44.auth.redirectToLogin(window.location.href);
-                  return;
-                }
-                setSavedMode(!savedMode);
-              }}
-              className="w-9 h-9 rounded-full bg-white border border-neutral-200 flex items-center justify-center hover:bg-neutral-50 transition-colors"
-            >
-              <Heart className={`w-5 h-5 ${savedMode ? "fill-red-500 text-red-500" : "text-neutral-600"}`} />
-            </button>
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="w-9 h-9 rounded-full bg-white border border-neutral-200 flex items-center justify-center hover:bg-neutral-50 transition-colors">
+                    <ArrowUpDown className="w-5 h-5 text-neutral-600" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setSortBy("recommended")}>
+                    Recommended
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("price_low")}>
+                    Price: Low to High
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("price_high")}>
+                    Price: High to Low
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("rating")}>
+                    Highest Rated
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("newest")}>
+                    Newest
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    base44.auth.redirectToLogin(window.location.href);
+                    return;
+                  }
+                  setSavedMode(!savedMode);
+                }}
+                className="w-9 h-9 rounded-full bg-white border border-neutral-200 flex items-center justify-center hover:bg-neutral-50 transition-colors"
+              >
+                <Heart className={`w-5 h-5 ${savedMode ? "fill-red-500 text-red-500" : "text-neutral-600"}`} />
+              </button>
+            </div>
           </div>
           <CategoryFilterChips selected={selectedCategory} onChange={setSelectedCategory} />
           <div className="mt-2">
@@ -224,6 +278,17 @@ export default function Discover() {
       </div>
 
       <div className="px-5 pt-4">
+        {sortBy !== "recommended" && (
+          <div className="mb-3">
+            <button
+              onClick={() => setSortBy("recommended")}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-neutral-100 rounded-full text-xs font-medium text-neutral-700 hover:bg-neutral-200 transition-colors"
+            >
+              Sorted: {sortBy === "price_low" ? "Price: Low to High" : sortBy === "price_high" ? "Price: High to Low" : sortBy === "rating" ? "Highest Rated" : "Newest"}
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
         <p className="text-xs text-neutral-400 mb-4">
           {filtered.length} creator{filtered.length !== 1 ? "s" : ""} found
         </p>
@@ -260,7 +325,7 @@ export default function Discover() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {filtered.map((creator, i) => (
+            {sorted.map((creator, i) => (
               <CreatorCard
                 key={creator.id}
                 creator={creator}
