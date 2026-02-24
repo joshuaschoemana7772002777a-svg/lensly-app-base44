@@ -64,6 +64,18 @@ export default function Conversation() {
     const profiles = await base44.entities.CreatorProfile.filter({ created_by: currentUser.email });
     const isCreator = profiles.length > 0 && profiles[0].is_published && convo.creator_profile_id === profiles[0].id;
     setUserRole(isCreator ? "creator" : "client");
+    
+    // Load other person's profile photo
+    if (isCreator) {
+      // Load client photo from User entity
+      const clientUsers = await base44.entities.User.filter({ email: convo.client_email });
+      if (clientUsers.length > 0 && clientUsers[0].profile_photo_url) {
+        setOtherPersonPhoto(clientUsers[0].profile_photo_url);
+      }
+    } else {
+      // Use cached creator photo from conversation
+      setOtherPersonPhoto(convo.creator_image);
+    }
 
     // Check if client can review (conversation closed, no existing review)
     if (!isCreator && convo.status === "closed") {
@@ -270,7 +282,7 @@ export default function Conversation() {
           </Link>
           <div className="flex items-center gap-3 flex-1">
             <ProfileAvatar 
-              photoUrl={otherPersonImage}
+              photoUrl={otherPersonPhoto}
               displayName={otherPersonName}
               size="sm"
             />
