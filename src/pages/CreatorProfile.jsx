@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Heart, MapPin, Mail, Globe, Instagram, Camera, Send, ChevronLeft, ChevronRight, Flag, AlertCircle, Star } from "lucide-react";
 import ProfileAvatar from "../components/lensly/ProfileAvatar";
 import { Button } from "@/components/ui/button";
+import PortfolioViewer from "../components/lensly/PortfolioViewer";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -26,6 +27,8 @@ export default function CreatorProfile() {
   const [averageRating, setAverageRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
   const [portfolioExpanded, setPortfolioExpanded] = useState(false);
+  const [isPortfolioViewerOpen, setIsPortfolioViewerOpen] = useState(false);
+  const [activePortfolioIndex, setActivePortfolioIndex] = useState(0);
 
   const params = new URLSearchParams(window.location.search);
   const creatorId = params.get("id");
@@ -303,21 +306,35 @@ export default function CreatorProfile() {
           <div className="mt-6">
             <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-3">Portfolio</h3>
             <div className="grid grid-cols-2 gap-2">
-              {(portfolioExpanded ? creator.portfolio_items : creator.portfolio_items.slice(0, 3)).map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.05 }}
-                  className={`rounded-xl overflow-hidden ${i === 0 ? "col-span-2 aspect-video" : "aspect-square"}`}
-                >
-                  {item.type === "video" ? (
-                    <video src={item.url} controls className="w-full h-full object-cover" />
-                  ) : (
-                    <img src={item.url} alt={item.caption || ""} className="w-full h-full object-cover" />
-                  )}
-                </motion.div>
-              ))}
+              {(portfolioExpanded ? creator.portfolio_items : creator.portfolio_items.slice(0, 3)).map((item, i) => {
+                const fullIndex = portfolioExpanded ? i : i;
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                    onClick={() => {
+                      setActivePortfolioIndex(fullIndex);
+                      setIsPortfolioViewerOpen(true);
+                    }}
+                    className={`rounded-xl overflow-hidden cursor-pointer ${i === 0 ? "col-span-2 aspect-video" : "aspect-square"}`}
+                  >
+                    {item.type === "video" ? (
+                      <div className="relative w-full h-full">
+                        <video src={item.url} className="w-full h-full object-cover pointer-events-none" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                          <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
+                            <div className="w-0 h-0 border-l-[10px] border-l-black border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent ml-1" />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <img src={item.url} alt={item.caption || ""} className="w-full h-full object-cover" />
+                    )}
+                  </motion.div>
+                );
+              })}
             </div>
             {creator.portfolio_items.length > 3 && (
               <Button
@@ -437,6 +454,13 @@ export default function CreatorProfile() {
         onClose={() => setReportOpen(false)} 
         reportedUserEmail={creator?.created_by}
         reportedProfileId={creator?.id}
+      />
+
+      <PortfolioViewer
+        isOpen={isPortfolioViewerOpen}
+        onClose={() => setIsPortfolioViewerOpen(false)}
+        portfolio={creator?.portfolio_items || []}
+        initialIndex={activePortfolioIndex}
       />
       </div>
       );
