@@ -205,13 +205,20 @@ export default function CreatorProfile() {
             </div>
           )}
 
-          {creator.categories?.[0] && (
-            <div className="mt-2">
-              <Badge variant="secondary" className="bg-blue-500 text-white text-xs rounded-full px-3">
-                {creator.categories[0]}
-              </Badge>
-            </div>
-          )}
+          {(() => {
+            const featured = creator.featured_categories?.length > 0 
+              ? creator.featured_categories.slice(0, 2)
+              : creator.categories?.slice(0, 2) || [];
+            return featured.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {featured.map((cat) => (
+                  <Badge key={cat} className="bg-blue-500 text-white text-xs rounded-full px-3 py-1">
+                    {cat}
+                  </Badge>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Price */}
           {creator.starting_price && (
@@ -316,9 +323,9 @@ export default function CreatorProfile() {
         {/* Additional Details */}
         <div className="mt-5 bg-white rounded-2xl shadow-sm p-5 border border-neutral-100">
           {/* Categories */}
-          {creator.categories?.length > 1 && (
+          {creator.categories?.length > 0 && (
             <div className="mb-4">
-              <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">All Specialties</h3>
+              <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">Specialties</h3>
               <div className="flex flex-wrap gap-2">
                 {creator.categories.map((cat) => (
                   <Badge key={cat} variant="secondary" className="bg-neutral-100 text-neutral-700 text-xs rounded-full px-3">

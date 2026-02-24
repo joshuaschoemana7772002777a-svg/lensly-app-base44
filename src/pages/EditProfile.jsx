@@ -352,6 +352,48 @@ export default function EditProfile() {
           </div>
         </div>
 
+        {/* Featured Categories */}
+        {profile?.categories?.length > 0 && (
+          <div>
+            <Label className="text-xs text-neutral-500 mb-2 block">Featured specialties (up to 2)</Label>
+            <p className="text-xs text-neutral-400 mb-3">
+              These will be shown at the top of your profile and on your card.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {profile.categories.map((cat) => {
+                const isFeatured = profile.featured_categories?.includes(cat);
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      const current = profile.featured_categories || [];
+                      if (isFeatured) {
+                        setProfile({
+                          ...profile,
+                          featured_categories: current.filter(c => c !== cat)
+                        });
+                      } else if (current.length < 2) {
+                        setProfile({
+                          ...profile,
+                          featured_categories: [...current, cat]
+                        });
+                      }
+                    }}
+                    className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
+                      isFeatured
+                        ? "bg-blue-500 text-white"
+                        : "bg-white border border-neutral-200 text-neutral-600"
+                    } ${!isFeatured && (profile.featured_categories?.length >= 2) ? "opacity-50 cursor-not-allowed" : ""}`}
+                    disabled={!isFeatured && (profile.featured_categories?.length >= 2)}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Service Areas */}
         <div>
           <Label className="text-xs text-neutral-500 mb-2 block">Operating Areas *</Label>
