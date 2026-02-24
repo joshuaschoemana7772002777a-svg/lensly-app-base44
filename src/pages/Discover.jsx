@@ -52,129 +52,134 @@ export default function Discover() {
 
   const loadCreators = async () => {
     setLoading(true);
-    const data = await base44.entities.CreatorProfile.filter({ 
-      is_published: true,
-      is_hidden: false 
-    }, "-created_date", 100);
-    
-    // Filter for complete profiles - require: cover image, featured specialties (1-2), starting price
-    const complete = data.filter(creator => {
-      const hasCoverImage = !!creator.profile_image;
-      const hasFeaturedSpecialties = creator.featured_categories?.length > 0;
-      const hasStartingPrice = !!creator.starting_price;
-      const hasCategories = creator.categories?.length > 0;
-      const hasAreas = creator.service_areas?.length > 0;
-      return hasCoverImage && hasFeaturedSpecialties && hasStartingPrice && hasCategories && hasAreas;
-    });
-
-    // Load reviews for all creators
-    const allReviews = await base44.entities.Review.list("-created_date", 1000);
-    const reviewsByCreator = {};
-    allReviews.forEach(review => {
-      if (!reviewsByCreator[review.creator_profile_id]) {
-        reviewsByCreator[review.creator_profile_id] = [];
-      }
-      reviewsByCreator[review.creator_profile_id].push(review);
-    });
-
-    // Attach review stats to creators
-    complete.forEach(creator => {
-      const reviews = reviewsByCreator[creator.id] || [];
-      creator.reviewCount = reviews.length;
-      creator.averageRating = reviews.length > 0
-        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-        : 0;
-    });
-
-    // Calculate quality score for each creator
-    const calculateScore = (creator, isFavorited) => {
-      let score = 0;
-
-      // 1) Favorites boost (personalized)
-      if (isFavorited) score += 20;
-
-      // 2) Profile completeness
-      if (creator.profile_image) score += 6;
-      if (creator.bio && creator.bio.length >= 60) score += 6;
-      if (creator.starting_price) score += 4;
-      if (creator.portfolio_items?.length >= 6) score += 12;
-      else if (creator.portfolio_items?.length >= 3) score += 6;
-      if (creator.service_areas?.length >= 1) score += 4;
-      if (creator.instagram_handle || creator.website_url) score += 4;
-
-      // 3) Responsiveness (placeholder for future implementation)
-      // TODO: Implement avg_response_time tracking
-      // if (creator.avg_response_time_hours < 2) score += 12;
-      // else if (creator.avg_response_time_hours < 12) score += 7;
-
-      // 4) Reviews / reputation
-      if (creator.reviewCount > 0) {
-        if (creator.averageRating >= 4.8 && creator.reviewCount >= 10) score += 18;
-        else if (creator.averageRating >= 4.6 && creator.reviewCount >= 5) score += 12;
-        else if (creator.averageRating >= 4.4 && creator.reviewCount >= 3) score += 7;
-        else if (creator.reviewCount < 3) score += 3;
-      }
-
-      // 5) Freshness / activity
-      if (creator.updated_date) {
-        const daysSinceUpdate = (Date.now() - new Date(creator.updated_date)) / (1000 * 60 * 60 * 24);
-        if (daysSinceUpdate <= 30) score += 5;
-      }
-
-      return score;
-    };
-
-    // Get current user for favorites scoring
-    let currentUserEmail = null;
     try {
-      const authed = await base44.auth.isAuthenticated();
-      if (authed) {
-        const user = await base44.auth.me();
-        currentUserEmail = user.email;
-      }
-    } catch {}
+      const data = await base44.entities.CreatorProfile.filter({ 
+        is_published: true,
+        is_hidden: false 
+      }, "-created_date", 100);
+      
+      // Filter for complete profiles - require: cover image, featured specialties (1-2), starting price
+      const complete = data.filter(creator => {
+        const hasCoverImage = !!creator.profile_image;
+        const hasFeaturedSpecialties = creator.featured_categories?.length > 0;
+        const hasStartingPrice = !!creator.starting_price;
+        const hasCategories = creator.categories?.length > 0;
+        const hasAreas = creator.service_areas?.length > 0;
+        return hasCoverImage && hasFeaturedSpecialties && hasStartingPrice && hasCategories && hasAreas;
+      });
 
-    // Load user favorites for scoring
-    const userFavorites = new Set();
-    if (currentUserEmail) {
-      const favs = await base44.entities.Favourite.list();
-      favs.forEach(f => userFavorites.add(f.creator_profile_id));
+      // Load reviews for all creators
+      const allReviews = await base44.entities.Review.list("-created_date", 1000);
+      const reviewsByCreator = {};
+      allReviews.forEach(review => {
+        if (!reviewsByCreator[review.creator_profile_id]) {
+          reviewsByCreator[review.creator_profile_id] = [];
+        }
+        reviewsByCreator[review.creator_profile_id].push(review);
+      });
+
+      // Attach review stats to creators
+      complete.forEach(creator => {
+        const reviews = reviewsByCreator[creator.id] || [];
+        creator.reviewCount = reviews.length;
+        creator.averageRating = reviews.length > 0
+          ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+          : 0;
+      });
+
+      // Calculate quality score for each creator
+      const calculateScore = (creator, isFavorited) => {
+        let score = 0;
+
+        // 1) Favorites boost (personalized)
+        if (isFavorited) score += 20;
+
+        // 2) Profile completeness
+        if (creator.profile_image) score += 6;
+        if (creator.bio && creator.bio.length >= 60) score += 6;
+        if (creator.starting_price) score += 4;
+        if (creator.portfolio_items?.length >= 6) score += 12;
+        else if (creator.portfolio_items?.length >= 3) score += 6;
+        if (creator.service_areas?.length >= 1) score += 4;
+        if (creator.instagram_handle || creator.website_url) score += 4;
+
+        // 3) Responsiveness (placeholder for future implementation)
+        // TODO: Implement avg_response_time tracking
+        // if (creator.avg_response_time_hours < 2) score += 12;
+        // else if (creator.avg_response_time_hours < 12) score += 7;
+
+        // 4) Reviews / reputation
+        if (creator.reviewCount > 0) {
+          if (creator.averageRating >= 4.8 && creator.reviewCount >= 10) score += 18;
+          else if (creator.averageRating >= 4.6 && creator.reviewCount >= 5) score += 12;
+          else if (creator.averageRating >= 4.4 && creator.reviewCount >= 3) score += 7;
+          else if (creator.reviewCount < 3) score += 3;
+        }
+
+        // 5) Freshness / activity
+        if (creator.updated_date) {
+          const daysSinceUpdate = (Date.now() - new Date(creator.updated_date)) / (1000 * 60 * 60 * 24);
+          if (daysSinceUpdate <= 30) score += 5;
+        }
+
+        return score;
+      };
+
+      // Get current user for favorites scoring
+      let currentUserEmail = null;
+      try {
+        const authed = await base44.auth.isAuthenticated();
+        if (authed) {
+          const user = await base44.auth.me();
+          currentUserEmail = user.email;
+        }
+      } catch {}
+
+      // Load user favorites for scoring
+      const userFavorites = new Set();
+      if (currentUserEmail) {
+        const favs = await base44.entities.Favourite.list();
+        favs.forEach(f => userFavorites.add(f.creator_profile_id));
+      }
+
+      // Calculate and attach scores
+      complete.forEach(creator => {
+        creator.score = calculateScore(creator, userFavorites.has(creator.id));
+      });
+
+      // Sort by score DESC with tie-breakers
+      const sorted = complete.sort((a, b) => {
+        // Primary: Score
+        if (a.score !== b.score) return b.score - a.score;
+        
+        // Tie-breaker 1: Higher rating
+        if (a.averageRating !== b.averageRating) return b.averageRating - a.averageRating;
+        
+        // Tie-breaker 2: Higher review count
+        if (a.reviewCount !== b.reviewCount) return b.reviewCount - a.reviewCount;
+        
+        // Tie-breaker 3: Response time (placeholder)
+        // TODO: Implement when avg_response_time is tracked
+        
+        // Tie-breaker 4: More portfolio items
+        const aPortfolio = a.portfolio_items?.length || 0;
+        const bPortfolio = b.portfolio_items?.length || 0;
+        if (aPortfolio !== bPortfolio) return bPortfolio - aPortfolio;
+        
+        // Tie-breaker 5: Most recently updated
+        if (a.updated_date && b.updated_date) {
+          return new Date(b.updated_date) - new Date(a.updated_date);
+        }
+        
+        // Tie-breaker 6: Stable by ID (pseudo-random but consistent)
+        return a.id.localeCompare(b.id);
+      });
+      
+      setCreators(sorted);
+    } catch (error) {
+      console.error("Error loading creators:", error);
+      setCreators([]);
     }
-
-    // Calculate and attach scores
-    complete.forEach(creator => {
-      creator.score = calculateScore(creator, userFavorites.has(creator.id));
-    });
-
-    // Sort by score DESC with tie-breakers
-    const sorted = complete.sort((a, b) => {
-      // Primary: Score
-      if (a.score !== b.score) return b.score - a.score;
-      
-      // Tie-breaker 1: Higher rating
-      if (a.averageRating !== b.averageRating) return b.averageRating - a.averageRating;
-      
-      // Tie-breaker 2: Higher review count
-      if (a.reviewCount !== b.reviewCount) return b.reviewCount - a.reviewCount;
-      
-      // Tie-breaker 3: Response time (placeholder)
-      // TODO: Implement when avg_response_time is tracked
-      
-      // Tie-breaker 4: More portfolio items
-      const aPortfolio = a.portfolio_items?.length || 0;
-      const bPortfolio = b.portfolio_items?.length || 0;
-      if (aPortfolio !== bPortfolio) return bPortfolio - aPortfolio;
-      
-      // Tie-breaker 5: Most recently updated
-      if (a.updated_date && b.updated_date) {
-        return new Date(b.updated_date) - new Date(a.updated_date);
-      }
-      
-      // Tie-breaker 6: Stable by ID (pseudo-random but consistent)
-      return a.id.localeCompare(b.id);
-    });
-    
-    setCreators(sorted);
     setLoading(false);
   };
 
