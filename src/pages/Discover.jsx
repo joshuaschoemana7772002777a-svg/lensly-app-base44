@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { List, Map as MapIcon, SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import CreatorCard from "../components/lensly/CreatorCard";
 import AreaFilterChips from "../components/lensly/AreaFilterChips";
 import CategoryFilterChips from "../components/lensly/CategoryFilterChips";
-import MapView from "../components/lensly/MapView";
 
 export default function Discover() {
   const [creators, setCreators] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("list");
   const [selectedArea, setSelectedArea] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [favouriteIds, setFavouriteIds] = useState(new Set());
@@ -123,23 +121,7 @@ export default function Discover() {
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-neutral-100">
         <div className="px-5 pt-5 pb-3">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-bold text-neutral-900">Discover</h1>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-2 rounded-xl transition-colors ${viewMode === "list" ? "bg-blue-500 text-white" : "bg-white text-neutral-500 border border-neutral-200"}`}
-              >
-                <List className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("map")}
-                className={`p-2 rounded-xl transition-colors ${viewMode === "map" ? "bg-blue-500 text-white" : "bg-white text-neutral-500 border border-neutral-200"}`}
-              >
-                <MapIcon className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+          <h1 className="text-xl font-bold text-neutral-900 mb-3">Discover</h1>
           <CategoryFilterChips selected={selectedCategory} onChange={setSelectedCategory} />
           <div className="mt-2">
             <AreaFilterChips selected={selectedArea} onChange={setSelectedArea} />
@@ -151,12 +133,6 @@ export default function Discover() {
         <p className="text-xs text-neutral-400 mb-4">
           {filtered.length} creator{filtered.length !== 1 ? "s" : ""} found
         </p>
-
-        {viewMode === "map" && filtered.length > 0 && (
-          <div className="mb-4">
-            <MapView creators={filtered} />
-          </div>
-        )}
 
         {loading ? (
           <div className="grid grid-cols-2 gap-3">

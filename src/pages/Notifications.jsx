@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 
-export default function Notifications() {
+export default function Notifications({ inboxMode = false }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);

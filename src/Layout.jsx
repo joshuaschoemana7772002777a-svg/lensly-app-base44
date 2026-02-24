@@ -8,8 +8,7 @@ import RoleSelectionModal from "./components/lensly/RoleSelectionModal";
 const NAV_ITEMS = [
   { name: "Home", icon: Home, page: "Home" },
   { name: "Discover", icon: Search, page: "Discover" },
-  { name: "Notifications", icon: Bell, page: "Notifications", badge: true },
-  { name: "Messages", icon: Mail, page: "Messages" },
+  { name: "Inbox", icon: Mail, page: "Inbox", badge: true },
   { name: "Settings", icon: Settings, page: "Settings" },
 ];
 
@@ -24,11 +23,26 @@ export default function Layout({ children, currentPageName }) {
     const authed = await base44.auth.isAuthenticated();
     if (!authed) return;
     const user = await base44.auth.me();
-    const unread = await base44.entities.Notification.filter({
+    
+    // Count unread notifications
+    const unreadNotifs = await base44.entities.Notification.filter({
       recipient_email: user.email,
       is_read: false,
     });
-    setUnreadCount(unread.length);
+    
+    // Count unread messages
+    const profiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
+    const isCreator = profiles.length > 0 && profiles[0].is_published;
+    
+    let convos = [];
+    if (isCreator) {
+      convos = await base44.entities.Conversation.filter({ creator_profile_id: profiles[0].id });
+    } else {
+      convos = await base44.entities.Conversation.filter({ client_email: user.email });
+    }
+    const unreadMsgCount = convos.reduce((sum, c) => sum + (isCreator ? c.unread_count_creator : c.unread_count_client), 0);
+    
+    setUnreadCount(unreadNotifs.length + unreadMsgCount);
   };
 
   const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile" || currentPageName === "Conversation";

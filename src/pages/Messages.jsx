@@ -6,7 +6,7 @@ import { MessageCircle, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import moment from "moment";
 
-export default function Messages() {
+export default function Messages({ inboxMode = false }) {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -51,13 +51,15 @@ export default function Messages() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
-      <div className="px-5 pt-6 pb-4 border-b border-neutral-100">
-        <h1 className="text-2xl font-bold text-neutral-900">Messages</h1>
-        <p className="text-sm text-neutral-500 mt-1">
-          {userRole === "creator" ? "Respond to client inquiries" : "Follow up with creators"}
-        </p>
-      </div>
+    <div className={`${inboxMode ? "" : "min-h-screen pb-20"} bg-white`}>
+      {!inboxMode && (
+        <div className="px-5 pt-6 pb-4 border-b border-neutral-100">
+          <h1 className="text-2xl font-bold text-neutral-900">Messages</h1>
+          <p className="text-sm text-neutral-500 mt-1">
+            {userRole === "creator" ? "Respond to client inquiries" : "Follow up with creators"}
+          </p>
+        </div>
+      )}
 
       {conversations.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-5">

@@ -6,7 +6,20 @@ import { createPageUrl } from "@/utils";
 import StarRating from "./StarRating";
 
 export default function CreatorCard({ creator, isFavourite, onToggleFavourite, index = 0, averageRating, reviewCount }) {
-  const mainImage = creator.portfolio_items?.[0]?.url || creator.profile_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=80";
+  // Show featured item if set, otherwise show first portfolio item
+  let mainImage = "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=80";
+  
+  if (creator.featuredPortfolioItemId && creator.portfolio_items) {
+    const featuredItem = creator.portfolio_items.find((item, idx) => idx.toString() === creator.featuredPortfolioItemId);
+    if (featuredItem) {
+      mainImage = featuredItem.url;
+    } else {
+      // Featured item was deleted, fall back to first item
+      mainImage = creator.portfolio_items[0]?.url || creator.profile_image || mainImage;
+    }
+  } else {
+    mainImage = creator.portfolio_items?.[0]?.url || creator.profile_image || mainImage;
+  }
 
   return (
     <motion.div
