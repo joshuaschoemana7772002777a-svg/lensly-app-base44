@@ -77,28 +77,41 @@ export default function Notifications({ inboxMode = false }) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-24">
+    <div className={`${inboxMode ? "bg-white" : "min-h-screen bg-neutral-50 pb-24"}`}>
       {/* Header */}
-      <div className="bg-white border-b border-neutral-200 px-5 pt-6 pb-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-neutral-900">Notifications</h1>
+      {!inboxMode && (
+        <div className="bg-white border-b border-neutral-200 px-5 pt-6 pb-4 sticky top-0 z-10">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold text-neutral-900">Notifications</h1>
+              {unreadCount > 0 && (
+                <p className="text-sm text-neutral-500 mt-0.5">
+                  {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
+                </p>
+              )}
+            </div>
             {unreadCount > 0 && (
-              <p className="text-sm text-neutral-500 mt-0.5">
-                {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
-              </p>
+              <button
+                onClick={markAllAsRead}
+                className="text-sm text-blue-500 font-medium hover:text-blue-600"
+              >
+                Mark all read
+              </button>
             )}
           </div>
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllAsRead}
-              className="text-sm text-blue-500 font-medium hover:text-blue-600"
-            >
-              Mark all read
-            </button>
-          )}
         </div>
-      </div>
+      )}
+      
+      {inboxMode && unreadCount > 0 && (
+        <div className="px-5 pt-4 pb-2 flex justify-end">
+          <button
+            onClick={markAllAsRead}
+            className="text-sm text-blue-500 font-medium hover:text-blue-600"
+          >
+            Mark all read
+          </button>
+        </div>
+      )}
 
       {/* Notifications List */}
       <div className="px-5 pt-4 space-y-2">
