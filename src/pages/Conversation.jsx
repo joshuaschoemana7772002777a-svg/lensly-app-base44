@@ -28,6 +28,7 @@ export default function Conversation() {
   const [rateLimitError, setRateLimitError] = useState(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [canReview, setCanReview] = useState(false);
+  const [replyTimeText, setReplyTimeText] = useState(null);
 
   const params = new URLSearchParams(window.location.search);
   const conversationId = params.get("id");
@@ -84,6 +85,11 @@ export default function Conversation() {
     msgs.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
     setMessages(msgs);
 
+    // Calculate reply time for clients viewing creator conversations
+    if (!isCreator && msgs.length > 1) {
+      calculateReplyTime(msgs, convo);
+    }
+
     const unreadField = isCreator ? "unread_count_creator" : "unread_count_client";
     if (convo[unreadField] > 0) {
       await base44.entities.Conversation.update(conversationId, { [unreadField]: 0 });
@@ -94,6 +100,56 @@ export default function Conversation() {
     }
 
     setLoading(false);
+  };
+
+  const calculateReplyTime = (msgs, convo) => {
+    const creatorEmail = convo.created_by;
+    const clientEmail = convo.client_email;
+    
+    // Find reply pairs (client message followed by creator reply)
+    const replyTimes = [];
+    for (let i = 0; i < msgs.length - 1; i++) {
+      const currentMsg = msgs[i];
+      const nextMsg = msgs[i + 1];
+      
+      // Check if client sent message and creator replied
+      if (currentMsg.sender_email === clientEmail && nextMsg.sender_email === creatorEmail) {
+        const replyTime = new Date(nextMsg.created_date) - new Date(currentMsg.created_date);
+        replyTimes.push(replyTime);
+      }
+    }
+    
+    // Need at least 3 replies for meaningful data
+    if (replyTimes.length < 3) {
+      return;
+    }
+    
+    // Use last 20 replies
+    const recentReplies = replyTimes.slice(-20);
+    const avgReplyTime = recentReplies.reduce((sum, time) => sum + time, 0) / recentReplies.length;
+    
+    // Convert to hours
+    const avgHours = avgReplyTime / (1000 * 60 * 60);
+    
+    // Check if creator is inactive (last reply > 7 days ago)
+    const lastCreatorMsg = [...msgs].reverse().find(m => m.sender_email === creatorEmail);
+    if (lastCreatorMsg) {
+      const daysSinceLastReply = (Date.now() - new Date(lastCreatorMsg.created_date)) / (1000 * 60 * 60 * 24);
+      if (daysSinceLastReply > 7) {
+        return;
+      }
+    }
+    
+    // Set friendly text
+    if (avgHours < 1) {
+      setReplyTimeText("Usually replies in under 1 hour");
+    } else if (avgHours < 3) {
+      setReplyTimeText("Usually replies within a few hours");
+    } else if (avgHours < 12) {
+      setReplyTimeText("Usually replies within a few hours");
+    } else if (avgHours < 24) {
+      setReplyTimeText("Usually replies within 24 hours");
+    }
   };
 
   const sendMessage = async () => {
@@ -219,6 +275,9 @@ export default function Conversation() {
             />
             <div className="flex-1 min-w-0">
               <h2 className="text-base font-semibold text-neutral-900 truncate">{otherPersonName || "User"}</h2>
+              {userRole === "client" && replyTimeText && (
+                <p className="text-xs text-neutral-400 mt-0.5">{replyTimeText}</p>
+              )}
             </div>
           </div>
           <DropdownMenu>
