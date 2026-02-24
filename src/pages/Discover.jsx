@@ -21,7 +21,7 @@ export default function Discover() {
   const [favouriteIds, setFavouriteIds] = useState(new Set());
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [savedMode, setSavedMode] = useState(false);
-  const [sortBy, setSortBy] = useState("recommended");
+  const [sortBy, setSortBy] = useState("rating");
 
   // Read URL params
   useEffect(() => {
@@ -212,13 +212,11 @@ export default function Discover() {
       const aPrice = a.starting_price || 0;
       const bPrice = b.starting_price || 0;
       return bPrice - aPrice;
-    } else if (sortBy === "newest") {
-      return new Date(b.created_date) - new Date(a.created_date);
     } else if (sortBy === "rating") {
+      // Default: Top Rated
       if (a.averageRating !== b.averageRating) return b.averageRating - a.averageRating;
       return b.reviewCount - a.reviewCount;
     }
-    // Default "recommended" - already sorted by score
     return 0;
   });
 
@@ -239,20 +237,14 @@ export default function Discover() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setSortBy("recommended")}>
-                    Recommended
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("price_low")}>
-                    Price: Low to High
+                  <DropdownMenuItem onClick={() => setSortBy("rating")}>
+                    Top Rated
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setSortBy("price_high")}>
                     Price: High to Low
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("rating")}>
-                    Highest Rated
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("newest")}>
-                    Newest
+                  <DropdownMenuItem onClick={() => setSortBy("price_low")}>
+                    Price: Low to High
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -278,13 +270,13 @@ export default function Discover() {
       </div>
 
       <div className="px-5 pt-4">
-        {sortBy !== "recommended" && (
+        {sortBy !== "rating" && (
           <div className="mb-3">
             <button
-              onClick={() => setSortBy("recommended")}
+              onClick={() => setSortBy("rating")}
               className="inline-flex items-center gap-2 px-3 py-1.5 bg-neutral-100 rounded-full text-xs font-medium text-neutral-700 hover:bg-neutral-200 transition-colors"
             >
-              Sorted: {sortBy === "price_low" ? "Price: Low to High" : sortBy === "price_high" ? "Price: High to Low" : sortBy === "rating" ? "Highest Rated" : "Newest"}
+              Sorted: {sortBy === "price_low" ? "Price: Low to High" : "Price: High to Low"}
               <X className="w-3.5 h-3.5" />
             </button>
           </div>

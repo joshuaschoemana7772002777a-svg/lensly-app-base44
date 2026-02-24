@@ -54,11 +54,11 @@ import Discover from './pages/Discover';
 import EditProfile from './pages/EditProfile';
 import Favourites from './pages/Favourites';
 import Home from './pages/Home';
+import Inbox from './pages/Inbox';
 import Messages from './pages/Messages';
 import MyRequests from './pages/MyRequests';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
-import Inbox from './pages/Inbox';
 import __Layout from './Layout.jsx';
 
 
@@ -70,11 +70,11 @@ export const PAGES = {
     "EditProfile": EditProfile,
     "Favourites": Favourites,
     "Home": Home,
+    "Inbox": Inbox,
     "Messages": Messages,
     "MyRequests": MyRequests,
     "Notifications": Notifications,
     "Settings": Settings,
-    "Inbox": Inbox,
 }
 
 export const pagesConfig = {
