@@ -151,12 +151,23 @@ export default function EditProfile() {
   };
 
   const toggleCategory = (cat) => {
-    setProfile(p => ({
-      ...p,
-      categories: p.categories.includes(cat)
+    setProfile(p => {
+      const isRemoving = p.categories.includes(cat);
+      const newCategories = isRemoving
         ? p.categories.filter(c => c !== cat)
-        : [...p.categories, cat],
-    }));
+        : [...p.categories, cat];
+      
+      // If removing a category, also remove it from featured_categories
+      const newFeaturedCategories = isRemoving
+        ? (p.featured_categories || []).filter(c => c !== cat)
+        : p.featured_categories;
+      
+      return {
+        ...p,
+        categories: newCategories,
+        featured_categories: newFeaturedCategories,
+      };
+    });
   };
 
   const toggleArea = (area) => {
