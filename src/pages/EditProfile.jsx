@@ -515,20 +515,25 @@ export default function EditProfile() {
 
       {/* Save Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-xl border-t border-neutral-100 z-30">
-        <Button
-          onClick={handleSave}
-          disabled={saving || !profile?.display_name || !profile?.profile_image || !profile?.categories?.length || !profile?.service_areas?.length}
-          className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
-        >
-          {saving ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-          ) : saved ? (
-            <CheckCircle2 className="w-4 h-4 mr-2 text-green-400" />
-          ) : (
-            <Save className="w-4 h-4 mr-2" />
-          )}
-          {saved ? (isOnboarding && isProfileComplete ? "Welcome to Lensly!" : !isOnboarding && isProfileComplete ? "Profile updated" : "Saved!") : saving ? "Saving..." : (isOnboarding && isProfileComplete ? "Save & Go Live" : "Save Profile")}
-        </Button>
+        <div>
+          <p className="text-xs text-neutral-500 text-center mb-3">
+            Saving your profile updates your Discover listing instantly.
+          </p>
+          <Button
+            onClick={handleSave}
+            disabled={saving || !profile?.display_name || !profile?.profile_image || !profile?.categories?.length || !profile?.service_areas?.length}
+            className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            ) : saved ? (
+              <CheckCircle2 className="w-4 h-4 mr-2 text-green-400" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            {saved ? (isOnboarding && isProfileComplete ? "Welcome to Lensly!" : !isOnboarding && isProfileComplete ? "Profile updated" : "Saved!") : saving ? "Saving..." : (isOnboarding && isProfileComplete ? "Save & Go Live" : "Save Profile")}
+          </Button>
+        </div>
       </div>
 
       <OnboardingSuccessModal
