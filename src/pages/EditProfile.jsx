@@ -23,6 +23,7 @@ export default function EditProfile() {
   const [saved, setSaved] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profileImageUploading, setProfileImageUploading] = useState(false);
+  const [profilePhotoUploading, setProfilePhotoUploading] = useState(false);
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
@@ -60,6 +61,7 @@ export default function EditProfile() {
       setProfile({
         display_name: user.full_name || "",
         bio: "",
+        profile_photo: "",
         profile_image: "",
         categories: [],
         featured_categories: [],
@@ -112,6 +114,7 @@ export default function EditProfile() {
       profile.categories?.length > 0 &&
       profile.featured_categories?.length > 0 &&
       profile.service_areas?.length > 0 &&
+      profile.profile_photo &&
       profile.profile_image
     );
     
@@ -197,6 +200,22 @@ export default function EditProfile() {
     setProfileImageUploading(false);
   };
 
+  const handleProfilePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.type.startsWith('video/')) {
+      toast.error("Please upload an image for your profile photo.");
+      e.target.value = '';
+      return;
+    }
+    
+    setProfilePhotoUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setProfile(p => ({ ...p, profile_photo: file_url }));
+    setProfilePhotoUploading(false);
+  };
+
 
 
   if (!isAuthenticated) {
@@ -232,11 +251,12 @@ export default function EditProfile() {
     profile?.categories?.length > 0 &&
     profile?.featured_categories?.length > 0 &&
     profile?.service_areas?.length > 0 &&
+    profile?.profile_photo &&
     profile?.profile_image
   );
   
   const steps = [
-    { name: "Basic Info", complete: !!(profile?.display_name && profile?.bio && profile?.profile_image) },
+    { name: "Basic Info", complete: !!(profile?.display_name && profile?.bio && profile?.profile_photo && profile?.profile_image) },
     { name: "Pricing", complete: !!(profile?.starting_price && profile?.creator_type) },
     { name: "Categories", complete: !!(profile?.categories?.length > 0 && profile?.featured_categories?.length > 0) },
     { name: "Service Areas", complete: !!(profile?.service_areas?.length > 0) },
@@ -317,6 +337,29 @@ export default function EditProfile() {
               )}
             </div>
             <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleProfileImageUpload} className="hidden" />
+          </label>
+        </div>
+
+        {/* Profile Photo */}
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500 block">Profile Photo *</Label>
+          <p className="text-xs text-neutral-400 mb-3">
+            Upload a clear photo of yourself. This appears as a small circular image on your profile, messages, and reviews.
+          </p>
+          <label className="relative cursor-pointer block">
+            <div className="w-32 h-32 rounded-full bg-neutral-200 overflow-hidden flex items-center justify-center mx-auto border-2 border-neutral-100">
+              {profile?.profile_photo ? (
+                <img src={profile.profile_photo} alt="" className="w-full h-full object-cover" />
+              ) : profilePhotoUploading ? (
+                <Loader2 className="w-6 h-6 text-neutral-400 animate-spin" />
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <Camera className="w-8 h-8 text-neutral-400" />
+                  <span className="text-xs text-neutral-500">Upload photo</span>
+                </div>
+              )}
+            </div>
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleProfilePhotoUpload} className="hidden" />
           </label>
         </div>
 
@@ -545,7 +588,7 @@ export default function EditProfile() {
           </p>
           <Button
             onClick={handleSave}
-            disabled={saving || !profile?.display_name || !profile?.profile_image || !profile?.categories?.length || !profile?.featured_categories?.length || !profile?.service_areas?.length || !profile?.starting_price}
+            disabled={saving || !profile?.display_name || !profile?.profile_photo || !profile?.profile_image || !profile?.categories?.length || !profile?.featured_categories?.length || !profile?.service_areas?.length || !profile?.starting_price}
             className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
           >
             {saving ? (

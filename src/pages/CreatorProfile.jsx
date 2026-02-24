@@ -151,9 +151,9 @@ export default function CreatorProfile() {
         <div className="absolute bottom-0 left-0 right-0 p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 rounded-full border-2 border-white shadow-lg overflow-hidden flex-shrink-0 bg-white">
-              {creator.profile_image ? (
+              {creator.profile_photo ? (
                 <img 
-                  src={creator.profile_image} 
+                  src={creator.profile_photo} 
                   alt={creator.display_name}
                   className="w-full h-full object-cover"
                 />
