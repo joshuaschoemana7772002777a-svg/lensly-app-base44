@@ -11,6 +11,7 @@ import OnboardingSuccessModal from "../components/lensly/OnboardingSuccessModal"
 import ProfileCompletionChecklist from "../components/lensly/ProfileCompletionChecklist";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { toast } from "sonner";
 
 const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Lifestyle", "Social Media Content"];
 const AREAS = ["Sandton", "Johannesburg", "Pretoria", "Cape Town"];
@@ -27,6 +28,7 @@ export default function EditProfile() {
   const [autoSaving, setAutoSaving] = useState(false);
   const [autoSaveTimer, setAutoSaveTimer] = useState(null);
   const [coverImageError, setCoverImageError] = useState(null);
+  const [showVisibilityBanner, setShowVisibilityBanner] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -98,6 +100,7 @@ export default function EditProfile() {
   const handleSave = async () => {
     setSaving(true);
     const wasOnboarding = isOnboarding && !profile.is_published;
+    const wasIncomplete = !profile.is_published;
     
     // Auto-publish if all required fields are filled
     const isComplete = !!(
@@ -122,6 +125,15 @@ export default function EditProfile() {
     }
     setSaving(false);
     setSaved(true);
+    
+    // Show success toast
+    toast.success("Profile updated");
+    
+    // Show visibility banner if profile just went live
+    if (wasIncomplete && isComplete) {
+      setShowVisibilityBanner(true);
+      setTimeout(() => setShowVisibilityBanner(false), 5000);
+    }
     
     if (wasOnboarding && isComplete) {
       setTimeout(() => {
@@ -220,6 +232,15 @@ export default function EditProfile() {
   return (
     <div className="min-h-screen bg-white pb-32">
       <div className="px-5 pt-6 pb-4">
+        {showVisibilityBanner && (
+          <div className="mb-4 p-4 rounded-2xl bg-green-50 border border-green-200 flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-green-900">Your profile is now live on Discover!</p>
+              <p className="text-xs text-green-700 mt-1">Clients can now find and contact you.</p>
+            </div>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-neutral-900">
@@ -232,12 +253,6 @@ export default function EditProfile() {
             )}
           </div>
           <div className="flex items-center gap-3">
-            {(saved && !saving && !isOnboarding) && (
-              <div className="flex items-center gap-1.5 text-green-600 text-xs">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Saved</span>
-              </div>
-            )}
             {profile?.id && profile?.is_published && (
               <Link
                 to={createPageUrl("CreatorProfile") + `?id=${profile.id}`}
