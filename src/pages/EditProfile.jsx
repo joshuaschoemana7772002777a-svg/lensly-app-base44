@@ -380,47 +380,57 @@ export default function EditProfile() {
           </div>
         </div>
 
-        {/* Featured Categories */}
-        {profile?.categories?.length > 0 && (
-          <div>
-            <Label className="text-xs text-neutral-500 mb-2 block">Featured Specialties (1-2 required) *</Label>
-            <p className="text-xs text-neutral-400 mb-3">
-              Choose what you want to be hired for first. These appear on your Discover card.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {profile.categories.map((cat) => {
-                const isFeatured = profile.featured_categories?.includes(cat);
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => {
-                      const current = profile.featured_categories || [];
-                      if (isFeatured) {
-                        setProfile({
-                          ...profile,
-                          featured_categories: current.filter(c => c !== cat)
-                        });
-                      } else if (current.length < 2) {
-                        setProfile({
-                          ...profile,
-                          featured_categories: [...current, cat]
-                        });
-                      }
-                    }}
-                    className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
-                      isFeatured
-                        ? "bg-blue-500 text-white"
-                        : "bg-white border border-neutral-200 text-neutral-600"
-                    } ${!isFeatured && (profile.featured_categories?.length >= 2) ? "opacity-50 cursor-not-allowed" : ""}`}
-                    disabled={!isFeatured && (profile.featured_categories?.length >= 2)}
-                  >
-                    {cat}
-                  </button>
-                );
-              })}
-            </div>
+        {/* Featured Specialties */}
+        <div>
+          <Label className="text-xs text-neutral-500 mb-2 block">Featured Specialties (1-2 required) *</Label>
+          <p className="text-xs text-neutral-400 mb-3">
+            Select 1-2 specialties from your categories above to appear on your Discover card.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.map((cat) => {
+              const isInCategories = profile?.categories?.includes(cat);
+              const isFeatured = profile?.featured_categories?.includes(cat);
+              const isMaxSelected = (profile?.featured_categories?.length || 0) >= 2;
+              const isDisabled = !isInCategories || (!isFeatured && isMaxSelected);
+              
+              return (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    if (!isInCategories) return;
+                    
+                    const current = profile.featured_categories || [];
+                    if (isFeatured) {
+                      setProfile({
+                        ...profile,
+                        featured_categories: current.filter(c => c !== cat)
+                      });
+                    } else if (current.length < 2) {
+                      setProfile({
+                        ...profile,
+                        featured_categories: [...current, cat]
+                      });
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-full text-xs font-medium transition-all relative ${
+                    isFeatured
+                      ? "bg-blue-500 text-white"
+                      : isDisabled
+                      ? "bg-neutral-100 text-neutral-400 cursor-not-allowed"
+                      : "bg-white border border-neutral-200 text-neutral-600 hover:border-blue-300"
+                  }`}
+                  disabled={isDisabled}
+                  title={!isInCategories ? "Select this category above first" : isMaxSelected && !isFeatured ? "Max 2 specialties" : ""}
+                >
+                  {cat}
+                </button>
+              );
+            })}
           </div>
-        )}
+          {profile?.categories?.length > 0 && (profile?.featured_categories?.length || 0) === 0 && (
+            <p className="text-xs text-amber-600 mt-2">⚠️ Please select at least 1 featured specialty</p>
+          )}
+        </div>
 
         {/* Service Areas */}
         <div>
