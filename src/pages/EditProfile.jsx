@@ -391,11 +391,11 @@ export default function EditProfile() {
           </div>
         </div>
 
-        {/* Featured Specialties */}
+        {/* Featured Categories */}
         <div>
-          <Label className="text-xs text-neutral-500 mb-2 block">Featured Specialties (1-2 required) *</Label>
+          <Label className="text-xs text-neutral-500 mb-2 block">Featured Categories (1-2 required) *</Label>
           <p className="text-xs text-neutral-400 mb-3">
-            Select 1-2 specialties from your categories above to appear on your Discover card.
+            Choose the main categories you want to be hired for first. These will be highlighted on your Discover card.
           </p>
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((cat) => {
@@ -431,7 +431,7 @@ export default function EditProfile() {
                       : "bg-white border border-neutral-200 text-neutral-600 hover:border-blue-300"
                   }`}
                   disabled={isDisabled}
-                  title={!isInCategories ? "Select this category above first" : isMaxSelected && !isFeatured ? "Max 2 specialties" : ""}
+                  title={!isInCategories ? "Select this category above first to feature it" : isMaxSelected && !isFeatured ? "Max 2 categories" : ""}
                 >
                   {cat}
                 </button>
@@ -439,7 +439,7 @@ export default function EditProfile() {
             })}
           </div>
           {profile?.categories?.length > 0 && (profile?.featured_categories?.length || 0) === 0 && (
-            <p className="text-xs text-amber-600 mt-2">⚠️ Please select at least 1 featured specialty</p>
+            <p className="text-xs text-amber-600 mt-2">⚠️ Please select at least 1 featured category</p>
           )}
         </div>
 
