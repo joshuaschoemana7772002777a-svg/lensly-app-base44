@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import moment from "moment";
 import ReportModal from "../components/lensly/ReportModal";
+import ProfileAvatar from "../components/lensly/ProfileAvatar";
 import { checkMessagingRateLimit, trackMessagingActivity } from "../components/lensly/MessagingRateLimitCheck";
 import { createNotification } from "../components/lensly/NotificationService";
 import ReviewModal from "../components/lensly/ReviewModal";
@@ -211,13 +212,11 @@ export default function Conversation() {
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </Link>
           <div className="flex items-center gap-3 flex-1">
-            <div className="w-10 h-10 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
-              {otherPersonImage ? (
-                <img src={otherPersonImage} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-neutral-300" />
-              )}
-            </div>
+            <ProfileAvatar 
+              photoUrl={otherPersonImage}
+              displayName={otherPersonName}
+              size="sm"
+            />
             <div className="flex-1 min-w-0">
               <h2 className="text-base font-semibold text-neutral-900 truncate">{otherPersonName || "User"}</h2>
             </div>

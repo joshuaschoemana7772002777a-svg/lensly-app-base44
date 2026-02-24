@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import { ArrowLeft, Heart, MapPin, Mail, Globe, Instagram, Camera, Send, ChevronLeft, ChevronRight, Flag, AlertCircle, Star } from "lucide-react";
+import ProfileAvatar from "../components/lensly/ProfileAvatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
@@ -150,21 +151,12 @@ export default function CreatorProfile() {
         {/* Content Overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 rounded-full border-2 border-white shadow-lg overflow-hidden flex-shrink-0 bg-white">
-              {creator.profile_photo ? (
-                <img 
-                  src={creator.profile_photo} 
-                  alt={creator.display_name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-blue-100">
-                  <span className="text-blue-600 font-semibold text-sm">
-                    {creator.display_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                  </span>
-                </div>
-              )}
-            </div>
+            <ProfileAvatar 
+              photoUrl={creator.profile_photo}
+              displayName={creator.display_name}
+              size="md"
+              className="border-2 border-white shadow-lg"
+            />
             <h1 className="text-3xl font-bold text-white leading-tight">{creator.display_name}</h1>
           </div>
           
@@ -348,11 +340,11 @@ export default function CreatorProfile() {
                 <div key={review.id} className="pb-4 border-b border-neutral-100 last:border-0 last:pb-0">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span className="text-xs font-semibold text-blue-600">
-                          {review.client_name?.charAt(0)}
-                        </span>
-                      </div>
+                      <ProfileAvatar 
+                        photoUrl={null}
+                        displayName={review.client_name}
+                        size="sm"
+                      />
                       <div>
                         <p className="text-sm font-medium text-neutral-900">
                           {review.client_name?.split(" ")[0]} {review.client_name?.split(" ")[1]?.charAt(0)}.
