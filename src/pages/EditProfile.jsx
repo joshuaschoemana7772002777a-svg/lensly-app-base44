@@ -411,42 +411,11 @@ export default function EditProfile() {
               if (items.length > 0 && !profile?.profile_image) {
                 updated.profile_image = items[0].url;
               }
-              // Clear featured if that item was deleted
-              if (profile?.featuredPortfolioItemId) {
-                const featuredExists = items.find((_, idx) => idx.toString() === profile.featuredPortfolioItemId);
-                if (!featuredExists) {
-                  updated.featuredPortfolioItemId = null;
-                }
-              }
               setProfile(updated);
             }}
+            featuredItemId={profile?.featuredPortfolioItemId}
+            onFeaturedChange={(itemUrl) => setProfile({ ...profile, featuredPortfolioItemId: itemUrl })}
           />
-          
-          {profile?.portfolio_items?.length > 0 && (
-            <div className="mt-4">
-              <Label className="text-xs text-neutral-500 mb-2 block">Featured Portfolio Item</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {profile.portfolio_items.map((item, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setProfile({ ...profile, featuredPortfolioItemId: idx.toString() })}
-                    className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-                      profile.featuredPortfolioItemId === idx.toString()
-                        ? "border-blue-500 ring-2 ring-blue-200"
-                        : "border-neutral-200"
-                    }`}
-                  >
-                    <img src={item.url} alt="" className="w-full h-full object-cover" />
-                    {profile.featuredPortfolioItemId === idx.toString() && (
-                      <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
-                        <CheckCircle2 className="w-6 h-6 text-blue-600" />
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Publish */}
