@@ -5,8 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Save, Loader2, Camera, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { Save, Loader2, Camera, CheckCircle2, Eye, EyeOff, AlertCircle } from "lucide-react";
 import PortfolioUploader from "../components/lensly/PortfolioUploader";
 import OnboardingSuccessModal from "../components/lensly/OnboardingSuccessModal";
 import ProfileCompletionChecklist from "../components/lensly/ProfileCompletionChecklist";
@@ -99,23 +98,36 @@ export default function EditProfile() {
   const handleSave = async () => {
     setSaving(true);
     const wasOnboarding = isOnboarding && !profile.is_published;
+    
+    // Auto-publish if all required fields are filled
+    const isComplete = !!(
+      profile.display_name &&
+      profile.bio &&
+      profile.creator_type &&
+      profile.starting_price &&
+      profile.categories?.length > 0 &&
+      profile.service_areas?.length > 0 &&
+      profile.profile_image
+    );
+    
+    const updatedProfile = { ...profile, is_published: isComplete };
     let savedProfileId = profile.id;
     
     if (profile.id) {
-      await base44.entities.CreatorProfile.update(profile.id, profile);
+      await base44.entities.CreatorProfile.update(profile.id, updatedProfile);
     } else {
-      const created = await base44.entities.CreatorProfile.create(profile);
+      const created = await base44.entities.CreatorProfile.create(updatedProfile);
       savedProfileId = created.id;
-      setProfile({ ...profile, id: created.id });
+      setProfile({ ...updatedProfile, id: created.id });
     }
     setSaving(false);
     setSaved(true);
     
-    if (wasOnboarding && profile.is_published) {
+    if (wasOnboarding && isComplete) {
       setTimeout(() => {
         setShowSuccessModal(true);
       }, 500);
-    } else if (!isOnboarding && profile.is_published) {
+    } else if (!isOnboarding && isComplete) {
       setTimeout(() => {
         window.location.href = createPageUrl("CreatorProfile") + `?id=${savedProfileId}`;
       }, 800);
@@ -187,12 +199,21 @@ export default function EditProfile() {
     );
   }
 
+  const isProfileComplete = !!(
+    profile?.display_name &&
+    profile?.bio &&
+    profile?.creator_type &&
+    profile?.starting_price &&
+    profile?.categories?.length > 0 &&
+    profile?.service_areas?.length > 0 &&
+    profile?.profile_image
+  );
+  
   const steps = [
-    { name: "Basic Info", complete: !!(profile?.display_name && profile?.profile_image) },
+    { name: "Basic Info", complete: !!(profile?.display_name && profile?.bio && profile?.profile_image) },
+    { name: "Pricing", complete: !!(profile?.starting_price && profile?.creator_type) },
     { name: "Categories", complete: !!(profile?.categories?.length > 0) },
     { name: "Service Areas", complete: !!(profile?.service_areas?.length > 0) },
-    { name: "Portfolio", complete: !!(profile?.portfolio_items?.length > 0) },
-    { name: "Publish", complete: profile?.is_published },
   ];
   const completedSteps = steps.filter(s => s.complete).length;
 
@@ -449,28 +470,32 @@ export default function EditProfile() {
           />
         </div>
 
-        {/* Publish */}
-        <div className={`p-4 rounded-2xl border transition-all ${profile?.is_published ? "bg-green-50 border-green-200" : "bg-white border-neutral-100"}`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-neutral-800">Publish Profile</p>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                {profile?.is_published ? "Your profile is live!" : "Make your profile visible to clients"}
-              </p>
+        {/* Profile Status */}
+        {isProfileComplete ? (
+          <div className="p-4 rounded-2xl border bg-green-50 border-green-200">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+              <div>
+                <p className="text-sm font-medium text-green-900">Profile Complete & Live</p>
+                <p className="text-xs text-green-700 mt-0.5">
+                  Your profile is visible to clients on Discover
+                </p>
+              </div>
             </div>
-            <Switch
-              checked={profile?.is_published || false}
-              onCheckedChange={(v) => setProfile({ ...profile, is_published: v })}
-            />
           </div>
-          {isOnboarding && !profile?.is_published && (
-            <div className="mt-3 pt-3 border-t border-neutral-100">
-              <p className="text-xs text-neutral-600">
-                Complete all steps above, then publish to start receiving client requests.
-              </p>
+        ) : (
+          <div className="p-4 rounded-2xl border bg-amber-50 border-amber-200">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-600" />
+              <div>
+                <p className="text-sm font-medium text-amber-900">Complete Your Profile</p>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  Fill all required fields above to go live
+                </p>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Save Button */}
@@ -487,7 +512,7 @@ export default function EditProfile() {
           ) : (
             <Save className="w-4 h-4 mr-2" />
           )}
-          {saved ? (isOnboarding && profile?.is_published ? "Welcome to Lensly!" : !isOnboarding && profile?.is_published ? "Profile updated" : "Saved!") : saving ? "Saving..." : (isOnboarding && profile?.is_published ? "Publish & Continue" : "Save Profile")}
+          {saved ? (isOnboarding && isProfileComplete ? "Welcome to Lensly!" : !isOnboarding && isProfileComplete ? "Profile updated" : "Saved!") : saving ? "Saving..." : (isOnboarding && isProfileComplete ? "Save & Go Live" : "Save Profile")}
         </Button>
       </div>
 
