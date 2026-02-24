@@ -236,7 +236,7 @@ export default function EditProfile() {
         <div className="space-y-2">
           <Label className="text-xs text-neutral-500 block">Cover Photo *</Label>
           <p className="text-xs text-neutral-400 mb-3">
-            This image represents your profile across Discover and your public page. Choose a photo that clearly represents you or your work.
+            Upload a high-quality image that represents your work. This appears on Discover and your profile.
           </p>
           <label className="relative cursor-pointer block">
             <div className="w-full aspect-video rounded-2xl bg-neutral-200 overflow-hidden flex items-center justify-center">
@@ -251,7 +251,7 @@ export default function EditProfile() {
                 </div>
               )}
             </div>
-            <input type="file" accept="image/*" onChange={handleProfileImageUpload} className="hidden" />
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleProfileImageUpload} className="hidden" />
           </label>
         </div>
 
