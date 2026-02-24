@@ -422,7 +422,10 @@ export default function EditProfile() {
             onChange={(items) => {
               const updated = { ...profile, portfolio_items: items };
               if (items.length > 0 && !profile?.profile_image) {
-                updated.profile_image = items[0].url;
+                const firstImage = items.find(item => item.type === 'image');
+                if (firstImage) {
+                  updated.profile_image = firstImage.url;
+                }
               }
               setProfile(updated);
             }}
