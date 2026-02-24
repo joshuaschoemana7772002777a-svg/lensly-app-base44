@@ -103,23 +103,19 @@ export default function CreatorProfile() {
     );
   }
 
-  const portfolio = creator.portfolio_items || [];
-  const heroImage = portfolio[galleryIndex]?.url || creator.profile_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&q=80";
+  const heroImage = creator.profile_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&q=80";
+  const featuredCategories = creator.featured_categories?.slice(0, 2) || creator.categories?.slice(0, 2) || [];
 
   return (
     <div className="min-h-screen bg-white pb-28">
-      {/* Hero Gallery */}
+      {/* Hero Cover */}
       <div className="relative aspect-[4/5] md:aspect-[16/9] max-h-[500px] bg-neutral-900">
-        <motion.img
-          key={galleryIndex}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
+        <img
           src={heroImage}
           alt={creator.display_name}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
 
         {/* Nav */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 z-10">
@@ -147,72 +143,39 @@ export default function CreatorProfile() {
           </div>
         </div>
 
-        {/* Gallery nav */}
-        {portfolio.length > 1 && (
-          <>
-            <button
-              onClick={() => setGalleryIndex(i => Math.max(0, i - 1))}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center"
-            >
-              <ChevronLeft className="w-4 h-4 text-white" />
-            </button>
-            <button
-              onClick={() => setGalleryIndex(i => Math.min(portfolio.length - 1, i + 1))}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center"
-            >
-              <ChevronRight className="w-4 h-4 text-white" />
-            </button>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-              {portfolio.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setGalleryIndex(i)}
-                  className={`w-2 h-2 rounded-full transition-all ${i === galleryIndex ? "bg-white w-6" : "bg-white/50"}`}
-                />
+        {/* Content Overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-5">
+          <h1 className="text-3xl font-bold text-white leading-tight mb-3">{creator.display_name}</h1>
+          
+          {featuredCategories.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {featuredCategories.map((cat) => (
+                <span key={cat} className="px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm text-sm font-medium text-neutral-900">
+                  {cat}
+                </span>
               ))}
             </div>
-          </>
-        )}
+          )}
+          
+          {creator.starting_price && (
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-500 backdrop-blur-sm">
+              <span className="text-white text-base font-semibold">From R{creator.starting_price?.toLocaleString()}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Content */}
-      <div className="px-5 -mt-6 relative z-10">
+      <div className="px-5 mt-6">
         <div className="bg-white rounded-2xl shadow-xl p-5 border border-neutral-100">
-          <div className="mb-4">
-            <h1 className="text-2xl font-bold text-neutral-900 leading-tight">{creator.display_name}</h1>
-          </div>
-
           {averageRating > 0 && (
-            <div className="mt-3">
+            <div className="mb-4">
               <StarRating rating={averageRating} count={reviewCount} size="md" />
             </div>
           )}
 
-          {(() => {
-            const featured = creator.featured_categories?.length > 0 
-              ? creator.featured_categories.slice(0, 2)
-              : creator.categories?.slice(0, 2) || [];
-            return featured.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {featured.map((cat) => (
-                  <Badge key={cat} className="bg-blue-500 text-white text-xs rounded-full px-3 py-1">
-                    {cat}
-                  </Badge>
-                ))}
-              </div>
-            );
-          })()}
-
-          {/* Price */}
-          {creator.starting_price && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-xl">
-              <span className="text-xs text-blue-600 font-medium uppercase tracking-wide">Starting from</span>
-              <div className="text-3xl font-bold text-blue-600 mt-1">R{creator.starting_price?.toLocaleString()}</div>
-            </div>
-          )}
-
           {/* Areas */}
-          <div className="mt-4">
+          <div className="mb-4">
             <div className="flex items-center gap-1.5 text-sm text-neutral-600">
               <MapPin className="w-4 h-4 text-neutral-400" />
               <span>Operates in: {(creator.service_areas || []).join(" · ")}</span>
