@@ -8,27 +8,23 @@ import RoleSelectionModal from "./components/lensly/RoleSelectionModal";
 const NAV_ITEMS = [
   { name: "Home", icon: Home, page: "Home" },
   { name: "Discover", icon: Search, page: "Discover" },
-  { name: "Messages", icon: Mail, page: "Messages", badge: true },
+  { name: "Messages", icon: Mail, page: "Messages", badge: "messages" },
+  { name: "Updates", icon: Bell, page: "Updates", badge: "updates" },
   { name: "Settings", icon: Settings, page: "Settings" },
 ];
 
 export default function Layout({ children, currentPageName }) {
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [pendingRequests, setPendingRequests] = useState(0);
 
   useEffect(() => {
-    loadUnreadCount();
+    loadUnreadCounts();
   }, [currentPageName]);
 
-  const loadUnreadCount = async () => {
+  const loadUnreadCounts = async () => {
     const authed = await base44.auth.isAuthenticated();
     if (!authed) return;
     const user = await base44.auth.me();
-    
-    // Count unread notifications
-    const unreadNotifs = await base44.entities.Notification.filter({
-      recipient_email: user.email,
-      is_read: false,
-    });
     
     // Count unread messages
     const profiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
@@ -41,8 +37,21 @@ export default function Layout({ children, currentPageName }) {
       convos = await base44.entities.Conversation.filter({ client_email: user.email });
     }
     const unreadMsgCount = convos.reduce((sum, c) => sum + (isCreator ? c.unread_count_creator : c.unread_count_client), 0);
+    setUnreadMessages(unreadMsgCount);
     
-    setUnreadCount(unreadNotifs.length + unreadMsgCount);
+    // Count pending requests
+    let requests = [];
+    if (isCreator) {
+      requests = await base44.entities.ContactRequest.filter({
+        creator_profile_id: profiles[0].id,
+        status: { $in: ["pending", "read"] }
+      });
+    } else {
+      requests = await base44.entities.ContactRequest.filter({
+        sender_email: user.email,
+      });
+    }
+    setPendingRequests(requests.length);
   };
 
   const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile" || currentPageName === "Conversation";
@@ -72,7 +81,13 @@ export default function Layout({ children, currentPageName }) {
             {NAV_ITEMS.map((item) => {
               const isActive = currentPageName === item.page;
               const Icon = item.icon;
-              const showBadge = item.badge && unreadCount > 0;
+              
+              let badgeCount = 0;
+              if (item.badge === "messages") badgeCount = unreadMessages;
+              if (item.badge === "updates") badgeCount = pendingRequests;
+              
+              const showBadge = badgeCount > 0;
+              
               return (
                 <Link
                   key={item.page}
@@ -85,7 +100,7 @@ export default function Layout({ children, currentPageName }) {
                     <Icon className={`w-5 h-5 ${isActive ? "stroke-[2.5px]" : ""}`} />
                     {showBadge && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
-                        <span className="text-[9px] font-bold text-white">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                        <span className="text-[9px] font-bold text-white">{badgeCount > 9 ? "9+" : badgeCount}</span>
                       </div>
                     )}
                   </div>

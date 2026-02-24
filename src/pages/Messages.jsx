@@ -2,19 +2,16 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { MessageCircle, ChevronRight, Bell } from "lucide-react";
+import { MessageCircle, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import moment from "moment";
-import Notifications from "./Notifications";
+import ProfileAvatar from "../components/lensly/ProfileAvatar";
 
-export default function Messages({ inboxMode = false }) {
-  const [activeTab, setActiveTab] = useState("messages");
+export default function Messages() {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [unreadMessages, setUnreadMessages] = useState(0);
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     loadConversations();
@@ -43,18 +40,6 @@ export default function Messages({ inboxMode = false }) {
 
     convos.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
     setConversations(convos);
-    
-    // Count unread messages
-    const unreadMsgCount = convos.reduce((sum, c) => sum + (isCreator ? c.unread_count_creator : c.unread_count_client), 0);
-    setUnreadMessages(unreadMsgCount);
-    
-    // Count unread notifications
-    const unreadNotifs = await base44.entities.Notification.filter({
-      recipient_email: currentUser.email,
-      is_read: false,
-    });
-    setUnreadNotifications(unreadNotifs.length);
-    
     setLoading(false);
   };
 
@@ -68,58 +53,20 @@ export default function Messages({ inboxMode = false }) {
 
   return (
     <div className="min-h-screen bg-white pb-20">
-      {/* Segmented Control */}
       <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-neutral-100">
-        <div className="px-5 pt-6 pb-3">
-          <h1 className="text-2xl font-bold text-neutral-900 mb-4">Messages</h1>
-          <div className="flex gap-2 bg-neutral-100 rounded-xl p-1">
-            <button
-              onClick={() => setActiveTab("messages")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                activeTab === "messages"
-                  ? "bg-white text-neutral-900 shadow-sm"
-                  : "text-neutral-500"
-              }`}
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>Messages</span>
-              {unreadMessages > 0 && (
-                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-white">{unreadMessages > 9 ? "9+" : unreadMessages}</span>
-                </div>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("updates")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                activeTab === "updates"
-                  ? "bg-white text-neutral-900 shadow-sm"
-                  : "text-neutral-500"
-              }`}
-            >
-              <Bell className="w-4 h-4" />
-              <span>Updates</span>
-              {unreadNotifications > 0 && (
-                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-white">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span>
-                </div>
-              )}
-            </button>
-          </div>
+        <div className="px-5 pt-6 pb-4">
+          <h1 className="text-2xl font-bold text-neutral-900">Messages</h1>
+          <p className="text-sm text-neutral-500 mt-1">Active conversations</p>
         </div>
       </div>
 
-      {activeTab === "updates" ? (
-        <Notifications inboxMode={true} />
-      ) : conversations.length === 0 ? (
+      {conversations.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-5">
           <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
             <MessageCircle className="w-7 h-7 text-neutral-400" />
           </div>
           <p className="text-sm text-neutral-500 text-center mt-2 max-w-sm">
-            {userRole === "creator" 
-              ? "You don't have any inquiries yet. Make sure your profile is complete and visible on Discover."
-              : "You don't have any conversations yet. Message a creator or send a request to get started."}
+            Your conversations will appear here once a request is accepted.
           </p>
           {userRole === "client" && (
             <Link
@@ -148,13 +95,11 @@ export default function Messages({ inboxMode = false }) {
                   to={createPageUrl("Conversation") + `?id=${convo.id}`}
                   className="flex items-center gap-3 p-4 hover:bg-neutral-50 transition"
                 >
-                  <div className="w-12 h-12 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                    {otherPersonImage ? (
-                      <img src={otherPersonImage} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <MessageCircle className="w-5 h-5 text-neutral-400" />
-                    )}
-                  </div>
+                  <ProfileAvatar 
+                    photoUrl={otherPersonImage}
+                    displayName={otherPersonName}
+                    size="md"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-neutral-900 truncate">
