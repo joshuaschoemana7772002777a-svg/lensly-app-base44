@@ -59,10 +59,12 @@ export default function EditProfile() {
         display_name: user.full_name || "",
         bio: "",
         profile_image: "",
+        profile_avatar: "",
         categories: [],
         service_areas: [],
         starting_price: null,
         portfolio_items: [],
+        featuredPortfolioItemId: null,
         is_published: false,
         creator_type: "photographer",
         contact_email: user.email || "",
@@ -149,6 +151,15 @@ export default function EditProfile() {
     setProfileImageUploading(false);
   };
 
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setProfileImageUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setProfile(p => ({ ...p, profile_avatar: file_url }));
+    setProfileImageUploading(false);
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-5">
@@ -229,23 +240,44 @@ export default function EditProfile() {
         {/* Completion Checklist */}
         <ProfileCompletionChecklist profile={profile} />
 
-        {/* Profile Image */}
-        <div className="flex items-center gap-4">
-          <label className="relative cursor-pointer">
-            <div className="w-20 h-20 rounded-2xl bg-neutral-200 overflow-hidden flex items-center justify-center">
-              {profile?.profile_image ? (
-                <img src={profile.profile_image} alt="" className="w-full h-full object-cover" />
-              ) : profileImageUploading ? (
-                <Loader2 className="w-6 h-6 text-neutral-400 animate-spin" />
-              ) : (
-                <Camera className="w-6 h-6 text-neutral-400" />
-              )}
+        {/* Profile Images */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <label className="relative cursor-pointer">
+              <div className="w-20 h-20 rounded-full bg-neutral-200 overflow-hidden flex items-center justify-center">
+                {profile?.profile_avatar ? (
+                  <img src={profile.profile_avatar} alt="" className="w-full h-full object-cover" />
+                ) : profileImageUploading ? (
+                  <Loader2 className="w-6 h-6 text-neutral-400 animate-spin" />
+                ) : (
+                  <Camera className="w-6 h-6 text-neutral-400" />
+                )}
+              </div>
+              <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+            </label>
+            <div>
+              <p className="text-sm font-medium text-neutral-700">Profile Avatar</p>
+              <p className="text-xs text-neutral-400">Circular profile picture</p>
             </div>
-            <input type="file" accept="image/*" onChange={handleProfileImageUpload} className="hidden" />
-          </label>
-          <div>
-            <p className="text-sm font-medium text-neutral-700">Profile Photo</p>
-            <p className="text-xs text-neutral-400">Tap to change</p>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <label className="relative cursor-pointer">
+              <div className="w-20 h-20 rounded-2xl bg-neutral-200 overflow-hidden flex items-center justify-center">
+                {profile?.profile_image ? (
+                  <img src={profile.profile_image} alt="" className="w-full h-full object-cover" />
+                ) : profileImageUploading ? (
+                  <Loader2 className="w-6 h-6 text-neutral-400 animate-spin" />
+                ) : (
+                  <Camera className="w-6 h-6 text-neutral-400" />
+                )}
+              </div>
+              <input type="file" accept="image/*" onChange={handleProfileImageUpload} className="hidden" />
+            </label>
+            <div>
+              <p className="text-sm font-medium text-neutral-700">Cover Photo</p>
+              <p className="text-xs text-neutral-400">Main profile image</p>
+            </div>
           </div>
         </div>
 
@@ -370,7 +402,7 @@ export default function EditProfile() {
         <div>
           <Label className="text-xs text-neutral-500 mb-2 block">Portfolio</Label>
           <p className="text-xs text-neutral-400 mb-3">
-            Your first image will be used as your cover photo
+            Choose a featured image to display on your card
           </p>
           <PortfolioUploader
             items={profile?.portfolio_items || []}
@@ -379,9 +411,42 @@ export default function EditProfile() {
               if (items.length > 0 && !profile?.profile_image) {
                 updated.profile_image = items[0].url;
               }
+              // Clear featured if that item was deleted
+              if (profile?.featuredPortfolioItemId) {
+                const featuredExists = items.find((_, idx) => idx.toString() === profile.featuredPortfolioItemId);
+                if (!featuredExists) {
+                  updated.featuredPortfolioItemId = null;
+                }
+              }
               setProfile(updated);
             }}
           />
+          
+          {profile?.portfolio_items?.length > 0 && (
+            <div className="mt-4">
+              <Label className="text-xs text-neutral-500 mb-2 block">Featured Portfolio Item</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {profile.portfolio_items.map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setProfile({ ...profile, featuredPortfolioItemId: idx.toString() })}
+                    className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+                      profile.featuredPortfolioItemId === idx.toString()
+                        ? "border-blue-500 ring-2 ring-blue-200"
+                        : "border-neutral-200"
+                    }`}
+                  >
+                    <img src={item.url} alt="" className="w-full h-full object-cover" />
+                    {profile.featuredPortfolioItemId === idx.toString() && (
+                      <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-blue-600" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Publish */}

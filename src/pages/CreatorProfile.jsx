@@ -178,7 +178,22 @@ export default function CreatorProfile() {
       {/* Content */}
       <div className="px-5 -mt-6 relative z-10">
         <div className="bg-white rounded-2xl shadow-xl p-5 border border-neutral-100">
-          <h1 className="text-2xl font-bold text-neutral-900 leading-tight">{creator.display_name}</h1>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-16 h-16 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
+              {creator.profile_avatar || creator.profile_image ? (
+                <img 
+                  src={creator.profile_avatar || creator.profile_image} 
+                  alt={creator.display_name} 
+                  className="w-full h-full object-cover" 
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-neutral-400" />
+                </div>
+              )}
+            </div>
+            <h1 className="text-2xl font-bold text-neutral-900 leading-tight flex-1">{creator.display_name}</h1>
+          </div>
 
           {averageRating > 0 && (
             <div className="mt-3">
