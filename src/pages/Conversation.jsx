@@ -29,6 +29,7 @@ export default function Conversation() {
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [replyTimeText, setReplyTimeText] = useState(null);
+  const [otherPersonPhoto, setOtherPersonPhoto] = useState(null);
 
   const params = new URLSearchParams(window.location.search);
   const conversationId = params.get("id");

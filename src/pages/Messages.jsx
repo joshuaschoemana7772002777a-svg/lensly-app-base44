@@ -39,6 +39,22 @@ export default function Messages() {
     }
 
     convos.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
+    
+    // Load client profile photos if user is creator
+    if (profiles.length > 0 && profiles[0].is_published) {
+      const clientEmails = [...new Set(convos.map(c => c.client_email))];
+      const users = await base44.entities.User.filter({ 
+        email: { $in: clientEmails }
+      });
+      const photoMap = {};
+      users.forEach(u => {
+        if (u.profile_photo_url) {
+          photoMap[u.email] = u.profile_photo_url;
+        }
+      });
+      setClientPhotos(photoMap);
+    }
+    
     setConversations(convos);
     setLoading(false);
   };
