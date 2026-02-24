@@ -8,8 +8,7 @@ import RoleSelectionModal from "./components/lensly/RoleSelectionModal";
 const NAV_ITEMS = [
   { name: "Home", icon: Home, page: "Home" },
   { name: "Discover", icon: Search, page: "Discover" },
-  { name: "Messages", icon: Mail, page: "Messages", badge: "messages" },
-  { name: "Updates", icon: Bell, page: "Updates", badge: "updates" },
+  { name: "Messages", icon: Mail, page: "Messages", badge: "combined" },
   { name: "Settings", icon: Settings, page: "Settings" },
 ];
 
@@ -52,6 +51,9 @@ export default function Layout({ children, currentPageName }) {
       });
     }
     setPendingRequests(requests.length);
+    
+    // Combined badge = unread messages + pending requests
+    const combinedBadge = unreadMsgCount + requests.length;
   };
 
   const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile" || currentPageName === "Conversation";
@@ -83,8 +85,7 @@ export default function Layout({ children, currentPageName }) {
               const Icon = item.icon;
               
               let badgeCount = 0;
-              if (item.badge === "messages") badgeCount = unreadMessages;
-              if (item.badge === "updates") badgeCount = pendingRequests;
+              if (item.badge === "combined") badgeCount = unreadMessages + pendingRequests;
               
               const showBadge = badgeCount > 0;
               

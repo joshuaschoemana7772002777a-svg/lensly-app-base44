@@ -213,62 +213,43 @@ export default function CreatorProfile() {
                 setRateLimitError(null);
                 const authed = await base44.auth.isAuthenticated();
                 if (!authed) {
-                  base44.auth.redirectToLogin(window.location.href);
+                base44.auth.redirectToLogin(window.location.href);
                 } else {
-                  const user = await base44.auth.me();
+                const user = await base44.auth.me();
 
-                  // Check if user has sent a request to this creator
-                  const sentRequests = await base44.entities.ContactRequest.filter({
-                    creator_profile_id: creator.id,
-                    sender_email: user.email,
-                  });
+                // Check if user has sent a request to this creator
+                const sentRequests = await base44.entities.ContactRequest.filter({
+                  creator_profile_id: creator.id,
+                  sender_email: user.email,
+                });
 
-                  if (sentRequests.length === 0) {
-                    // No request sent - open contact form
-                    setContactOpen(true);
-                    return;
-                  }
+                if (sentRequests.length === 0) {
+                  // No request sent - open contact form
+                  setContactOpen(true);
+                  return;
+                }
 
-                  // Check rate limits before creating conversation
-                  const rateLimitCheck = await checkMessagingRateLimit(
-                    user.email,
-                    creator.id,
-                    null
-                  );
+                // Has sent request - check if it's been accepted
+                const acceptedRequest = sentRequests.find(r => r.status === "accepted");
 
-                  if (!rateLimitCheck.allowed) {
-                    setRateLimitError(rateLimitCheck.message);
-                    return;
-                  }
+                if (!acceptedRequest) {
+                  // Request pending - redirect to Updates tab
+                  window.location.href = createPageUrl("Messages");
+                  return;
+                }
 
-                  // Has sent request - allow messaging
-                  const existingConvos = await base44.entities.Conversation.filter({
-                    creator_profile_id: creator.id,
-                    client_email: user.email,
-                  });
+                // Request accepted - find conversation
+                const existingConvos = await base44.entities.Conversation.filter({
+                  creator_profile_id: creator.id,
+                  client_email: user.email,
+                });
 
-                  if (existingConvos.length > 0) {
-                    window.location.href = createPageUrl("Conversation") + `?id=${existingConvos[0].id}`;
-                  } else {
-                    const newConvo = await base44.entities.Conversation.create({
-                      creator_profile_id: creator.id,
-                      creator_name: creator.display_name,
-                      creator_image: creator.profile_photo,
-                      client_email: user.email,
-                      client_name: user.full_name,
-                      last_message_at: new Date().toISOString(),
-                    });
-
-                    // Track initial conversation creation
-                    await trackMessagingActivity(
-                      user.email,
-                      creator.id,
-                      null,
-                      newConvo.id
-                    );
-
-                    window.location.href = createPageUrl("Conversation") + `?id=${newConvo.id}`;
-                  }
+                if (existingConvos.length > 0) {
+                  window.location.href = createPageUrl("Conversation") + `?id=${existingConvos[0].id}`;
+                } else {
+                  // Conversation should exist after accept, but create if missing
+                  window.location.href = createPageUrl("Messages");
+                }
                 }
               }}
               className="w-full h-14 mt-5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-base shadow-lg"
