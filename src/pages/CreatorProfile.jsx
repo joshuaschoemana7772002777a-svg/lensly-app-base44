@@ -285,11 +285,11 @@ export default function CreatorProfile() {
         </div>
 
         {/* Portfolio Grid */}
-        {portfolio.length > 0 && (
+        {creator.portfolio_items?.length > 0 && (
           <div className="mt-6">
             <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-3">Portfolio</h3>
             <div className="grid grid-cols-2 gap-2">
-              {portfolio.map((item, i) => (
+              {creator.portfolio_items.map((item, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, scale: 0.95 }}
