@@ -6,13 +6,20 @@ import { createPageUrl } from "@/utils";
 import StarRating from "./StarRating";
 
 export default function CreatorCard({ creator, isFavourite, onToggleFavourite, index = 0, averageRating, reviewCount }) {
-  // Use cover image (profile_image) as the main image
-  const mainImage = creator.profile_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=80";
+  // Use creator-selected featured portfolio item as card background
+  const getFeaturedImage = () => {
+    if (creator.featuredPortfolioItemId && creator.portfolio_items?.length > 0) {
+      const featured = creator.portfolio_items.find(item => item.id === creator.featuredPortfolioItemId);
+      if (featured && featured.type === "image") return featured.url;
+    }
+    // Fallback to profile image
+    return creator.profile_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=80";
+  };
   
-  // Get featured specialties (1-2 required)
+  const mainImage = getFeaturedImage();
+  
+  // Get featured specialties (max 2)
   const featuredCategories = creator.featured_categories?.slice(0, 2) || [];
-  const showFallback = featuredCategories.length === 0 && creator.categories?.length > 0;
-  const displayCategories = showFallback ? [creator.categories[0]] : featuredCategories;
 
   return (
     <motion.div
