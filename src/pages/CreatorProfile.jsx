@@ -178,25 +178,8 @@ export default function CreatorProfile() {
       {/* Content */}
       <div className="px-5 -mt-6 relative z-10">
         <div className="bg-white rounded-2xl shadow-xl p-5 border border-neutral-100">
-          <div className="flex items-start gap-4 mb-4">
-            <div className="w-16 h-16 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0 border-2 border-white shadow-md">
-              {creator.profile_avatar || creator.profile_image ? (
-                <img 
-                  src={creator.profile_avatar || creator.profile_image} 
-                  alt={creator.display_name} 
-                  className="w-full h-full object-cover" 
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600">
-                  <span className="text-white text-xl font-semibold">
-                    {creator.display_name?.charAt(0)}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="flex-1 pt-1">
-              <h1 className="text-2xl font-bold text-neutral-900 leading-tight">{creator.display_name}</h1>
-            </div>
+          <div className="mb-4">
+            <h1 className="text-2xl font-bold text-neutral-900 leading-tight">{creator.display_name}</h1>
           </div>
 
           {averageRating > 0 && (

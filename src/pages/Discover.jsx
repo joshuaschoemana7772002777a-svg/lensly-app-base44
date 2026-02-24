@@ -57,12 +57,13 @@ export default function Discover() {
       is_hidden: false 
     }, "-created_date", 100);
     
-    // Filter to only show complete profiles
+    // Filter to only show complete profiles with required cover image
     const complete = data.filter(creator => {
+      const hasCoverImage = !!creator.profile_image;
       const hasPortfolio = creator.portfolio_items?.length > 0;
       const hasCategories = creator.categories?.length > 0;
       const hasAreas = creator.service_areas?.length > 0;
-      return hasPortfolio && hasCategories && hasAreas;
+      return hasCoverImage && hasPortfolio && hasCategories && hasAreas;
     });
 
     // Load reviews for all creators
@@ -92,7 +93,7 @@ export default function Discover() {
       if (isFavorited) score += 20;
 
       // 2) Profile completeness
-      if (creator.profile_image || creator.profile_avatar) score += 6;
+      if (creator.profile_image) score += 6;
       if (creator.bio && creator.bio.length >= 60) score += 6;
       if (creator.starting_price) score += 4;
       if (creator.portfolio_items?.length >= 6) score += 12;

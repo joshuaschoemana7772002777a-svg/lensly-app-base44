@@ -59,7 +59,6 @@ export default function EditProfile() {
         display_name: user.full_name || "",
         bio: "",
         profile_image: "",
-        profile_avatar: "",
         categories: [],
         service_areas: [],
         starting_price: null,
@@ -151,14 +150,7 @@ export default function EditProfile() {
     setProfileImageUploading(false);
   };
 
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setProfileImageUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setProfile(p => ({ ...p, profile_avatar: file_url }));
-    setProfileImageUploading(false);
-  };
+
 
   if (!isAuthenticated) {
     return (
@@ -240,45 +232,27 @@ export default function EditProfile() {
         {/* Completion Checklist */}
         <ProfileCompletionChecklist profile={profile} />
 
-        {/* Profile Images */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <label className="relative cursor-pointer">
-              <div className="w-20 h-20 rounded-full bg-neutral-200 overflow-hidden flex items-center justify-center">
-                {profile?.profile_avatar ? (
-                  <img src={profile.profile_avatar} alt="" className="w-full h-full object-cover" />
-                ) : profileImageUploading ? (
-                  <Loader2 className="w-6 h-6 text-neutral-400 animate-spin" />
-                ) : (
-                  <Camera className="w-6 h-6 text-neutral-400" />
-                )}
-              </div>
-              <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
-            </label>
-            <div>
-              <p className="text-sm font-medium text-neutral-700">Profile Avatar</p>
-              <p className="text-xs text-neutral-400">Circular profile picture</p>
+        {/* Cover Photo */}
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500 block">Cover Photo *</Label>
+          <p className="text-xs text-neutral-400 mb-3">
+            This image represents your profile across Discover and your public page. Choose a photo that clearly represents you or your work.
+          </p>
+          <label className="relative cursor-pointer block">
+            <div className="w-full aspect-video rounded-2xl bg-neutral-200 overflow-hidden flex items-center justify-center">
+              {profile?.profile_image ? (
+                <img src={profile.profile_image} alt="" className="w-full h-full object-cover" />
+              ) : profileImageUploading ? (
+                <Loader2 className="w-6 h-6 text-neutral-400 animate-spin" />
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <Camera className="w-8 h-8 text-neutral-400" />
+                  <span className="text-xs text-neutral-500">Upload cover photo</span>
+                </div>
+              )}
             </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <label className="relative cursor-pointer">
-              <div className="w-20 h-20 rounded-2xl bg-neutral-200 overflow-hidden flex items-center justify-center">
-                {profile?.profile_image ? (
-                  <img src={profile.profile_image} alt="" className="w-full h-full object-cover" />
-                ) : profileImageUploading ? (
-                  <Loader2 className="w-6 h-6 text-neutral-400 animate-spin" />
-                ) : (
-                  <Camera className="w-6 h-6 text-neutral-400" />
-                )}
-              </div>
-              <input type="file" accept="image/*" onChange={handleProfileImageUpload} className="hidden" />
-            </label>
-            <div>
-              <p className="text-sm font-medium text-neutral-700">Cover Photo</p>
-              <p className="text-xs text-neutral-400">Main profile image</p>
-            </div>
-          </div>
+            <input type="file" accept="image/*" onChange={handleProfileImageUpload} className="hidden" />
+          </label>
         </div>
 
         {/* Basic Info */}
@@ -488,7 +462,7 @@ export default function EditProfile() {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-xl border-t border-neutral-100 z-30">
         <Button
           onClick={handleSave}
-          disabled={saving || !profile?.display_name || !profile?.categories?.length || !profile?.service_areas?.length}
+          disabled={saving || !profile?.display_name || !profile?.profile_image || !profile?.categories?.length || !profile?.service_areas?.length}
           className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
         >
           {saving ? (
