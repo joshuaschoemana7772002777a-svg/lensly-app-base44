@@ -12,6 +12,7 @@ export default function Messages() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [clientPhotos, setClientPhotos] = useState({});
 
   useEffect(() => {
     loadConversations();
@@ -98,7 +99,7 @@ export default function Messages() {
           {conversations.map((convo, i) => {
             const unreadCount = userRole === "creator" ? convo.unread_count_creator : convo.unread_count_client;
             const otherPersonName = userRole === "creator" ? convo.client_name : convo.creator_name;
-            const otherPersonImage = userRole === "creator" ? null : convo.creator_image;
+            const otherPersonImage = userRole === "creator" ? clientPhotos[convo.client_email] : convo.creator_image;
 
             return (
               <motion.div
