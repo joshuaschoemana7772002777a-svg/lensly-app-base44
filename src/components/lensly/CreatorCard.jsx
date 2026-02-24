@@ -49,12 +49,12 @@ export default function CreatorCard({ creator, isFavourite, onToggleFavourite, i
           </button>
 
           <div className="absolute bottom-0 left-0 right-0 p-4">
-            <h3 className="text-white font-semibold text-lg leading-tight mb-2">{creator.display_name}</h3>
+            <h3 className="text-white font-semibold text-lg leading-tight mb-2.5">{creator.display_name}</h3>
             
-            {displayCategories.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {displayCategories.map((cat) => (
-                  <span key={cat} className="px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm text-xs font-medium text-neutral-900">
+            {featuredCategories.length > 0 && (
+              <div className="flex gap-1.5 mb-2">
+                {featuredCategories.map((cat) => (
+                  <span key={cat} className="px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm text-xs font-medium text-neutral-800">
                     {cat}
                   </span>
                 ))}
@@ -62,9 +62,11 @@ export default function CreatorCard({ creator, isFavourite, onToggleFavourite, i
             )}
             
             {creator.starting_price && (
-              <p className="text-white/90 text-xs font-medium">
-                From R{creator.starting_price?.toLocaleString()}
-              </p>
+              <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-blue-500 backdrop-blur-sm">
+                <span className="text-white text-sm font-semibold">
+                  From R{creator.starting_price?.toLocaleString()}
+                </span>
+              </div>
             )}
           </div>
         </div>
