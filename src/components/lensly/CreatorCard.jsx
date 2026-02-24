@@ -9,8 +9,10 @@ export default function CreatorCard({ creator, isFavourite, onToggleFavourite, i
   // Use cover image (profile_image) as the main image
   const mainImage = creator.profile_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=80";
   
-  // Get featured categories (up to 2)
-  const featuredCategories = creator.featured_categories?.slice(0, 2) || creator.categories?.slice(0, 2) || [];
+  // Get featured specialties (1-2 required)
+  const featuredCategories = creator.featured_categories?.slice(0, 2) || [];
+  const showFallback = featuredCategories.length === 0 && creator.categories?.length > 0;
+  const displayCategories = showFallback ? [creator.categories[0]] : featuredCategories;
 
   return (
     <motion.div
@@ -42,9 +44,9 @@ export default function CreatorCard({ creator, isFavourite, onToggleFavourite, i
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <h3 className="text-white font-semibold text-lg leading-tight mb-2">{creator.display_name}</h3>
             
-            {featuredCategories.length > 0 && (
+            {displayCategories.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-2">
-                {featuredCategories.map((cat) => (
+                {displayCategories.map((cat) => (
                   <span key={cat} className="px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm text-xs font-medium text-neutral-900">
                     {cat}
                   </span>
@@ -53,9 +55,9 @@ export default function CreatorCard({ creator, isFavourite, onToggleFavourite, i
             )}
             
             {creator.starting_price && (
-              <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-blue-500 backdrop-blur-sm">
-                <span className="text-white text-sm font-semibold">From R{creator.starting_price?.toLocaleString()}</span>
-              </div>
+              <p className="text-white/90 text-xs font-medium">
+                From R{creator.starting_price?.toLocaleString()}
+              </p>
             )}
           </div>
         </div>

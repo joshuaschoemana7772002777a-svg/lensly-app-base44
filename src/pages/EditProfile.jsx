@@ -62,6 +62,7 @@ export default function EditProfile() {
         bio: "",
         profile_image: "",
         categories: [],
+        featured_categories: [],
         service_areas: [],
         starting_price: null,
         portfolio_items: [],
@@ -109,6 +110,7 @@ export default function EditProfile() {
       profile.creator_type &&
       profile.starting_price &&
       profile.categories?.length > 0 &&
+      profile.featured_categories?.length > 0 &&
       profile.service_areas?.length > 0 &&
       profile.profile_image
     );
@@ -217,6 +219,7 @@ export default function EditProfile() {
     profile?.creator_type &&
     profile?.starting_price &&
     profile?.categories?.length > 0 &&
+    profile?.featured_categories?.length > 0 &&
     profile?.service_areas?.length > 0 &&
     profile?.profile_image
   );
@@ -224,7 +227,7 @@ export default function EditProfile() {
   const steps = [
     { name: "Basic Info", complete: !!(profile?.display_name && profile?.bio && profile?.profile_image) },
     { name: "Pricing", complete: !!(profile?.starting_price && profile?.creator_type) },
-    { name: "Categories", complete: !!(profile?.categories?.length > 0) },
+    { name: "Categories", complete: !!(profile?.categories?.length > 0 && profile?.featured_categories?.length > 0) },
     { name: "Service Areas", complete: !!(profile?.service_areas?.length > 0) },
   ];
   const completedSteps = steps.filter(s => s.complete).length;
@@ -380,9 +383,9 @@ export default function EditProfile() {
         {/* Featured Categories */}
         {profile?.categories?.length > 0 && (
           <div>
-            <Label className="text-xs text-neutral-500 mb-2 block">Featured specialties (up to 2)</Label>
+            <Label className="text-xs text-neutral-500 mb-2 block">Featured Specialties (1-2 required) *</Label>
             <p className="text-xs text-neutral-400 mb-3">
-              These will be shown at the top of your profile and on your card.
+              Choose what you want to be hired for first. These appear on your Discover card.
             </p>
             <div className="flex flex-wrap gap-2">
               {profile.categories.map((cat) => {
@@ -521,7 +524,7 @@ export default function EditProfile() {
           </p>
           <Button
             onClick={handleSave}
-            disabled={saving || !profile?.display_name || !profile?.profile_image || !profile?.categories?.length || !profile?.service_areas?.length}
+            disabled={saving || !profile?.display_name || !profile?.profile_image || !profile?.categories?.length || !profile?.featured_categories?.length || !profile?.service_areas?.length || !profile?.starting_price}
             className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
           >
             {saving ? (
