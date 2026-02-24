@@ -25,6 +25,7 @@ export default function CreatorProfile() {
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
+  const [portfolioExpanded, setPortfolioExpanded] = useState(false);
 
   const params = new URLSearchParams(window.location.search);
   const creatorId = params.get("id");
@@ -298,11 +299,11 @@ export default function CreatorProfile() {
         </div>
 
         {/* Portfolio Grid */}
-        {creator.portfolio_items?.length > 0 && (
+        {creator.portfolio_items?.length > 0 ? (
           <div className="mt-6">
             <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-3">Portfolio</h3>
             <div className="grid grid-cols-2 gap-2">
-              {creator.portfolio_items.map((item, i) => (
+              {(portfolioExpanded ? creator.portfolio_items : creator.portfolio_items.slice(0, 3)).map((item, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -318,8 +319,17 @@ export default function CreatorProfile() {
                 </motion.div>
               ))}
             </div>
+            {creator.portfolio_items.length > 3 && (
+              <Button
+                onClick={() => setPortfolioExpanded(!portfolioExpanded)}
+                variant="outline"
+                className="w-full mt-4 rounded-xl"
+              >
+                {portfolioExpanded ? "Show less" : `View more (${creator.portfolio_items.length - 3} more)`}
+              </Button>
+            )}
           </div>
-        )}
+        ) : null}
 
         {/* Bio */}
         {creator.bio && (
