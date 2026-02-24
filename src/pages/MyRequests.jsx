@@ -97,7 +97,7 @@ export default function MyRequests() {
         const newConvo = await base44.entities.Conversation.create({
           creator_profile_id: profiles[0].id,
           creator_name: profiles[0].display_name,
-          creator_image: profiles[0].profile_image,
+          creator_image: profiles[0].profile_photo,
           client_email: req.sender_email,
           client_name: req.sender_name,
           contact_request_id: requestId,
