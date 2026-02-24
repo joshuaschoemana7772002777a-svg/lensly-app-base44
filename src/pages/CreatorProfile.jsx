@@ -149,7 +149,24 @@ export default function CreatorProfile() {
 
         {/* Content Overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-5">
-          <h1 className="text-3xl font-bold text-white leading-tight mb-3">{creator.display_name}</h1>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-12 h-12 rounded-full border-2 border-white shadow-lg overflow-hidden flex-shrink-0 bg-white">
+              {creator.profile_image ? (
+                <img 
+                  src={creator.profile_image} 
+                  alt={creator.display_name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-blue-100">
+                  <span className="text-blue-600 font-semibold text-sm">
+                    {creator.display_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </div>
+            <h1 className="text-3xl font-bold text-white leading-tight">{creator.display_name}</h1>
+          </div>
           
           {featuredCategories.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
