@@ -27,6 +27,7 @@ export default function EditProfile() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
   const [autoSaveTimer, setAutoSaveTimer] = useState(null);
+  const [coverImageError, setCoverImageError] = useState(null);
 
   useEffect(() => {
     loadProfile();
@@ -144,6 +145,15 @@ export default function EditProfile() {
   const handleProfileImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    if (file.type.startsWith('video/')) {
+      setCoverImageError("Videos can be uploaded to your portfolio, not as your cover image.");
+      setTimeout(() => setCoverImageError(null), 4000);
+      e.target.value = '';
+      return;
+    }
+    
+    setCoverImageError(null);
     setProfileImageUploading(true);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     setProfile(p => ({ ...p, profile_image: file_url }));
@@ -238,6 +248,11 @@ export default function EditProfile() {
           <p className="text-xs text-neutral-400 mb-3">
             Upload a high-quality image that represents your work. This appears on Discover and your profile.
           </p>
+          {coverImageError && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-700">
+              {coverImageError}
+            </div>
+          )}
           <label className="relative cursor-pointer block">
             <div className="w-full aspect-video rounded-2xl bg-neutral-200 overflow-hidden flex items-center justify-center">
               {profile?.profile_image ? (
