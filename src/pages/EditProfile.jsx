@@ -417,9 +417,6 @@ export default function EditProfile() {
         {/* Portfolio */}
         <div>
           <Label className="text-xs text-neutral-500 mb-2 block">Portfolio</Label>
-          <p className="text-xs text-neutral-400 mb-3">
-            Choose a featured image to display on your card
-          </p>
           <PortfolioUploader
             items={profile?.portfolio_items || []}
             onChange={(items) => {
