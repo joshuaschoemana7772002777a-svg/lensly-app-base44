@@ -8,7 +8,7 @@ import RoleSelectionModal from "./components/lensly/RoleSelectionModal";
 const NAV_ITEMS = [
   { name: "Home", icon: Home, page: "Home" },
   { name: "Discover", icon: Search, page: "Discover" },
-  { name: "Inbox", icon: Mail, page: "Inbox", badge: true },
+  { name: "Messages", icon: Mail, page: "Messages", badge: true },
   { name: "Settings", icon: Settings, page: "Settings" },
 ];
 
