@@ -25,27 +25,12 @@ export default function EditProfile() {
   const [profilePhotoUploading, setProfilePhotoUploading] = useState(false);
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [autoSaving, setAutoSaving] = useState(false);
-  const [autoSaveTimer, setAutoSaveTimer] = useState(null);
   const [coverImageError, setCoverImageError] = useState(null);
   const [showVisibilityBanner, setShowVisibilityBanner] = useState(false);
 
   useEffect(() => {
     loadProfile();
   }, []);
-
-  useEffect(() => {
-    if (profile && !isOnboarding && isAuthenticated) {
-      if (autoSaveTimer) clearTimeout(autoSaveTimer);
-      const timer = setTimeout(() => {
-        handleAutoSave();
-      }, 2000);
-      setAutoSaveTimer(timer);
-    }
-    return () => {
-      if (autoSaveTimer) clearTimeout(autoSaveTimer);
-    };
-  }, [profile]);
 
   const loadProfile = async () => {
     const authed = await base44.auth.isAuthenticated();
@@ -77,26 +62,6 @@ export default function EditProfile() {
       setIsOnboarding(true);
     }
     setLoading(false);
-  };
-
-  const handleAutoSave = async () => {
-    if (!profile || autoSaving || saving) return;
-    
-    try {
-      setAutoSaving(true);
-      if (profile.id) {
-        await base44.entities.CreatorProfile.update(profile.id, profile);
-      } else {
-        const created = await base44.entities.CreatorProfile.create(profile);
-        setProfile({ ...profile, id: created.id });
-      }
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    } catch (error) {
-      console.error("Auto-save failed:", error);
-    } finally {
-      setAutoSaving(false);
-    }
   };
 
   const handleSave = async () => {
@@ -561,11 +526,7 @@ export default function EditProfile() {
 
       {/* Save Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-xl border-t border-neutral-100 z-30">
-        <div>
-          <p className="text-xs text-neutral-500 text-center mb-3">
-            Saving your profile updates your Discover listing instantly.
-          </p>
-          <Button
+        <Button
             onClick={handleSave}
             disabled={saving || !profile?.display_name || !profile?.profile_photo || !profile?.profile_image || !profile?.categories?.length || !profile?.featured_categories?.length || !profile?.service_areas?.length || !profile?.starting_price}
             className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
