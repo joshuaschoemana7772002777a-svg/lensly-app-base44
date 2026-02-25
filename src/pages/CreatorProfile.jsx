@@ -128,7 +128,7 @@ export default function CreatorProfile() {
     );
   }
 
-  const heroImage = creator.profile_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&q=80";
+  const heroImage = creator.publishedCoverPhotoUrl || creator.profile_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&q=80";
   const featuredCategories = creator.featured_categories?.slice(0, 2) || creator.categories?.slice(0, 2) || [];
 
   return (

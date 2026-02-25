@@ -30,11 +30,19 @@ export default function PortfolioCropModal({ open, onClose, imageUrl, onSave, ex
         setPosition({ x: existingCrop.x, y: existingCrop.y });
         setZoom(existingCrop.zoom || 1);
       } else {
-        setPosition({ x: 0, y: 0 });
+        // Default: center the image
+        if (imgDimensions.width > 0 && containerRef.current) {
+          const containerSize = containerRef.current.clientWidth;
+          const smallerDim = Math.min(imgDimensions.width, imgDimensions.height);
+          const centerOffset = (containerSize - smallerDim) / 2;
+          setPosition({ x: centerOffset, y: centerOffset });
+        } else {
+          setPosition({ x: 0, y: 0 });
+        }
         setZoom(1);
       }
     }
-  }, [open, existingCrop]);
+  }, [open, existingCrop, imgDimensions]);
 
   const handleMouseDown = (e) => {
     e.preventDefault();
@@ -116,7 +124,7 @@ export default function PortfolioCropModal({ open, onClose, imageUrl, onSave, ex
               className="absolute select-none pointer-events-none"
               style={{
                 transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
-                transformOrigin: 'top left',
+                transformOrigin: 'center center',
                 maxWidth: 'none',
                 width: 'auto',
                 height: 'auto'

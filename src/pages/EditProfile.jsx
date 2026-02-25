@@ -27,6 +27,7 @@ export default function EditProfile() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [coverImageError, setCoverImageError] = useState(null);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [draftCoverUrl, setDraftCoverUrl] = useState(null);
 
   useEffect(() => {
     loadProfile();
@@ -39,8 +40,11 @@ export default function EditProfile() {
     const user = await base44.auth.me();
     const profiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
     if (profiles.length > 0) {
-      setProfile(profiles[0]);
-      setIsOnboarding(!profiles[0].is_published);
+      const existingProfile = profiles[0];
+      setProfile(existingProfile);
+      setIsOnboarding(!existingProfile.is_published);
+      // Load draft cover if exists, otherwise use published
+      setDraftCoverUrl(existingProfile.draftCoverPhotoUrl || existingProfile.publishedCoverPhotoUrl || existingProfile.profile_image);
     } else {
       setProfile({
         display_name: user.full_name || "",
@@ -67,23 +71,6 @@ export default function EditProfile() {
   const handleSave = async () => {
     setSaving(true);
     const wasOnboarding = isOnboarding && !profile.is_published;
-    const wasIncomplete = !profile.is_published;
-    
-    // If a featured portfolio item is set, use it as the cover image
-    let coverImageUrl = profile.profile_image;
-    if (profile.featuredPortfolioItemId && profile.portfolio_items?.length > 0) {
-      const featuredItem = profile.portfolio_items.find(item => item.url === profile.featuredPortfolioItemId);
-      if (featuredItem) {
-        if (featuredItem.type === "video" && featuredItem.thumbnail_url) {
-          // Use thumbnail for videos
-          coverImageUrl = featuredItem.thumbnail_url;
-        } else if (featuredItem.type === "image") {
-          // Use image directly
-          coverImageUrl = featuredItem.url;
-        }
-        // If video without thumbnail, keep existing cover image
-      }
-    }
     
     // Auto-publish if all required fields are filled
     const isComplete = !!(
@@ -95,12 +82,14 @@ export default function EditProfile() {
       profile.featured_categories?.length > 0 &&
       profile.service_areas?.length > 0 &&
       profile.profile_photo &&
-      coverImageUrl
+      draftCoverUrl
     );
     
     const updatedProfile = { 
       ...profile, 
-      profile_image: coverImageUrl, 
+      draftCoverPhotoUrl: draftCoverUrl,
+      publishedCoverPhotoUrl: isComplete ? draftCoverUrl : profile.publishedCoverPhotoUrl,
+      profile_image: draftCoverUrl, // Legacy field
       is_published: isComplete,
       status: isComplete ? "published" : "draft",
       publishedAt: isComplete && !profile.publishedAt ? new Date().toISOString() : profile.publishedAt
@@ -122,19 +111,16 @@ export default function EditProfile() {
         setShowSuccessModal(true);
       }, 500);
     } else {
-      // Show success banner if profile is complete
-      if (isComplete) {
-        setShowSuccessBanner(true);
-        setTimeout(() => setShowSuccessBanner(false), 3000);
-      }
-      
-      // Show success toast and redirect to live profile
-      toast.success("Profile updated and live on Discover", {
-        duration: 2500,
+      // Auto-redirect to live profile after save (Option A)
+      toast.success(isComplete ? "Profile updated and live on Discover" : "Changes saved as draft", {
+        duration: 2000,
       });
-      setTimeout(() => {
-        window.location.href = createPageUrl("CreatorProfile") + `?id=${savedProfileId}`;
-      }, 800);
+      
+      if (isComplete) {
+        setTimeout(() => {
+          window.location.href = createPageUrl("CreatorProfile") + `?id=${savedProfileId}`;
+        }, 800);
+      }
     }
   };
 
@@ -181,7 +167,8 @@ export default function EditProfile() {
     setCoverImageError(null);
     setProfileImageUploading(true);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setProfile(p => ({ ...p, profile_image: file_url }));
+    setDraftCoverUrl(file_url); // Update draft cover instantly
+    setProfile(p => ({ ...p, profile_image: file_url })); // Legacy
     setProfileImageUploading(false);
   };
 
@@ -237,7 +224,7 @@ export default function EditProfile() {
     profile?.featured_categories?.length > 0 &&
     profile?.service_areas?.length > 0 &&
     profile?.profile_photo &&
-    profile?.profile_image
+    draftCoverUrl
   );
   
   const steps = [
@@ -250,8 +237,8 @@ export default function EditProfile() {
 
   return (
     <div className="min-h-screen bg-white pb-32">
-      {/* Success Banner - Only show after successful save of complete profile */}
-      {showSuccessBanner && isProfileComplete && (
+      {/* Success Banner - Only show if profile is published and has been saved at least once */}
+      {profile?.status === "published" && profile?.publishedAt && (
         <div className="px-5 pt-4 pb-2">
           <div className="p-3 rounded-xl bg-green-50 border border-green-200 flex items-start gap-3">
             <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
@@ -291,11 +278,11 @@ export default function EditProfile() {
         {/* Completion Checklist */}
         <ProfileCompletionChecklist profile={profile} />
 
-        {/* Cover Photo */}
+        {/* Cover Photo (DRAFT PREVIEW) */}
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-500 block">Cover Photo (Fallback)</Label>
+          <Label className="text-xs text-neutral-500 block">Cover Photo</Label>
           <p className="text-xs text-neutral-400 mb-3">
-            Upload a fallback cover image. If you set a Featured portfolio item, it will replace this as your cover.
+            Upload a fallback cover image. If you set a Featured portfolio item, it will instantly replace this preview. Changes publish when you tap "Save Profile".
           </p>
           {coverImageError && (
             <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-700">
@@ -304,8 +291,8 @@ export default function EditProfile() {
           )}
           <label className="relative cursor-pointer block">
             <div className="w-full aspect-video rounded-2xl bg-neutral-200 overflow-hidden flex items-center justify-center">
-              {profile?.profile_image ? (
-                <img src={profile.profile_image} alt="" className="w-full h-full object-cover" />
+              {draftCoverUrl ? (
+                <img src={draftCoverUrl} alt="" className="w-full h-full object-cover" />
               ) : profileImageUploading ? (
                 <Loader2 className="w-6 h-6 text-neutral-400 animate-spin" />
               ) : (
@@ -527,13 +514,16 @@ export default function EditProfile() {
                 const featuredStillExists = items.some(item => item.url === profile.featuredPortfolioItemId);
                 if (!featuredStillExists) {
                   updated.featuredPortfolioItemId = null;
+                  // Reset to fallback cover
+                  setDraftCoverUrl(profile.profile_image);
                 }
               }
               
               // Auto-set cover image from first image if none exists
-              if (items.length > 0 && !profile?.profile_image) {
+              if (items.length > 0 && !draftCoverUrl) {
                 const firstImage = items.find(item => item.type === 'image');
                 if (firstImage) {
+                  setDraftCoverUrl(firstImage.url);
                   updated.profile_image = firstImage.url;
                 }
               }
@@ -541,7 +531,21 @@ export default function EditProfile() {
               setProfile(updated);
             }}
             featuredItemId={profile?.featuredPortfolioItemId}
-            onFeaturedChange={(itemUrl) => setProfile({ ...profile, featuredPortfolioItemId: itemUrl })}
+            onFeaturedChange={(itemUrl) => {
+              setProfile({ ...profile, featuredPortfolioItemId: itemUrl });
+              
+              // Instantly update draft cover from featured item
+              if (itemUrl) {
+                const featuredItem = profile.portfolio_items.find(item => item.url === itemUrl);
+                if (featuredItem) {
+                  if (featuredItem.type === "video" && featuredItem.thumbnail_url) {
+                    setDraftCoverUrl(featuredItem.thumbnail_url);
+                  } else if (featuredItem.type === "image") {
+                    setDraftCoverUrl(featuredItem.url);
+                  }
+                }
+              }
+            }}
           />
         </div>
 
@@ -565,7 +569,7 @@ export default function EditProfile() {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-xl border-t border-neutral-100 z-30">
         <Button
             onClick={handleSave}
-            disabled={saving || !profile?.display_name || !profile?.profile_photo || !profile?.profile_image || !profile?.categories?.length || !profile?.featured_categories?.length || !profile?.service_areas?.length || !profile?.starting_price}
+            disabled={saving || !profile?.display_name || !profile?.profile_photo || !draftCoverUrl || !profile?.categories?.length || !profile?.featured_categories?.length || !profile?.service_areas?.length || !profile?.starting_price}
             className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
           >
             {saving ? (
