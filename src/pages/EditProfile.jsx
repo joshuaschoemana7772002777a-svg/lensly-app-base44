@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, Loader2, Camera, CheckCircle2, AlertCircle, Eye } from "lucide-react";
+import { Save, Loader2, Camera, CheckCircle2, AlertCircle } from "lucide-react";
 import PortfolioUploader from "../components/lensly/PortfolioUploader";
 import OnboardingSuccessModal from "../components/lensly/OnboardingSuccessModal";
 import ProfileCompletionChecklist from "../components/lensly/ProfileCompletionChecklist";
@@ -26,6 +26,7 @@ export default function EditProfile() {
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [coverImageError, setCoverImageError] = useState(null);
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -99,6 +100,12 @@ export default function EditProfile() {
         setShowSuccessModal(true);
       }, 500);
     } else {
+      // Show success banner if profile is complete
+      if (isComplete) {
+        setShowSuccessBanner(true);
+        setTimeout(() => setShowSuccessBanner(false), 3000);
+      }
+      
       // Show success toast and redirect to live profile
       toast.success("Profile updated and live on Discover", {
         duration: 2500,
@@ -221,14 +228,14 @@ export default function EditProfile() {
 
   return (
     <div className="min-h-screen bg-white pb-32">
-      {/* Top Status Banner - Only show when profile is published */}
-      {profile?.is_published && (
+      {/* Success Banner - Only show after successful save of complete profile */}
+      {showSuccessBanner && isProfileComplete && (
         <div className="px-5 pt-4 pb-2">
-          <div className="p-3 rounded-xl bg-blue-50/50 border border-blue-200/60 flex items-start gap-3">
-            <Eye className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="p-3 rounded-xl bg-green-50 border border-green-200 flex items-start gap-3">
+            <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-medium text-blue-900">Profile is visible on Discover</p>
-              <p className="text-[10px] text-blue-700 mt-0.5">Clients can find and contact you</p>
+              <p className="text-xs font-medium text-green-900">Profile is visible on Discover</p>
+              <p className="text-[10px] text-green-700 mt-0.5">Clients can find and contact you</p>
             </div>
           </div>
         </div>
