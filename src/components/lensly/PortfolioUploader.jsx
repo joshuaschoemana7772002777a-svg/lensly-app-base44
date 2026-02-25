@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Plus, X, Loader2, Image as ImageIcon, Video, Play } from "lucide-react";
+import { Plus, X, Loader2, Image as ImageIcon, Video, Play, Crop } from "lucide-react";
+import PortfolioCropModal from "./PortfolioCropModal";
 
 const generateVideoThumbnail = (file) => {
   return new Promise((resolve, reject) => {
@@ -44,6 +45,9 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState(null);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropItem, setCropItem] = useState(null);
+  const [cropIndex, setCropIndex] = useState(null);
 
   const validateVideo = (file) => {
     return new Promise((resolve, reject) => {
@@ -123,7 +127,8 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
             url: file_url, 
             type: isVideo ? "video" : "image", 
             caption: "",
-            thumbnail_url: thumbnailUrl 
+            thumbnail_url: thumbnailUrl,
+            crop: { x: 0, y: 0, zoom: 1 } // Default center crop
           });
         } catch (uploadError) {
           throw new Error("Upload failed. Please try a smaller video or check your connection.");
@@ -158,6 +163,33 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
     onFeaturedChange?.(itemUrl);
   };
 
+  const handleOpenCrop = (item, index) => {
+    setCropItem(item);
+    setCropIndex(index);
+    setCropModalOpen(true);
+  };
+
+  const handleSaveCrop = (cropData) => {
+    if (cropIndex === null) return;
+    const updatedItems = [...items];
+    updatedItems[cropIndex] = { ...updatedItems[cropIndex], crop: cropData };
+    onChange(updatedItems);
+    setCropModalOpen(false);
+    setCropItem(null);
+    setCropIndex(null);
+  };
+
+  const getDisplayStyle = (item) => {
+    if (!item.crop) return {};
+    const { x, y, zoom } = item.crop;
+    return {
+      transform: `translate(${-x * 100}%, ${-y * 100}%) scale(${zoom})`,
+      transformOrigin: 'top left',
+      width: '100%',
+      height: '100%'
+    };
+  };
+
   return (
     <div className="space-y-3">
       {error && (
@@ -188,16 +220,32 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
           return (
             <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-neutral-100 group">
               {item.type === "video" ? (
-                <div className="w-full h-full relative bg-neutral-900">
-                  <video src={item.url} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-full h-full relative bg-neutral-900 overflow-hidden">
+                  {item.thumbnail_url ? (
+                    <img 
+                      src={item.thumbnail_url} 
+                      alt="" 
+                      className="absolute"
+                      style={getDisplayStyle(item)}
+                    />
+                  ) : (
+                    <video src={item.url} className="w-full h-full object-cover" />
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
                       <Play className="w-5 h-5 text-white fill-white" />
                     </div>
                   </div>
                 </div>
               ) : (
-                <img src={item.url} alt="" className="w-full h-full object-cover" />
+                <div className="w-full h-full relative overflow-hidden">
+                  <img 
+                    src={item.url} 
+                    alt="" 
+                    className="absolute"
+                    style={getDisplayStyle(item)}
+                  />
+                </div>
               )}
               {isFeatured && (
                 <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-blue-500 text-white text-[9px] font-semibold">
@@ -205,12 +253,21 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
                 </div>
               )}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-              <button
-                onClick={() => handleRemove(i)}
-                className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
-              >
-                <X className="w-3 h-3" />
-              </button>
+              <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <button
+                  onClick={() => handleOpenCrop(item, i)}
+                  className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                  title="Adjust position"
+                >
+                  <Crop className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={() => handleRemove(i)}
+                  className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
               {!isFeatured && (
                 <button
                   onClick={() => handleSetFeatured(item.url)}
@@ -246,6 +303,17 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
           </label>
         )}
       </div>
+      
+      <PortfolioCropModal
+        open={cropModalOpen}
+        onClose={() => {
+          setCropModalOpen(false);
+          setCropItem(null);
+          setCropIndex(null);
+        }}
+        imageUrl={cropItem?.type === "video" ? cropItem?.thumbnail_url : cropItem?.url}
+        onSave={handleSaveCrop}
+      />
     </div>
   );
 }
