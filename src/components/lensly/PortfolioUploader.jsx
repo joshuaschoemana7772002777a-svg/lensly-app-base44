@@ -4,30 +4,40 @@ import { Button } from "@/components/ui/button";
 import { Plus, X, Loader2, Image as ImageIcon, Video, Play } from "lucide-react";
 
 const MAX_ITEMS = 12;
-const MAX_VIDEO_DURATION = 60; // seconds
+const MAX_VIDEO_DURATION = 45; // seconds
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB in bytes
 
 export default function PortfolioUploader({ items = [], onChange, featuredItemId, onFeaturedChange }) {
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState(null);
 
   const validateVideo = (file) => {
     return new Promise((resolve, reject) => {
-      if (file.size > MAX_VIDEO_SIZE) {
-        reject("Video must be under 100MB");
+      // Check file type
+      if (file.type !== "video/mp4") {
+        reject("Unsupported format. Please upload an MP4 file.");
         return;
       }
+      
+      // Check file size
+      if (file.size > MAX_VIDEO_SIZE) {
+        reject("Video too large. Please upload an MP4 under 100MB (max 45 seconds).");
+        return;
+      }
+      
+      // Check duration
       const video = document.createElement("video");
       video.preload = "metadata";
       video.onloadedmetadata = () => {
         window.URL.revokeObjectURL(video.src);
         if (video.duration > MAX_VIDEO_DURATION) {
-          reject(`Video must be under ${MAX_VIDEO_DURATION} seconds`);
+          reject("Video too long. Please upload a video under 45 seconds.");
         } else {
           resolve();
         }
       };
-      video.onerror = () => reject("Invalid video file");
+      video.onerror = () => reject("Invalid video file. Please upload a valid MP4.");
       video.src = URL.createObjectURL(file);
     });
   };
@@ -43,27 +53,44 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
     }
     
     setUploading(true);
+    setUploadProgress(0);
     setError(null);
     const newItems = [];
     
     try {
-      for (const file of files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
         const isVideo = file.type.startsWith("video/");
         
+        // Validate video before upload
         if (isVideo) {
           await validateVideo(file);
         }
         
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        newItems.push({ url: file_url, type: isVideo ? "video" : "image", caption: "" });
+        // Update progress
+        setUploadProgress(Math.round((i / files.length) * 100));
+        
+        try {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          newItems.push({ url: file_url, type: isVideo ? "video" : "image", caption: "" });
+        } catch (uploadError) {
+          throw new Error("Upload failed. Please try a smaller video or check your connection.");
+        }
       }
+      
+      setUploadProgress(100);
       onChange([...items, ...newItems]);
     } catch (err) {
-      setError(err.toString());
-      setTimeout(() => setError(null), 4000);
+      const errorMessage = err.message || err.toString();
+      setError(errorMessage);
+      setTimeout(() => setError(null), 5000);
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
+    
+    // Reset input
+    e.target.value = '';
   };
 
   const handleRemove = (index) => {
@@ -86,8 +113,22 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
           {error}
         </div>
       )}
+      {uploading && uploadProgress > 0 && (
+        <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-blue-900">Uploading...</span>
+            <span className="text-xs text-blue-700">{uploadProgress}%</span>
+          </div>
+          <div className="h-1.5 rounded-full bg-blue-100 overflow-hidden">
+            <div 
+              className="h-full bg-blue-500 transition-all duration-300"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
       <p className="text-xs text-neutral-400">
-        Upload photos or short videos of your work. Videos should be under 60 seconds. Max {MAX_ITEMS} items.
+        Upload photos or short videos (MP4, max 45 seconds, under 100MB). Max {MAX_ITEMS} items.
       </p>
       <div className="grid grid-cols-3 gap-3">
         {items.map((item, i) => {
@@ -130,9 +171,12 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
           );
         })}
         {items.length < MAX_ITEMS && (
-          <label className="aspect-square rounded-xl border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
+          <label className={`aspect-square rounded-xl border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center ${uploading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-blue-500'} transition-colors`}>
             {uploading ? (
-              <Loader2 className="w-6 h-6 text-neutral-400 animate-spin" />
+              <>
+                <Loader2 className="w-6 h-6 text-neutral-400 animate-spin" />
+                <span className="text-[10px] text-neutral-400 mt-1">{uploadProgress}%</span>
+              </>
             ) : (
               <>
                 <Plus className="w-6 h-6 text-neutral-400" />
@@ -141,7 +185,7 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
             )}
             <input 
               type="file" 
-              accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" 
+              accept="image/jpeg,image/png,image/webp,video/mp4" 
               multiple 
               onChange={handleUpload} 
               className="hidden" 
