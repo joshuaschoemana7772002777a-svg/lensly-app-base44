@@ -171,22 +171,43 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
 
   const handleSaveCrop = (cropData) => {
     if (cropIndex === null) return;
+    
+    // Update the item with new crop data + version for cache busting
     const updatedItems = [...items];
-    updatedItems[cropIndex] = { ...updatedItems[cropIndex], crop: cropData };
+    updatedItems[cropIndex] = { 
+      ...updatedItems[cropIndex], 
+      crop: {
+        ...cropData,
+        version: Date.now() // Force re-render
+      }
+    };
+    
+    // Immediately update parent state (optimistic update)
     onChange(updatedItems);
+    
+    // Close modal
     setCropModalOpen(false);
     setCropItem(null);
     setCropIndex(null);
   };
 
   const getDisplayStyle = (item) => {
-    if (!item.crop) return {};
+    if (!item.crop) {
+      // Default: center cover
+      return {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover'
+      };
+    }
+    
     const { x, y, zoom } = item.crop;
     return {
-      transform: `translate(${-x * 100}%, ${-y * 100}%) scale(${zoom})`,
+      transform: `translate(${x}px, ${y}px) scale(${zoom})`,
       transformOrigin: 'top left',
       width: '100%',
-      height: '100%'
+      height: '100%',
+      objectFit: 'cover'
     };
   };
 
@@ -218,16 +239,18 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
         {items.map((item, i) => {
           const isFeatured = featuredItemId === item.url;
           return (
-            <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-neutral-100 group">
+            <div key={`${i}-${item.crop?.version || 0}`} className="relative aspect-square rounded-xl overflow-hidden bg-neutral-100 group">
               {item.type === "video" ? (
                 <div className="w-full h-full relative bg-neutral-900 overflow-hidden">
                   {item.thumbnail_url ? (
-                    <img 
-                      src={item.thumbnail_url} 
-                      alt="" 
-                      className="absolute"
-                      style={getDisplayStyle(item)}
-                    />
+                    <div className="w-full h-full relative overflow-hidden">
+                      <img 
+                        src={`${item.thumbnail_url}?v=${item.crop?.version || 0}`}
+                        alt="" 
+                        className="absolute w-full h-full"
+                        style={getDisplayStyle(item)}
+                      />
+                    </div>
                   ) : (
                     <video src={item.url} className="w-full h-full object-cover" />
                   )}
@@ -240,9 +263,9 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
               ) : (
                 <div className="w-full h-full relative overflow-hidden">
                   <img 
-                    src={item.url} 
+                    src={`${item.url}?v=${item.crop?.version || 0}`}
                     alt="" 
-                    className="absolute"
+                    className="absolute w-full h-full"
                     style={getDisplayStyle(item)}
                   />
                 </div>

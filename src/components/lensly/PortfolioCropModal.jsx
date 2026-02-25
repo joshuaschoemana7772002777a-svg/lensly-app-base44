@@ -18,13 +18,18 @@ export default function PortfolioCropModal({ open, onClose, imageUrl, onSave }) 
       const img = new Image();
       img.onload = () => {
         setImgDimensions({ width: img.width, height: img.height });
-        // Center the image initially
-        setPosition({ x: 0, y: 0 });
-        setZoom(1);
       };
       img.src = imageUrl;
     }
   }, [open, imageUrl]);
+  
+  // Reset position/zoom when modal opens
+  useEffect(() => {
+    if (open) {
+      setPosition({ x: 0, y: 0 });
+      setZoom(1);
+    }
+  }, [open]);
 
   const handleMouseDown = (e) => {
     e.preventDefault();
@@ -64,20 +69,15 @@ export default function PortfolioCropModal({ open, onClose, imageUrl, onSave }) 
   const handleSave = () => {
     if (!containerRef.current || !imgRef.current) return;
     
-    const containerSize = containerRef.current.offsetWidth;
-    const imgWidth = imgRef.current.offsetWidth;
-    const imgHeight = imgRef.current.offsetHeight;
-    
-    // Calculate normalized crop coordinates (0-1)
-    const normalizedX = -position.x / imgWidth;
-    const normalizedY = -position.y / imgHeight;
-    const normalizedZoom = zoom;
-    
+    // Save the raw pixel values and zoom - we'll apply them directly on render
     onSave({
-      x: normalizedX,
-      y: normalizedY,
-      zoom: normalizedZoom
+      x: position.x,
+      y: position.y,
+      zoom: zoom,
+      version: Date.now() // Cache busting
     });
+    
+    onClose();
   };
 
   return (
