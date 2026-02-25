@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import CommunityGuidelines from './pages/CommunityGuidelines';
 import Conversation from './pages/Conversation';
 import CreateRequest from './pages/CreateRequest';
 import CreatorProfile from './pages/CreatorProfile';
@@ -58,15 +59,15 @@ import Inbox from './pages/Inbox';
 import Messages from './pages/Messages';
 import MyRequests from './pages/MyRequests';
 import Notifications from './pages/Notifications';
-import Settings from './pages/Settings';
-import Updates from './pages/Updates';
-import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
-import CommunityGuidelines from './pages/CommunityGuidelines';
+import Settings from './pages/Settings';
+import Terms from './pages/Terms';
+import Updates from './pages/Updates';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "CommunityGuidelines": CommunityGuidelines,
     "Conversation": Conversation,
     "CreateRequest": CreateRequest,
     "CreatorProfile": CreatorProfile,
@@ -78,11 +79,10 @@ export const PAGES = {
     "Messages": Messages,
     "MyRequests": MyRequests,
     "Notifications": Notifications,
-    "Settings": Settings,
-    "Updates": Updates,
-    "Terms": Terms,
     "Privacy": Privacy,
-    "CommunityGuidelines": CommunityGuidelines,
+    "Settings": Settings,
+    "Terms": Terms,
+    "Updates": Updates,
 }
 
 export const pagesConfig = {

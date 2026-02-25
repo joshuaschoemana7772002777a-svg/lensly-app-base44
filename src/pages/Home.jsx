@@ -54,10 +54,11 @@ export default function Home() {
             transition={{ duration: 0.6 }}
           >
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-                <Camera className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-neutral-600 font-medium text-sm tracking-wide">LENSLY</span>
+              <img 
+                src="https://placehold.co/120x40/3b82f6/white?text=LENSLY&font=montserrat" 
+                alt="Lensly Logo" 
+                className="h-10"
+              />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 leading-tight">
               Find photographers and videographers near you.
