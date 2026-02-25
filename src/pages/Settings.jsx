@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { createPageUrl } from "@/utils";
 import RoleSelectionModal from "../components/lensly/RoleSelectionModal";
 import AccountDeletionModal from "../components/lensly/AccountDeletionModal";
+import RoleSwitchConfirmModal from "../components/lensly/RoleSwitchConfirmModal";
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -13,6 +14,8 @@ export default function Settings() {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const [deletionAction, setDeletionAction] = useState(null);
+  const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -75,7 +78,10 @@ export default function Settings() {
           <div className="divide-y divide-neutral-100">
             {!user?.role ? (
               <button
-                onClick={() => setShowRoleModal(true)}
+                onClick={() => {
+                  setIsSwitchingRole(false);
+                  setShowRoleModal(true);
+                }}
                 className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
               >
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -112,6 +118,23 @@ export default function Settings() {
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium text-neutral-900">Client Profile</p>
                   <p className="text-xs text-neutral-500">Edit your client profile</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-neutral-400" />
+              </button>
+            )}
+            
+            {/* Switch Role - only show if user has a role */}
+            {user?.role && (
+              <button
+                onClick={() => setShowSwitchConfirm(true)}
+                className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                  <Camera className="w-5 h-5 text-purple-600" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-medium text-neutral-900">Switch role</p>
+                  <p className="text-xs text-neutral-500">Change how you use Lensly</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-neutral-400" />
               </button>
@@ -212,7 +235,24 @@ export default function Settings() {
         </div>
       </div>
 
-      <RoleSelectionModal open={showRoleModal} onClose={() => setShowRoleModal(false)} />
+      <RoleSelectionModal 
+        open={showRoleModal} 
+        onClose={() => {
+          setShowRoleModal(false);
+          setIsSwitchingRole(false);
+        }} 
+        isSwitchingRole={isSwitchingRole}
+      />
+      <RoleSwitchConfirmModal
+        open={showSwitchConfirm}
+        onClose={() => setShowSwitchConfirm(false)}
+        currentRole={user?.role}
+        onContinue={() => {
+          setShowSwitchConfirm(false);
+          setIsSwitchingRole(true);
+          setShowRoleModal(true);
+        }}
+      />
       <AccountDeletionModal 
         open={showDeletionModal} 
         onClose={() => {

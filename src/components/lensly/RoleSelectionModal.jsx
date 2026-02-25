@@ -7,11 +7,26 @@ import { createPageUrl } from "@/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import ClientSignupModal from "./ClientSignupModal";
 
-export default function RoleSelectionModal({ open, onClose }) {
+export default function RoleSelectionModal({ open, onClose, isSwitchingRole = false }) {
   const [consentChecked, setConsentChecked] = React.useState(false);
   const [consentError, setConsentError] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [showClientModal, setShowClientModal] = React.useState(false);
+  const [skipConsent, setSkipConsent] = React.useState(false);
+
+  React.useEffect(() => {
+    if (open && isSwitchingRole) {
+      checkIfConsentNeeded();
+    }
+  }, [open, isSwitchingRole]);
+
+  const checkIfConsentNeeded = async () => {
+    const user = await base44.auth.me();
+    if (user?.termsAccepted) {
+      setSkipConsent(true);
+      setConsentChecked(true);
+    }
+  };
 
   const handleCreatorRole = async () => {
     if (!consentChecked) {
@@ -25,14 +40,34 @@ export default function RoleSelectionModal({ open, onClose }) {
       return;
     }
 
-    await base44.auth.updateMe({ 
+    const user = await base44.auth.me();
+    const updates = { 
       role: "creator",
-      roleSelectedAt: new Date().toISOString(),
-      account_type: "creator",
-      termsAccepted: true,
-      termsAcceptedAt: new Date().toISOString(),
-      termsVersion: "v1.0"
-    });
+      roleChosenAt: user.roleChosenAt || new Date().toISOString(),
+      roleLastChangedAt: new Date().toISOString(),
+    };
+
+    if (!skipConsent) {
+      updates.termsAccepted = true;
+      updates.termsAcceptedAt = new Date().toISOString();
+      updates.termsVersion = "v1.0";
+    }
+
+    await base44.auth.updateMe(updates);
+
+    // If switching from client, disable client profile
+    if (isSwitchingRole) {
+      const clientProfiles = await base44.entities.ClientProfile.filter({ created_by: user.email });
+      if (clientProfiles.length > 0) {
+        await base44.entities.ClientProfile.update(clientProfiles[0].id, { status: "disabled" });
+      }
+
+      // Reactivate creator profile if exists
+      const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
+      if (creatorProfiles.length > 0) {
+        await base44.entities.CreatorProfile.update(creatorProfiles[0].id, { status: "draft" });
+      }
+    }
     
     window.location.href = createPageUrl("EditProfile");
   };
@@ -45,9 +80,27 @@ export default function RoleSelectionModal({ open, onClose }) {
     setIsProcessing(true);
     const authed = await base44.auth.isAuthenticated();
     if (!authed) {
-      // Redirect to login with a flag to select client role after signup
       base44.auth.redirectToLogin(window.location.origin + "?select_role=client");
       return;
+    }
+
+    const user = await base44.auth.me();
+
+    // If switching from creator, disable creator profile
+    if (isSwitchingRole) {
+      const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
+      if (creatorProfiles.length > 0) {
+        await base44.entities.CreatorProfile.update(creatorProfiles[0].id, { 
+          status: "disabled",
+          is_published: false
+        });
+      }
+
+      // Reactivate client profile if exists
+      const clientProfiles = await base44.entities.ClientProfile.filter({ created_by: user.email });
+      if (clientProfiles.length > 0) {
+        await base44.entities.ClientProfile.update(clientProfiles[0].id, { status: "active" });
+      }
     }
 
     // Show client account creation modal
@@ -58,7 +111,11 @@ export default function RoleSelectionModal({ open, onClose }) {
   const handleClientSignupSuccess = () => {
     setShowClientModal(false);
     onClose();
-    window.location.href = createPageUrl("Discover");
+    if (isSwitchingRole) {
+      window.location.href = createPageUrl("Settings");
+    } else {
+      window.location.href = createPageUrl("Discover");
+    }
   };
 
   return (
@@ -106,48 +163,50 @@ export default function RoleSelectionModal({ open, onClose }) {
           </button>
         </div>
 
-        {/* Consent Checkbox */}
-        <div className="space-y-2 mt-4">
-          <div className="flex items-start gap-3">
-            <Checkbox
-              id="consent-role"
-              checked={consentChecked}
-              onCheckedChange={(checked) => {
-                setConsentChecked(checked);
-                setConsentError(false);
-              }}
-              className="mt-0.5"
-            />
-            <label htmlFor="consent-role" className="text-xs text-neutral-700 leading-relaxed cursor-pointer">
-              I confirm that I have read and agree to Lensly's{" "}
-              <a
-                href="https://getlenslyapp.com/terms"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline font-medium"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Terms & Conditions
-              </a>{" "}
-              and{" "}
-              <a
-                href="https://getlenslyapp.com/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline font-medium"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Privacy Policy
-              </a>
-              .
-            </label>
+        {/* Consent Checkbox - only show if not already consented */}
+        {!skipConsent && (
+          <div className="space-y-2 mt-4">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="consent-role"
+                checked={consentChecked}
+                onCheckedChange={(checked) => {
+                  setConsentChecked(checked);
+                  setConsentError(false);
+                }}
+                className="mt-0.5"
+              />
+              <label htmlFor="consent-role" className="text-xs text-neutral-700 leading-relaxed cursor-pointer">
+                I confirm that I have read and agree to Lensly's{" "}
+                <a
+                  href="https://getlenslyapp.com/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline font-medium"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Terms & Conditions
+                </a>{" "}
+                and{" "}
+                <a
+                  href="https://getlenslyapp.com/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline font-medium"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Privacy Policy
+                </a>
+                .
+              </label>
+            </div>
+            {consentError && (
+              <p className="text-xs text-red-600 ml-8">
+                Please confirm that you agree to the Terms & Conditions and Privacy Policy to continue.
+              </p>
+            )}
           </div>
-          {consentError && (
-            <p className="text-xs text-red-600 ml-8">
-              Please confirm that you agree to the Terms & Conditions and Privacy Policy to continue.
-            </p>
-          )}
-        </div>
+        )}
 
         <button
           onClick={onClose}
@@ -163,6 +222,7 @@ export default function RoleSelectionModal({ open, onClose }) {
         open={showClientModal}
         onClose={() => setShowClientModal(false)}
         onSuccess={handleClientSignupSuccess}
+        skipConsent={skipConsent}
       />
     )}
   </>
