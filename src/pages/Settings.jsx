@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Camera, Heart, Mail, User, LogOut, ChevronRight } from "lucide-react";
+import { Camera, Heart, Mail, User, LogOut, ChevronRight, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createPageUrl } from "@/utils";
 import RoleSelectionModal from "../components/lensly/RoleSelectionModal";
+import AccountDeletionModal from "../components/lensly/AccountDeletionModal";
 
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [hasCreatorProfile, setHasCreatorProfile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showDeletionModal, setShowDeletionModal] = useState(false);
+  const [deletionAction, setDeletionAction] = useState(null);
 
   useEffect(() => {
     loadUserData();
@@ -149,9 +152,58 @@ export default function Settings() {
             </div>
           </button>
         </div>
+
+        {/* Account Management */}
+        <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
+          <div className="p-4 border-b border-neutral-100">
+            <h2 className="text-sm font-semibold text-neutral-900">Account Management</h2>
+          </div>
+          <div className="divide-y divide-neutral-100">
+            <button
+              onClick={() => {
+                setDeletionAction("deactivate");
+                setShowDeletionModal(true);
+              }}
+              className="w-full p-4 flex items-center gap-3 hover:bg-orange-50 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-orange-600" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-orange-600">Deactivate Account</p>
+                <p className="text-xs text-neutral-500">Temporarily disable your account</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-neutral-400" />
+            </button>
+            <button
+              onClick={() => {
+                setDeletionAction("delete");
+                setShowDeletionModal(true);
+              }}
+              className="w-full p-4 flex items-center gap-3 hover:bg-red-50 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-red-600">Delete Account Permanently</p>
+                <p className="text-xs text-neutral-500">Permanently remove your account and data</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-neutral-400" />
+            </button>
+          </div>
+        </div>
       </div>
 
       <RoleSelectionModal open={showRoleModal} onClose={() => setShowRoleModal(false)} />
+      <AccountDeletionModal 
+        open={showDeletionModal} 
+        onClose={() => {
+          setShowDeletionModal(false);
+          setDeletionAction(null);
+        }}
+        actionType={deletionAction}
+      />
     </div>
   );
 }
