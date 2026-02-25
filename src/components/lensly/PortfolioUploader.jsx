@@ -3,6 +3,39 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Plus, X, Loader2, Image as ImageIcon, Video, Play } from "lucide-react";
 
+const generateVideoThumbnail = (file) => {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.muted = true;
+    video.playsInline = true;
+    
+    video.onloadedmetadata = () => {
+      video.currentTime = Math.min(1, video.duration / 2); // Seek to 1 second or middle
+    };
+    
+    video.onseeked = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      canvas.toBlob((blob) => {
+        window.URL.revokeObjectURL(video.src);
+        resolve(blob);
+      }, "image/jpeg", 0.85);
+    };
+    
+    video.onerror = () => {
+      window.URL.revokeObjectURL(video.src);
+      reject("Failed to generate thumbnail");
+    };
+    
+    video.src = URL.createObjectURL(file);
+  });
+};
+
 const MAX_ITEMS = 12;
 const MAX_VIDEO_DURATION = 45; // seconds
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB in bytes
@@ -72,7 +105,26 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
         
         try {
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
-          newItems.push({ url: file_url, type: isVideo ? "video" : "image", caption: "" });
+          
+          let thumbnailUrl = null;
+          if (isVideo) {
+            // Generate and upload thumbnail for videos
+            try {
+              const thumbnailBlob = await generateVideoThumbnail(file);
+              const thumbnailFile = new File([thumbnailBlob], `${file.name}_thumb.jpg`, { type: "image/jpeg" });
+              const { file_url: thumb_url } = await base44.integrations.Core.UploadFile({ file: thumbnailFile });
+              thumbnailUrl = thumb_url;
+            } catch (thumbError) {
+              console.error("Thumbnail generation failed:", thumbError);
+            }
+          }
+          
+          newItems.push({ 
+            url: file_url, 
+            type: isVideo ? "video" : "image", 
+            caption: "",
+            thumbnail_url: thumbnailUrl 
+          });
         } catch (uploadError) {
           throw new Error("Upload failed. Please try a smaller video or check your connection.");
         }

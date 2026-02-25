@@ -69,6 +69,22 @@ export default function EditProfile() {
     const wasOnboarding = isOnboarding && !profile.is_published;
     const wasIncomplete = !profile.is_published;
     
+    // If a featured portfolio item is set, use it as the cover image
+    let coverImageUrl = profile.profile_image;
+    if (profile.featuredPortfolioItemId && profile.portfolio_items?.length > 0) {
+      const featuredItem = profile.portfolio_items.find(item => item.url === profile.featuredPortfolioItemId);
+      if (featuredItem) {
+        if (featuredItem.type === "video" && featuredItem.thumbnail_url) {
+          // Use thumbnail for videos
+          coverImageUrl = featuredItem.thumbnail_url;
+        } else if (featuredItem.type === "image") {
+          // Use image directly
+          coverImageUrl = featuredItem.url;
+        }
+        // If video without thumbnail, keep existing cover image
+      }
+    }
+    
     // Auto-publish if all required fields are filled
     const isComplete = !!(
       profile.display_name &&
@@ -79,10 +95,10 @@ export default function EditProfile() {
       profile.featured_categories?.length > 0 &&
       profile.service_areas?.length > 0 &&
       profile.profile_photo &&
-      profile.profile_image
+      coverImageUrl
     );
     
-    const updatedProfile = { ...profile, is_published: isComplete };
+    const updatedProfile = { ...profile, profile_image: coverImageUrl, is_published: isComplete };
     let savedProfileId = profile.id;
     
     if (profile.id) {
@@ -271,9 +287,9 @@ export default function EditProfile() {
 
         {/* Cover Photo */}
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-500 block">Cover Photo *</Label>
+          <Label className="text-xs text-neutral-500 block">Cover Photo (Fallback)</Label>
           <p className="text-xs text-neutral-400 mb-3">
-            Upload a high-quality image that represents your work. This appears on Discover and your profile.
+            Upload a fallback cover image. If you set a Featured portfolio item, it will replace this as your cover.
           </p>
           {coverImageError && (
             <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-700">
@@ -492,16 +508,30 @@ export default function EditProfile() {
         {/* Portfolio */}
         <div>
           <Label className="text-xs text-neutral-500 mb-2 block">Portfolio</Label>
+          <p className="text-xs text-neutral-400 mb-3">
+            Set a portfolio item as "Featured" to use it as your cover photo on Discover and your profile.
+          </p>
           <PortfolioUploader
             items={profile?.portfolio_items || []}
             onChange={(items) => {
               const updated = { ...profile, portfolio_items: items };
+              
+              // If featured item was deleted, clear featured selection
+              if (profile?.featuredPortfolioItemId) {
+                const featuredStillExists = items.some(item => item.url === profile.featuredPortfolioItemId);
+                if (!featuredStillExists) {
+                  updated.featuredPortfolioItemId = null;
+                }
+              }
+              
+              // Auto-set cover image from first image if none exists
               if (items.length > 0 && !profile?.profile_image) {
                 const firstImage = items.find(item => item.type === 'image');
                 if (firstImage) {
                   updated.profile_image = firstImage.url;
                 }
               }
+              
               setProfile(updated);
             }}
             featuredItemId={profile?.featuredPortfolioItemId}
