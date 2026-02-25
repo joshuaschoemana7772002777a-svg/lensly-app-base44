@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart, MapPin, Mail, Globe, Instagram, Camera, Send, ChevronLeft, ChevronRight, Flag, AlertCircle, Star } from "lucide-react";
+import { ArrowLeft, Heart, MapPin, Mail, Globe, Instagram, Camera, Send, ChevronLeft, ChevronRight, Flag, AlertCircle, Star, Edit3 } from "lucide-react";
 import ProfileAvatar from "../components/lensly/ProfileAvatar";
 import { Button } from "@/components/ui/button";
 import PortfolioViewer from "../components/lensly/PortfolioViewer";
@@ -30,6 +30,7 @@ export default function CreatorProfile() {
   const [portfolioExpanded, setPortfolioExpanded] = useState(false);
   const [isPortfolioViewerOpen, setIsPortfolioViewerOpen] = useState(false);
   const [activePortfolioIndex, setActivePortfolioIndex] = useState(0);
+  const [isOwner, setIsOwner] = useState(false);
 
   const params = new URLSearchParams(window.location.search);
   const creatorId = params.get("id");
@@ -77,6 +78,11 @@ export default function CreatorProfile() {
           blocked_profile_id: creatorId,
         });
         setIsBlocked(blocks.length > 0);
+        
+        // Check if owner
+        if (data.length > 0 && data[0].created_by === user.email) {
+          setIsOwner(true);
+        }
       }
     } catch (error) {
       console.error("Error loading creator profile:", error);
@@ -145,19 +151,32 @@ export default function CreatorProfile() {
             <ArrowLeft className="w-5 h-5 text-white" />
           </Link>
           <div className="flex gap-2">
-            <button
-              onClick={toggleFavourite}
-              className="w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
-            >
-              <Heart className={`w-4 h-4 ${isFavourite ? "fill-red-500 text-red-500" : "text-white"}`} />
-            </button>
-            {isAuthenticated && (
-              <button
-                onClick={() => setReportOpen(true)}
-                className="w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
+            {isOwner && (
+              <Link
+                to={createPageUrl("EditProfile")}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-colors"
               >
-                <Flag className="w-4 h-4 text-white" />
-              </button>
+                <Edit3 className="w-3.5 h-3.5 text-neutral-700" />
+                <span className="text-xs font-medium text-neutral-700">Edit Profile</span>
+              </Link>
+            )}
+            {!isOwner && (
+              <>
+                <button
+                  onClick={toggleFavourite}
+                  className="w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
+                >
+                  <Heart className={`w-4 h-4 ${isFavourite ? "fill-red-500 text-red-500" : "text-white"}`} />
+                </button>
+                {isAuthenticated && (
+                  <button
+                    onClick={() => setReportOpen(true)}
+                    className="w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
+                  >
+                    <Flag className="w-4 h-4 text-white" />
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
