@@ -73,6 +73,7 @@ export default function RoleSelectionModal({ open, onClose }) {
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md mx-4 rounded-2xl">
         <DialogHeader>
@@ -167,5 +168,12 @@ export default function RoleSelectionModal({ open, onClose }) {
         </button>
       </DialogContent>
     </Dialog>
+
+    <ClientSignupModal
+      open={showClientModal}
+      onClose={() => setShowClientModal(false)}
+      onSuccess={handleClientSignupSuccess}
+    />
+  </>
   );
 }

@@ -90,8 +90,8 @@ export default function Settings() {
                   <Camera className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-neutral-900">Create Creator Profile</p>
-                  <p className="text-xs text-neutral-500">Start showcasing your work</p>
+                  <p className="text-sm font-medium text-neutral-900">Create Profile</p>
+                  <p className="text-xs text-neutral-500">Set up how you'll use Lensly</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-neutral-400" />
               </button>
