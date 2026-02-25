@@ -4,6 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Home, Search, Heart, Camera, Mail, Settings, Bell } from "lucide-react";
 import RoleSelectionModal from "./components/lensly/RoleSelectionModal";
+import FirstOpenConsentBanner from "./components/lensly/FirstOpenConsentBanner";
 
 const NAV_ITEMS = [
   { name: "Home", icon: Home, page: "Home" },
@@ -77,8 +78,8 @@ export default function Layout({ children, currentPageName }) {
       
       <main>{children}</main>
 
-      {/* Footer - only show on Home, Terms, Privacy, and Community Guidelines pages */}
-      {(currentPageName === "Home" || currentPageName === "Terms" || currentPageName === "Privacy" || currentPageName === "CommunityGuidelines") && (
+      {/* Footer - show on all pages */}
+      {!hideNav && (
         <footer className="bg-neutral-50 border-t border-neutral-200 py-8 px-5 pb-28">
           <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-4 text-xs text-neutral-500">
             <span>© 2026 Lensly</span>
@@ -97,6 +98,8 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </footer>
       )}
+
+      <FirstOpenConsentBanner />
 
       {!hideNav && (
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-neutral-100 safe-area-bottom">
