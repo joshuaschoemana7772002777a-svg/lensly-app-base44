@@ -60,6 +60,7 @@ import MyRequests from './pages/MyRequests';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
 import Updates from './pages/Updates';
+import Terms from './pages/Terms';
 import __Layout from './Layout.jsx';
 
 
@@ -77,6 +78,7 @@ export const PAGES = {
     "Notifications": Notifications,
     "Settings": Settings,
     "Updates": Updates,
+    "Terms": Terms,
 }
 
 export const pagesConfig = {
