@@ -28,9 +28,19 @@ export default function RoleSelectionModal({ open, onClose }) {
     const currentType = user.account_type;
     
     if (currentType === "client") {
-      await base44.auth.updateMe({ account_type: "both", consent_timestamp: new Date().toISOString() });
+      await base44.auth.updateMe({ 
+        account_type: "both",
+        termsAccepted: true,
+        termsAcceptedAt: new Date().toISOString(),
+        termsVersion: "v1.0"
+      });
     } else if (!currentType) {
-      await base44.auth.updateMe({ account_type: "creator", consent_timestamp: new Date().toISOString() });
+      await base44.auth.updateMe({ 
+        account_type: "creator",
+        termsAccepted: true,
+        termsAcceptedAt: new Date().toISOString(),
+        termsVersion: "v1.0"
+      });
     }
     
     window.location.href = createPageUrl("EditProfile");
@@ -51,7 +61,12 @@ export default function RoleSelectionModal({ open, onClose }) {
 
     const user = await base44.auth.me();
     if (!user.account_type) {
-      await base44.auth.updateMe({ account_type: "client", consent_timestamp: new Date().toISOString() });
+      await base44.auth.updateMe({ 
+        account_type: "client",
+        termsAccepted: true,
+        termsAcceptedAt: new Date().toISOString(),
+        termsVersion: "v1.0"
+      });
     }
     
     onClose();

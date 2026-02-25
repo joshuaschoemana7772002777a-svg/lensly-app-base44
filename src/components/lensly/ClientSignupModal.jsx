@@ -43,7 +43,9 @@ export default function ClientSignupModal({ open, onClose, onSuccess }) {
         display_name: form.display_name,
         profile_photo_url: form.profile_photo_url || null,
         account_type: "client",
-        consent_timestamp: new Date().toISOString(),
+        termsAccepted: true,
+        termsAcceptedAt: new Date().toISOString(),
+        termsVersion: "v1.0",
       });
       onSuccess();
     } catch (error) {
