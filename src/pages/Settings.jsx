@@ -99,6 +99,33 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* Legal */}
+        <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
+          <div className="p-4 border-b border-neutral-100">
+            <h2 className="text-sm font-semibold text-neutral-900">Legal</h2>
+          </div>
+          <div className="divide-y divide-neutral-100">
+            <button
+              onClick={() => window.open("https://getlenslyapp.com/terms", "_blank")}
+              className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
+            >
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-neutral-900">Terms & Conditions</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-neutral-400" />
+            </button>
+            <button
+              onClick={() => window.open("https://getlenslyapp.com/privacy", "_blank")}
+              className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
+            >
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-neutral-900">Privacy Policy</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-neutral-400" />
+            </button>
+          </div>
+        </div>
+
         {/* Actions */}
         <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
           <button

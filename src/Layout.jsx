@@ -77,6 +77,23 @@ export default function Layout({ children, currentPageName }) {
       
       <main>{children}</main>
 
+      {/* Footer - only show on Home and Terms pages */}
+      {(currentPageName === "Home" || currentPageName === "Terms") && (
+        <footer className="bg-neutral-50 border-t border-neutral-200 py-8 px-5 pb-28">
+          <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-4 text-xs text-neutral-500">
+            <span>© 2026 Lensly</span>
+            <span>•</span>
+            <a href={createPageUrl("Terms")} className="hover:text-neutral-900 transition-colors">
+              Terms & Conditions
+            </a>
+            <span>•</span>
+            <a href="https://getlenslyapp.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900 transition-colors">
+              Privacy Policy
+            </a>
+          </div>
+        </footer>
+      )}
+
       {!hideNav && (
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-neutral-100 safe-area-bottom">
           <div className="flex items-center justify-around h-16 max-w-lg mx-auto">

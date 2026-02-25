@@ -84,6 +84,29 @@ export default function RoleSelectionModal({ open, onClose }) {
           </button>
         </div>
 
+        {/* Consent */}
+        <p className="text-xs text-center text-neutral-500 leading-relaxed mt-4">
+          By continuing, you agree to Lensly's{" "}
+          <a
+            href="https://getlenslyapp.com/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            Terms & Conditions
+          </a>{" "}
+          and{" "}
+          <a
+            href="https://getlenslyapp.com/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            Privacy Policy
+          </a>
+          .
+        </p>
+
         <button
           onClick={onClose}
           className="text-sm text-neutral-500 hover:text-neutral-700 mt-4 text-center w-full"

@@ -105,6 +105,29 @@ export default function ClientSignupModal({ open, onClose, onSuccess }) {
             />
           </div>
 
+          {/* Consent */}
+          <p className="text-xs text-center text-neutral-500 leading-relaxed">
+            By continuing, you agree to Lensly's{" "}
+            <a
+              href="https://getlenslyapp.com/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              Terms & Conditions
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://getlenslyapp.com/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              Privacy Policy
+            </a>
+            .
+          </p>
+
           <Button
             type="submit"
             disabled={saving || !form.display_name}
