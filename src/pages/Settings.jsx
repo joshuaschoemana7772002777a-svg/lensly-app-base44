@@ -106,7 +106,7 @@ export default function Settings() {
           </div>
           <div className="divide-y divide-neutral-100">
             <button
-              onClick={() => window.open("https://getlenslyapp.com/terms", "_blank")}
+              onClick={() => window.location.href = createPageUrl("Terms")}
               className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
             >
               <div className="flex-1 text-left">
@@ -115,11 +115,20 @@ export default function Settings() {
               <ChevronRight className="w-5 h-5 text-neutral-400" />
             </button>
             <button
-              onClick={() => window.open("https://getlenslyapp.com/privacy", "_blank")}
+              onClick={() => window.location.href = createPageUrl("Privacy")}
               className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
             >
               <div className="flex-1 text-left">
                 <p className="text-sm font-medium text-neutral-900">Privacy Policy</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-neutral-400" />
+            </button>
+            <button
+              onClick={() => window.location.href = createPageUrl("CommunityGuidelines")}
+              className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
+            >
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-neutral-900">Community Guidelines</p>
               </div>
               <ChevronRight className="w-5 h-5 text-neutral-400" />
             </button>

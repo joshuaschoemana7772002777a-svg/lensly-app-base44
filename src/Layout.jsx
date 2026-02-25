@@ -77,8 +77,8 @@ export default function Layout({ children, currentPageName }) {
       
       <main>{children}</main>
 
-      {/* Footer - only show on Home and Terms pages */}
-      {(currentPageName === "Home" || currentPageName === "Terms") && (
+      {/* Footer - only show on Home, Terms, Privacy, and Community Guidelines pages */}
+      {(currentPageName === "Home" || currentPageName === "Terms" || currentPageName === "Privacy" || currentPageName === "CommunityGuidelines") && (
         <footer className="bg-neutral-50 border-t border-neutral-200 py-8 px-5 pb-28">
           <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-4 text-xs text-neutral-500">
             <span>© 2026 Lensly</span>
@@ -87,8 +87,12 @@ export default function Layout({ children, currentPageName }) {
               Terms & Conditions
             </a>
             <span>•</span>
-            <a href="https://getlenslyapp.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900 transition-colors">
+            <a href={createPageUrl("Privacy")} className="hover:text-neutral-900 transition-colors">
               Privacy Policy
+            </a>
+            <span>•</span>
+            <a href={createPageUrl("CommunityGuidelines")} className="hover:text-neutral-900 transition-colors">
+              Community Guidelines
             </a>
           </div>
         </footer>

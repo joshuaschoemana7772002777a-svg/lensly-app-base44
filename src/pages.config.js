@@ -61,6 +61,8 @@ import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
 import Updates from './pages/Updates';
 import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import CommunityGuidelines from './pages/CommunityGuidelines';
 import __Layout from './Layout.jsx';
 
 
@@ -79,6 +81,8 @@ export const PAGES = {
     "Settings": Settings,
     "Updates": Updates,
     "Terms": Terms,
+    "Privacy": Privacy,
+    "CommunityGuidelines": CommunityGuidelines,
 }
 
 export const pagesConfig = {
