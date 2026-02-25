@@ -55,7 +55,7 @@ export default function Home() {
           >
             <div className="flex items-center gap-2 mb-4">
               <img 
-                src="https://placehold.co/120x40/3b82f6/white?text=LENSLY&font=montserrat" 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/699b110a371758e340a213c3/8808e415f_Refine_the_existing_Lensly_wor_Nano_Banana_Pro_05232.jpg" 
                 alt="Lensly Logo" 
                 className="h-10"
               />
