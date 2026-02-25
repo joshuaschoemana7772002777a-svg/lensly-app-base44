@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { Home, Search, Heart, Camera, Mail, Settings, Bell } from "lucide-react";
 import RoleSelectionModal from "./components/lensly/RoleSelectionModal";
 import FirstOpenConsentBanner from "./components/lensly/FirstOpenConsentBanner";
+import RoleSelectionWrapper from "./components/lensly/RoleSelectionWrapper";
 
 const NAV_ITEMS = [
   { name: "Home", icon: Home, page: "Home" },
@@ -100,6 +101,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       <FirstOpenConsentBanner />
+      <RoleSelectionWrapper />
 
       {!hideNav && (
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-neutral-100 safe-area-bottom">
