@@ -57,7 +57,7 @@ export default function Home() {
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/699b110a371758e340a213c3/9c7cb5e90_1-014a4b80.png" 
                 alt="Lensly Logo" 
-                className="h-8"
+                className="h-16"
               />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 leading-tight">
