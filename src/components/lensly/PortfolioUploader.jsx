@@ -168,6 +168,13 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
     setCropIndex(index);
     setCropModalOpen(true);
   };
+  
+  const getImageUrlForCrop = (item) => {
+    if (item.type === "video") {
+      return item.thumbnail_url || item.url;
+    }
+    return item.url;
+  };
 
   const handleSaveCrop = (cropData) => {
     if (cropIndex === null) return;
@@ -192,7 +199,7 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
   };
 
   const getDisplayStyle = (item) => {
-    if (!item.crop) {
+    if (!item.crop || item.crop.x === undefined) {
       // Default: center cover
       return {
         width: '100%',
@@ -205,9 +212,9 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
     return {
       transform: `translate(${x}px, ${y}px) scale(${zoom})`,
       transformOrigin: 'top left',
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover'
+      maxWidth: 'none',
+      width: 'auto',
+      height: 'auto'
     };
   };
 
@@ -247,8 +254,9 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
                       <img 
                         src={`${item.thumbnail_url}?v=${item.crop?.version || 0}`}
                         alt="" 
-                        className="absolute w-full h-full"
+                        className="absolute"
                         style={getDisplayStyle(item)}
+                        draggable={false}
                       />
                     </div>
                   ) : (
@@ -265,8 +273,9 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
                   <img 
                     src={`${item.url}?v=${item.crop?.version || 0}`}
                     alt="" 
-                    className="absolute w-full h-full"
+                    className="absolute"
                     style={getDisplayStyle(item)}
+                    draggable={false}
                   />
                 </div>
               )}
@@ -334,7 +343,8 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
           setCropItem(null);
           setCropIndex(null);
         }}
-        imageUrl={cropItem?.type === "video" ? cropItem?.thumbnail_url : cropItem?.url}
+        imageUrl={cropItem ? getImageUrlForCrop(cropItem) : null}
+        existingCrop={cropItem?.crop}
         onSave={handleSaveCrop}
       />
     </div>

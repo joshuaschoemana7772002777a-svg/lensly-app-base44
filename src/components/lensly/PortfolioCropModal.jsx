@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ZoomIn, Move } from "lucide-react";
 
-export default function PortfolioCropModal({ open, onClose, imageUrl, onSave }) {
+export default function PortfolioCropModal({ open, onClose, imageUrl, onSave, existingCrop }) {
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
@@ -23,13 +23,18 @@ export default function PortfolioCropModal({ open, onClose, imageUrl, onSave }) 
     }
   }, [open, imageUrl]);
   
-  // Reset position/zoom when modal opens
+  // Load existing crop values when modal opens
   useEffect(() => {
     if (open) {
-      setPosition({ x: 0, y: 0 });
-      setZoom(1);
+      if (existingCrop && existingCrop.x !== undefined) {
+        setPosition({ x: existingCrop.x, y: existingCrop.y });
+        setZoom(existingCrop.zoom || 1);
+      } else {
+        setPosition({ x: 0, y: 0 });
+        setZoom(1);
+      }
     }
-  }, [open]);
+  }, [open, existingCrop]);
 
   const handleMouseDown = (e) => {
     e.preventDefault();
