@@ -540,7 +540,6 @@ export default function EditProfile() {
             )}
             {saved ? (isOnboarding && isProfileComplete ? "Welcome to Lensly!" : !isOnboarding && isProfileComplete ? "Profile updated" : "Saved!") : saving ? "Saving..." : (isOnboarding && isProfileComplete ? "Save & Go Live" : "Save Profile")}
           </Button>
-        </div>
       </div>
 
       <OnboardingSuccessModal
