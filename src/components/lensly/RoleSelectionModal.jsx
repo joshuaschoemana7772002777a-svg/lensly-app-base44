@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Camera, User } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Checkbox } from "@/components/ui/checkbox";
+import ClientSignupModal from "./ClientSignupModal";
 
 export default function RoleSelectionModal({ open, onClose }) {
   const [consentChecked, setConsentChecked] = React.useState(false);
   const [consentError, setConsentError] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [showClientModal, setShowClientModal] = React.useState(false);
 
   const handleCreatorRole = async () => {
     if (!consentChecked) {
@@ -59,17 +61,15 @@ export default function RoleSelectionModal({ open, onClose }) {
       return;
     }
 
-    const user = await base44.auth.me();
-    if (!user.account_type) {
-      await base44.auth.updateMe({ 
-        account_type: "client",
-        termsAccepted: true,
-        termsAcceptedAt: new Date().toISOString(),
-        termsVersion: "v1.0"
-      });
-    }
-    
+    // Show client account creation modal
+    setShowClientModal(true);
+    setIsProcessing(false);
+  };
+
+  const handleClientSignupSuccess = () => {
+    setShowClientModal(false);
     onClose();
+    window.location.href = createPageUrl("Discover");
   };
 
   return (
@@ -169,11 +169,13 @@ export default function RoleSelectionModal({ open, onClose }) {
       </DialogContent>
     </Dialog>
 
-    <ClientSignupModal
-      open={showClientModal}
-      onClose={() => setShowClientModal(false)}
-      onSuccess={handleClientSignupSuccess}
-    />
+    {showClientModal && (
+      <ClientSignupModal
+        open={showClientModal}
+        onClose={() => setShowClientModal(false)}
+        onSuccess={handleClientSignupSuccess}
+      />
+    )}
   </>
   );
 }
