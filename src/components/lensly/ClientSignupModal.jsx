@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, Loader2, User } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function ClientSignupModal({ open, onClose, onSuccess }) {
   const [form, setForm] = useState({
@@ -13,6 +14,8 @@ export default function ClientSignupModal({ open, onClose, onSuccess }) {
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [consentError, setConsentError] = useState(false);
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -30,12 +33,17 @@ export default function ClientSignupModal({ open, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!consentChecked) {
+      setConsentError(true);
+      return;
+    }
     setSaving(true);
     try {
       await base44.auth.updateMe({
         display_name: form.display_name,
         profile_photo_url: form.profile_photo_url || null,
         account_type: "client",
+        consent_timestamp: new Date().toISOString(),
       });
       onSuccess();
     } catch (error) {
@@ -105,33 +113,53 @@ export default function ClientSignupModal({ open, onClose, onSuccess }) {
             />
           </div>
 
-          {/* Consent */}
-          <p className="text-xs text-center text-neutral-500 leading-relaxed">
-            By continuing, you agree to Lensly's{" "}
-            <a
-              href="https://getlenslyapp.com/terms"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:underline"
-            >
-              Terms & Conditions
-            </a>{" "}
-            and{" "}
-            <a
-              href="https://getlenslyapp.com/privacy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:underline"
-            >
-              Privacy Policy
-            </a>
-            .
-          </p>
+          {/* Consent Checkbox */}
+          <div className="space-y-2">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="consent"
+                checked={consentChecked}
+                onCheckedChange={(checked) => {
+                  setConsentChecked(checked);
+                  setConsentError(false);
+                }}
+                className="mt-0.5"
+              />
+              <label htmlFor="consent" className="text-xs text-neutral-700 leading-relaxed cursor-pointer">
+                I confirm that I have read and agree to Lensly's{" "}
+                <a
+                  href="https://getlenslyapp.com/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline font-medium"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Terms & Conditions
+                </a>{" "}
+                and{" "}
+                <a
+                  href="https://getlenslyapp.com/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline font-medium"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Privacy Policy
+                </a>
+                .
+              </label>
+            </div>
+            {consentError && (
+              <p className="text-xs text-red-600 ml-8">
+                Please confirm that you agree to the Terms & Conditions and Privacy Policy to continue.
+              </p>
+            )}
+          </div>
 
           <Button
             type="submit"
-            disabled={saving || !form.display_name}
-            className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 h-12 text-sm font-medium"
+            disabled={saving || !form.display_name || !consentChecked}
+            className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 h-12 text-sm font-medium disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             Create account

@@ -4,9 +4,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Camera, User } from "lucide-react";
 import { createPageUrl } from "@/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function RoleSelectionModal({ open, onClose }) {
+  const [consentChecked, setConsentChecked] = React.useState(false);
+  const [consentError, setConsentError] = React.useState(false);
+  const [isProcessing, setIsProcessing] = React.useState(false);
+
   const handleCreatorRole = async () => {
+    if (!consentChecked) {
+      setConsentError(true);
+      return;
+    }
+    setIsProcessing(true);
     const authed = await base44.auth.isAuthenticated();
     if (!authed) {
       // Redirect to login with a flag to select creator role after signup
@@ -18,15 +28,20 @@ export default function RoleSelectionModal({ open, onClose }) {
     const currentType = user.account_type;
     
     if (currentType === "client") {
-      await base44.auth.updateMe({ account_type: "both" });
+      await base44.auth.updateMe({ account_type: "both", consent_timestamp: new Date().toISOString() });
     } else if (!currentType) {
-      await base44.auth.updateMe({ account_type: "creator" });
+      await base44.auth.updateMe({ account_type: "creator", consent_timestamp: new Date().toISOString() });
     }
     
     window.location.href = createPageUrl("EditProfile");
   };
 
   const handleClientRole = async () => {
+    if (!consentChecked) {
+      setConsentError(true);
+      return;
+    }
+    setIsProcessing(true);
     const authed = await base44.auth.isAuthenticated();
     if (!authed) {
       // Redirect to login with a flag to select client role after signup
@@ -36,7 +51,7 @@ export default function RoleSelectionModal({ open, onClose }) {
 
     const user = await base44.auth.me();
     if (!user.account_type) {
-      await base44.auth.updateMe({ account_type: "client" });
+      await base44.auth.updateMe({ account_type: "client", consent_timestamp: new Date().toISOString() });
     }
     
     onClose();
@@ -55,7 +70,8 @@ export default function RoleSelectionModal({ open, onClose }) {
         <div className="space-y-3 mt-4">
           <button
             onClick={handleClientRole}
-            className="w-full p-5 rounded-2xl border-2 border-neutral-200 hover:border-blue-500 hover:bg-blue-50 transition-all group"
+            disabled={!consentChecked || isProcessing}
+            className="w-full p-5 rounded-2xl border-2 border-neutral-200 hover:border-blue-500 hover:bg-blue-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500 transition-colors">
@@ -70,7 +86,8 @@ export default function RoleSelectionModal({ open, onClose }) {
 
           <button
             onClick={handleCreatorRole}
-            className="w-full p-5 rounded-2xl border-2 border-neutral-200 hover:border-blue-500 hover:bg-blue-50 transition-all group"
+            disabled={!consentChecked || isProcessing}
+            className="w-full p-5 rounded-2xl border-2 border-neutral-200 hover:border-blue-500 hover:bg-blue-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500 transition-colors">
@@ -84,28 +101,48 @@ export default function RoleSelectionModal({ open, onClose }) {
           </button>
         </div>
 
-        {/* Consent */}
-        <p className="text-xs text-center text-neutral-500 leading-relaxed mt-4">
-          By continuing, you agree to Lensly's{" "}
-          <a
-            href="https://getlenslyapp.com/terms"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
-          >
-            Terms & Conditions
-          </a>{" "}
-          and{" "}
-          <a
-            href="https://getlenslyapp.com/privacy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
-          >
-            Privacy Policy
-          </a>
-          .
-        </p>
+        {/* Consent Checkbox */}
+        <div className="space-y-2 mt-4">
+          <div className="flex items-start gap-3">
+            <Checkbox
+              id="consent-role"
+              checked={consentChecked}
+              onCheckedChange={(checked) => {
+                setConsentChecked(checked);
+                setConsentError(false);
+              }}
+              className="mt-0.5"
+            />
+            <label htmlFor="consent-role" className="text-xs text-neutral-700 leading-relaxed cursor-pointer">
+              I confirm that I have read and agree to Lensly's{" "}
+              <a
+                href="https://getlenslyapp.com/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline font-medium"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Terms & Conditions
+              </a>{" "}
+              and{" "}
+              <a
+                href="https://getlenslyapp.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline font-medium"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Privacy Policy
+              </a>
+              .
+            </label>
+          </div>
+          {consentError && (
+            <p className="text-xs text-red-600 ml-8">
+              Please confirm that you agree to the Terms & Conditions and Privacy Policy to continue.
+            </p>
+          )}
+        </div>
 
         <button
           onClick={onClose}
