@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, Loader2, Camera, CheckCircle2, AlertCircle } from "lucide-react";
+import { Save, Loader2, Camera, CheckCircle2, AlertCircle, Eye } from "lucide-react";
 import PortfolioUploader from "../components/lensly/PortfolioUploader";
 import OnboardingSuccessModal from "../components/lensly/OnboardingSuccessModal";
 import ProfileCompletionChecklist from "../components/lensly/ProfileCompletionChecklist";
@@ -26,7 +26,6 @@ export default function EditProfile() {
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [coverImageError, setCoverImageError] = useState(null);
-  const [showVisibilityBanner, setShowVisibilityBanner] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -100,9 +99,12 @@ export default function EditProfile() {
         setShowSuccessModal(true);
       }, 500);
     } else {
-      // Redirect to live profile and show success message
+      // Show success toast and redirect to live profile
+      toast.success("Profile updated and live on Discover", {
+        duration: 2500,
+      });
       setTimeout(() => {
-        window.location.href = createPageUrl("CreatorProfile") + `?id=${savedProfileId}&success=true`;
+        window.location.href = createPageUrl("CreatorProfile") + `?id=${savedProfileId}`;
       }, 800);
     }
   };
@@ -219,16 +221,20 @@ export default function EditProfile() {
 
   return (
     <div className="min-h-screen bg-white pb-32">
-      <div className="px-5 pt-6 pb-4">
-        {showVisibilityBanner && (
-          <div className="mb-4 p-4 rounded-2xl bg-green-50 border border-green-200 flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+      {/* Top Status Banner - Only show when profile is published */}
+      {profile?.is_published && (
+        <div className="px-5 pt-4 pb-2">
+          <div className="p-3 rounded-xl bg-blue-50/50 border border-blue-200/60 flex items-start gap-3">
+            <Eye className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-green-900">Your profile is now live on Discover!</p>
-              <p className="text-xs text-green-700 mt-1">Clients can now find and contact you.</p>
+              <p className="text-xs font-medium text-blue-900">Profile is visible on Discover</p>
+              <p className="text-[10px] text-blue-700 mt-0.5">Clients can find and contact you</p>
             </div>
           </div>
-        )}
+        </div>
+      )}
+
+      <div className="px-5 pt-6 pb-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-neutral-900">
@@ -496,20 +502,8 @@ export default function EditProfile() {
           />
         </div>
 
-        {/* Profile Status */}
-        {isProfileComplete ? (
-          <div className="p-4 rounded-2xl border bg-green-50 border-green-200">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-600" />
-              <div>
-                <p className="text-sm font-medium text-green-900">Profile Complete & Live</p>
-                <p className="text-xs text-green-700 mt-0.5">
-                  Your profile is visible to clients on Discover
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
+        {/* Profile Status - Only show incomplete warning */}
+        {!isProfileComplete && (
           <div className="p-4 rounded-2xl border bg-amber-50 border-amber-200">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-amber-600" />
