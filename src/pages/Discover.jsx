@@ -54,6 +54,7 @@ export default function Discover() {
     setLoading(true);
     try {
       const data = await base44.entities.CreatorProfile.filter({ 
+        status: "published",
         is_published: true,
         is_hidden: false 
       }, "-created_date", 100);

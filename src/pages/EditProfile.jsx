@@ -98,7 +98,13 @@ export default function EditProfile() {
       coverImageUrl
     );
     
-    const updatedProfile = { ...profile, profile_image: coverImageUrl, is_published: isComplete };
+    const updatedProfile = { 
+      ...profile, 
+      profile_image: coverImageUrl, 
+      is_published: isComplete,
+      status: isComplete ? "published" : "draft",
+      publishedAt: isComplete && !profile.publishedAt ? new Date().toISOString() : profile.publishedAt
+    };
     let savedProfileId = profile.id;
     
     if (profile.id) {

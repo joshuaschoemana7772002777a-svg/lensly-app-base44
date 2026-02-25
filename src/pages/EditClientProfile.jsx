@@ -37,12 +37,19 @@ export default function EditClientProfile() {
     // Try to load existing client profile
     const profiles = await base44.entities.ClientProfile.filter({ created_by: userData.email });
     if (profiles.length > 0) {
-      setProfile(profiles[0]);
+      const clientProfile = profiles[0];
+      setProfile({
+        id: clientProfile.id,
+        display_name: clientProfile.displayName || "",
+        profilePhoto: clientProfile.profilePhotoUrl || "",
+        phone: clientProfile.phoneOptional || "",
+        bio: clientProfile.bio || "",
+      });
     } else {
       // Pre-fill from user data
       setProfile({
-        display_name: userData.display_name || "",
-        profilePhoto: userData.profilePhoto || userData.profile_photo_url || "",
+        display_name: userData.full_name || "",
+        profilePhoto: userData.profilePhotoUrl || "",
         phone: "",
         bio: "",
       });
@@ -82,19 +89,30 @@ export default function EditClientProfile() {
         profile_photo_url: profile.profilePhoto,
       });
       
+      // Generate initials
+      const nameParts = profile.display_name.trim().split(" ");
+      const initials = nameParts.length === 1 
+        ? nameParts[0].substring(0, 2).toUpperCase()
+        : (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+      
+      // Update user initials
+      await base44.auth.updateMe({
+        profileInitials: initials,
+      });
+      
       // Create or update client profile
       if (profile.id) {
         await base44.entities.ClientProfile.update(profile.id, {
-          display_name: profile.display_name,
-          profilePhoto: profile.profilePhoto,
-          phone: profile.phone,
+          displayName: profile.display_name,
+          profilePhotoUrl: profile.profilePhoto,
+          phoneOptional: profile.phone,
           bio: profile.bio,
         });
       } else {
         await base44.entities.ClientProfile.create({
-          display_name: profile.display_name,
-          profilePhoto: profile.profilePhoto,
-          phone: profile.phone,
+          displayName: profile.display_name,
+          profilePhotoUrl: profile.profilePhoto,
+          phoneOptional: profile.phone,
           bio: profile.bio,
         });
       }
