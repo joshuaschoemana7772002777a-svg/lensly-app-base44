@@ -5,11 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, Loader2, Camera, CheckCircle2, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Save, Loader2, Camera, CheckCircle2, AlertCircle } from "lucide-react";
 import PortfolioUploader from "../components/lensly/PortfolioUploader";
 import OnboardingSuccessModal from "../components/lensly/OnboardingSuccessModal";
 import ProfileCompletionChecklist from "../components/lensly/ProfileCompletionChecklist";
-import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 
@@ -131,25 +130,15 @@ export default function EditProfile() {
     setSaving(false);
     setSaved(true);
     
-    // Show success toast
-    toast.success("Profile updated");
-    
-    // Show visibility banner if profile just went live
-    if (wasIncomplete && isComplete) {
-      setShowVisibilityBanner(true);
-      setTimeout(() => setShowVisibilityBanner(false), 5000);
-    }
-    
     if (wasOnboarding && isComplete) {
       setTimeout(() => {
         setShowSuccessModal(true);
       }, 500);
-    } else if (!isOnboarding && isComplete) {
-      setTimeout(() => {
-        window.location.href = createPageUrl("CreatorProfile") + `?id=${savedProfileId}`;
-      }, 800);
     } else {
-      setTimeout(() => setSaved(false), 2000);
+      // Redirect to live profile and show success message
+      setTimeout(() => {
+        window.location.href = createPageUrl("CreatorProfile") + `?id=${savedProfileId}&success=true`;
+      }, 800);
     }
   };
 
@@ -284,16 +273,6 @@ export default function EditProfile() {
               <p className="text-xs text-neutral-500 mt-1">
                 {completedSteps} of {steps.length} steps completed
               </p>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            {profile?.id && profile?.is_published && (
-              <Link
-                to={createPageUrl("CreatorProfile") + `?id=${profile.id}`}
-                className="text-xs text-blue-500 font-medium flex items-center gap-1"
-              >
-                <Eye className="w-3 h-3" /> View Live
-              </Link>
             )}
           </div>
         </div>
