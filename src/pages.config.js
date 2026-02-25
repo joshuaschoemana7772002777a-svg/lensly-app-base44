@@ -63,6 +63,7 @@ import Privacy from './pages/Privacy';
 import Settings from './pages/Settings';
 import Terms from './pages/Terms';
 import Updates from './pages/Updates';
+import EditClientProfile from './pages/EditClientProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -83,6 +84,7 @@ export const PAGES = {
     "Settings": Settings,
     "Terms": Terms,
     "Updates": Updates,
+    "EditClientProfile": EditClientProfile,
 }
 
 export const pagesConfig = {

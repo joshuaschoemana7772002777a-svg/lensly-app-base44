@@ -21,29 +21,18 @@ export default function RoleSelectionModal({ open, onClose }) {
     setIsProcessing(true);
     const authed = await base44.auth.isAuthenticated();
     if (!authed) {
-      // Redirect to login with a flag to select creator role after signup
       base44.auth.redirectToLogin(window.location.origin + "?select_role=creator");
       return;
     }
 
-    const user = await base44.auth.me();
-    const currentType = user.account_type;
-    
-    if (currentType === "client") {
-      await base44.auth.updateMe({ 
-        account_type: "both",
-        termsAccepted: true,
-        termsAcceptedAt: new Date().toISOString(),
-        termsVersion: "v1.0"
-      });
-    } else if (!currentType) {
-      await base44.auth.updateMe({ 
-        account_type: "creator",
-        termsAccepted: true,
-        termsAcceptedAt: new Date().toISOString(),
-        termsVersion: "v1.0"
-      });
-    }
+    await base44.auth.updateMe({ 
+      role: "creator",
+      roleSelectedAt: new Date().toISOString(),
+      account_type: "creator",
+      termsAccepted: true,
+      termsAcceptedAt: new Date().toISOString(),
+      termsVersion: "v1.0"
+    });
     
     window.location.href = createPageUrl("EditProfile");
   };

@@ -26,8 +26,11 @@ export default function Settings() {
     }
     const userData = await base44.auth.me();
     setUser(userData);
-    const profiles = await base44.entities.CreatorProfile.filter({ created_by: userData.email });
-    setHasCreatorProfile(profiles.length > 0);
+    
+    // Check for creator profile
+    const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: userData.email });
+    setHasCreatorProfile(creatorProfiles.length > 0);
+    
     setLoading(false);
   };
 
@@ -70,7 +73,21 @@ export default function Settings() {
             <h2 className="text-sm font-semibold text-neutral-900">Profile</h2>
           </div>
           <div className="divide-y divide-neutral-100">
-            {hasCreatorProfile ? (
+            {!user?.role ? (
+              <button
+                onClick={() => setShowRoleModal(true)}
+                className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <User className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-medium text-neutral-900">Create Profile</p>
+                  <p className="text-xs text-neutral-500">Set up how you'll use Lensly</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-neutral-400" />
+              </button>
+            ) : user.role === "creator" ? (
               <button
                 onClick={() => window.location.href = createPageUrl("EditProfile")}
                 className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
@@ -86,15 +103,15 @@ export default function Settings() {
               </button>
             ) : (
               <button
-                onClick={() => setShowRoleModal(true)}
+                onClick={() => window.location.href = createPageUrl("EditClientProfile")}
                 className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
               >
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Camera className="w-5 h-5 text-blue-600" />
+                  <User className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-neutral-900">Create Profile</p>
-                  <p className="text-xs text-neutral-500">Set up how you'll use Lensly</p>
+                  <p className="text-sm font-medium text-neutral-900">Client Profile</p>
+                  <p className="text-xs text-neutral-500">Edit your client profile</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-neutral-400" />
               </button>

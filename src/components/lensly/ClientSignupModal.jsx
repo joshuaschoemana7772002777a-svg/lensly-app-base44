@@ -39,14 +39,27 @@ export default function ClientSignupModal({ open, onClose, onSuccess }) {
     }
     setSaving(true);
     try {
+      const user = await base44.auth.me();
+      
+      // Update user role
       await base44.auth.updateMe({
+        role: "client",
+        roleSelectedAt: new Date().toISOString(),
         display_name: form.display_name,
+        profilePhoto: form.profile_photo_url || null,
         profile_photo_url: form.profile_photo_url || null,
         account_type: "client",
         termsAccepted: true,
         termsAcceptedAt: new Date().toISOString(),
         termsVersion: "v1.0",
       });
+      
+      // Create client profile record
+      await base44.entities.ClientProfile.create({
+        display_name: form.display_name,
+        profilePhoto: form.profile_photo_url || null,
+      });
+      
       onSuccess();
     } catch (error) {
       console.error("Failed to save profile:", error);
