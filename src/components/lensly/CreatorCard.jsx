@@ -6,17 +6,8 @@ import { createPageUrl } from "@/utils";
 import StarRating from "./StarRating";
 
 export default function CreatorCard({ creator, isFavourite, onToggleFavourite, index = 0, averageRating, reviewCount }) {
-  // Use creator-selected featured portfolio item as card background
-  const getFeaturedImage = () => {
-    if (creator.featuredPortfolioItemId && creator.portfolio_items?.length > 0) {
-      const featured = creator.portfolio_items.find(item => item.id === creator.featuredPortfolioItemId);
-      if (featured && featured.type === "image") return featured.url;
-    }
-    // Fallback to profile image
-    return creator.profile_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=80";
-  };
-  
-  const mainImage = getFeaturedImage();
+  // Use published cover photo for Discover cards
+  const mainImage = creator.publishedCoverPhotoUrl || creator.profile_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=80";
   
   // Get featured specialties (max 2)
   const featuredCategories = creator.featured_categories?.slice(0, 2) || [];
