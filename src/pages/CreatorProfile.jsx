@@ -12,6 +12,7 @@ import ContactFormModal from "../components/lensly/ContactFormModal";
 import ReportModal from "../components/lensly/ReportModal";
 import { checkMessagingRateLimit, trackMessagingActivity } from "../components/lensly/MessagingRateLimitCheck";
 import StarRating from "../components/lensly/StarRating";
+import { toast } from "sonner";
 
 export default function CreatorProfile() {
   const [creator, setCreator] = useState(null);
@@ -32,10 +33,19 @@ export default function CreatorProfile() {
 
   const params = new URLSearchParams(window.location.search);
   const creatorId = params.get("id");
+  const showSuccess = params.get("success");
 
   useEffect(() => {
     if (creatorId) loadCreator();
   }, [creatorId]);
+
+  useEffect(() => {
+    if (showSuccess === "true") {
+      toast.success("Your profile is live 🎉");
+      // Remove success param from URL
+      window.history.replaceState({}, '', createPageUrl("CreatorProfile") + `?id=${creatorId}`);
+    }
+  }, [showSuccess]);
 
   const loadCreator = async () => {
     setLoading(true);
