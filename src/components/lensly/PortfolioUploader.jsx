@@ -1,47 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import { Plus, X, Loader2, Play, Crop, Star } from "lucide-react";
+import { Plus, X, Loader2, Play, Crop, Star, Clock } from "lucide-react";
 import PortfolioCropModal from "./PortfolioCropModal";
-
-const generateVideoThumbnail = (file) =>
-  new Promise((resolve, reject) => {
-    const video = document.createElement("video");
-    video.preload = "metadata";
-    video.muted = true;
-    video.playsInline = true;
-    video.onloadedmetadata = () => {
-      video.currentTime = Math.min(1, video.duration / 2);
-    };
-    video.onseeked = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 360;
-      canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(
-        (blob) => {
-          window.URL.revokeObjectURL(video.src);
-          blob ? resolve(blob) : reject("Canvas toBlob failed");
-        },
-        "image/jpeg",
-        0.85
-      );
-    };
-    video.onerror = () => {
-      window.URL.revokeObjectURL(video.src);
-      reject("Failed to load video for thumbnail");
-    };
-    video.src = URL.createObjectURL(file);
-  });
 
 const MAX_ITEMS = 12;
 const MAX_VIDEO_DURATION = 60; // seconds
 const MAX_VIDEO_SIZE = 160 * 1024 * 1024; // 160 MB
 
-/**
- * getCropStyle: converts normalized crop (focalX/focalY/zoom) into CSS for a 1:1 tile.
- * Uses object-fit:cover + object-position for images; same for video thumbnail.
- */
 const getCropStyle = (crop) => {
   if (!crop || crop.focalX === undefined) {
     return { objectFit: "cover", objectPosition: "50% 50%" };
@@ -57,9 +22,60 @@ const getCropStyle = (crop) => {
   };
 };
 
+// Upload a file directly to Mux's upload URL (no size limit via Base44)
+const uploadToMux = (file, uploadUrl, onProgress) =>
+  new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(`Upload failed: ${xhr.status}`);
+    };
+    xhr.onerror = () => reject("Network error during upload");
+    xhr.open("PUT", uploadUrl);
+    xhr.send(file);
+  });
+
+// Poll Mux until asset is ready (up to ~3 minutes)
+const pollMuxAsset = async (uploadId) => {
+  const MAX_POLLS = 36; // 36 × 5s = 3 min
+  let assetId = null;
+
+  for (let i = 0; i < MAX_POLLS; i++) {
+    await new Promise((r) => setTimeout(r, 5000));
+
+    if (!assetId) {
+      const uploadRes = await base44.functions.invoke("muxUpload", {
+        action: "get_upload",
+        asset_id: uploadId,
+      });
+      if (uploadRes.data?.asset_id) {
+        assetId = uploadRes.data.asset_id;
+      }
+    }
+
+    if (assetId) {
+      const assetRes = await base44.functions.invoke("muxUpload", {
+        action: "get_asset",
+        asset_id: assetId,
+      });
+      if (assetRes.data?.status === "ready") {
+        return assetRes.data;
+      }
+      if (assetRes.data?.status === "errored") {
+        throw new Error("Mux processing failed");
+      }
+    }
+  }
+  throw new Error("Mux processing timed out");
+};
+
 export default function PortfolioUploader({ items = [], onChange, featuredItemId, onFeaturedChange }) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadLabel, setUploadLabel] = useState("Uploading…");
   const [error, setError] = useState(null);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [cropItem, setCropItem] = useState(null);
@@ -67,9 +83,6 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
 
   const validateVideo = (file) =>
     new Promise((resolve, reject) => {
-      if (!file.type.startsWith("video/mp4") && file.type !== "video/mp4") {
-        // Allow any video/* but warn about mp4 preference
-      }
       if (file.size > MAX_VIDEO_SIZE) {
         reject(`Video too large. Max allowed is 160 MB.`);
         return;
@@ -79,7 +92,7 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
       video.onloadedmetadata = () => {
         window.URL.revokeObjectURL(video.src);
         if (video.duration > MAX_VIDEO_DURATION) {
-          reject(`Video too long. Max duration is ${MAX_VIDEO_DURATION} seconds.`);
+          reject(`Video too long. Max is ${MAX_VIDEO_DURATION} seconds.`);
         } else {
           resolve();
         }
@@ -111,44 +124,83 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
       const isVideo = file.type.startsWith("video/");
 
       try {
-        if (isVideo) await validateVideo(file);
-
-        setUploadProgress(Math.round(((i + 0.2) / files.length) * 100));
-
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-
-        setUploadProgress(Math.round(((i + 0.7) / files.length) * 100));
-
-        let thumbnailUrl = null;
         if (isVideo) {
-          try {
-            const thumbBlob = await generateVideoThumbnail(file);
-            const thumbFile = new File([thumbBlob], `thumb_${file.name}.jpg`, { type: "image/jpeg" });
-            const { file_url: thumb_url } = await base44.integrations.Core.UploadFile({ file: thumbFile });
-            thumbnailUrl = thumb_url;
-          } catch (thumbErr) {
-            console.warn("Thumbnail generation failed, using video URL as fallback:", thumbErr);
-          }
+          await validateVideo(file);
+
+          // Step 1: Create Mux upload URL
+          setUploadLabel("Preparing upload…");
+          setUploadProgress(5);
+          const { data: uploadData } = await base44.functions.invoke("muxUpload", {
+            action: "create_upload",
+          });
+          const { upload_id, upload_url } = uploadData;
+
+          // Add a placeholder "processing" item immediately so the grid shows it
+          const placeholderItem = {
+            url: "",
+            type: "video",
+            caption: "",
+            thumbnail_url: null,
+            asset_id: null,
+            mux_upload_id: upload_id,
+            mux_status: "uploading",
+            crop: { focalX: 0.5, focalY: 0.5, zoom: 1, version: Date.now() },
+          };
+          onChange([...items, ...newItems, placeholderItem]);
+
+          // Step 2: Upload directly to Mux (bypasses Base44 size limit)
+          setUploadLabel("Uploading video…");
+          await uploadToMux(file, upload_url, (pct) => {
+            setUploadProgress(5 + Math.round(pct * 0.7)); // 5–75%
+          });
+
+          // Step 3: Poll for asset ready
+          setUploadLabel("Processing video…");
+          setUploadProgress(80);
+          const asset = await pollMuxAsset(upload_id);
+
+          newItems.push({
+            url: asset.mp4_url || asset.playback_url,
+            type: "video",
+            caption: "",
+            thumbnail_url: asset.thumbnail_url,
+            asset_id: asset.asset_id,
+            mux_playback_id: asset.playback_id,
+            mux_playback_url: asset.playback_url,
+            mux_mp4_url: asset.mp4_url,
+            mux_status: "ready",
+            crop: { focalX: 0.5, focalY: 0.5, zoom: 1, version: Date.now() },
+          });
+
+        } else {
+          // Image — use standard UploadFile
+          setUploadLabel("Uploading image…");
+          setUploadProgress(Math.round(((i + 0.3) / files.length) * 100));
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          newItems.push({
+            url: file_url,
+            type: "image",
+            caption: "",
+            thumbnail_url: null,
+            crop: { focalX: 0.5, focalY: 0.5, zoom: 1, version: Date.now() },
+          });
+          setUploadProgress(Math.round(((i + 1) / files.length) * 100));
         }
-
-        newItems.push({
-          url: file_url,
-          type: isVideo ? "video" : "image",
-          caption: "",
-          thumbnail_url: thumbnailUrl,
-          crop: { focalX: 0.5, focalY: 0.5, zoom: 1, version: Date.now() },
-        });
-
-        setUploadProgress(Math.round(((i + 1) / files.length) * 100));
       } catch (err) {
         setError(err?.message || err?.toString() || "Upload failed. Please try again.");
         setTimeout(() => setError(null), 6000);
       }
     }
 
-    if (newItems.length > 0) onChange([...items, ...newItems]);
+    // Replace any placeholder with the final items
+    const finalItems = [
+      ...items.filter((it) => it.mux_status !== "uploading"),
+      ...newItems,
+    ];
+    onChange(finalItems);
     setUploading(false);
     setUploadProgress(0);
+    setUploadLabel("Uploading…");
     e.target.value = "";
   };
 
@@ -173,12 +225,9 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
       i === cropIndex ? { ...item, crop: cropData } : item
     );
     onChange(updated);
-
-    // If this item is the featured one, notify parent to update cover immediately
     if (items[cropIndex]?.url === featuredItemId) {
       onFeaturedChange?.(featuredItemId, updated[cropIndex]);
     }
-
     setCropModalOpen(false);
     setCropItem(null);
     setCropIndex(null);
@@ -197,7 +246,7 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
       {uploading && (
         <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-blue-900">Uploading…</span>
+            <span className="text-xs font-medium text-blue-900">{uploadLabel}</span>
             <span className="text-xs text-blue-700">{uploadProgress}%</span>
           </div>
           <div className="h-1.5 rounded-full bg-blue-100 overflow-hidden">
@@ -206,86 +255,96 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
         </div>
       )}
       <p className="text-xs text-neutral-400">
-        Upload photos or short videos (MP4, max {MAX_VIDEO_DURATION}s, under 160 MB). Max {MAX_ITEMS} items.
+        Upload photos or short videos (MP4, max {MAX_VIDEO_DURATION}s, up to 160 MB). Max {MAX_ITEMS} items.
       </p>
       <div className="grid grid-cols-3 gap-2">
         {items.map((item, i) => {
           const isFeatured = featuredItemId === item.url;
+          const isProcessing = item.mux_status === "uploading" || item.mux_status === "preparing";
           const previewUrl = getPreviewImageUrl(item);
           const cropStyle = getCropStyle(item.crop);
           const cacheKey = item.crop?.version || 0;
 
           return (
             <div
-              key={`${item.url}-${cacheKey}`}
+              key={`${item.url || item.mux_upload_id}-${cacheKey}`}
               className="relative aspect-square rounded-xl overflow-hidden bg-neutral-100 group"
             >
-              {/* Thumbnail */}
-              <div className="absolute inset-0 overflow-hidden">
-                {previewUrl ? (
-                  <img
-                    src={`${previewUrl}${cacheKey ? `?v=${cacheKey}` : ""}`}
-                    alt=""
-                    className="absolute inset-0 pointer-events-none"
-                    style={cropStyle}
-                    draggable={false}
-                  />
-                ) : item.type === "video" ? (
-                  <video
-                    src={item.url}
-                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                    muted
-                    playsInline
-                  />
-                ) : null}
-              </div>
-
-              {/* Video play icon */}
-              {item.type === "video" && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-9 h-9 rounded-full bg-black/55 flex items-center justify-center">
-                    <Play className="w-4 h-4 text-white fill-white" />
+              {/* Processing tile */}
+              {isProcessing ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-900 text-white gap-2">
+                  <Loader2 className="w-6 h-6 animate-spin opacity-70" />
+                  <span className="text-[10px] font-medium opacity-70">Processing…</span>
+                </div>
+              ) : (
+                <>
+                  {/* Thumbnail */}
+                  <div className="absolute inset-0 overflow-hidden">
+                    {previewUrl ? (
+                      <img
+                        src={`${previewUrl}${cacheKey ? `?v=${cacheKey}` : ""}`}
+                        alt=""
+                        className="absolute inset-0 pointer-events-none"
+                        style={cropStyle}
+                        draggable={false}
+                      />
+                    ) : item.type === "video" ? (
+                      <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center">
+                        <Play className="w-6 h-6 text-white opacity-50" />
+                      </div>
+                    ) : null}
                   </div>
-                </div>
-              )}
 
-              {/* Featured badge */}
-              {isFeatured && (
-                <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-blue-500 text-white text-[9px] font-semibold z-10 flex items-center gap-1">
-                  <Star className="w-2.5 h-2.5 fill-white" />
-                  Featured
-                </div>
-              )}
+                  {/* Video play icon */}
+                  {item.type === "video" && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-9 h-9 rounded-full bg-black/55 flex items-center justify-center">
+                        <Play className="w-4 h-4 text-white fill-white" />
+                      </div>
+                    </div>
+                  )}
 
-              {/* Hover overlay */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors" />
+                  {/* Featured badge */}
+                  {isFeatured && (
+                    <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-blue-500 text-white text-[9px] font-semibold z-10 flex items-center gap-1">
+                      <Star className="w-2.5 h-2.5 fill-white" />
+                      Featured
+                    </div>
+                  )}
 
-              {/* Top controls */}
-              <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                <button
-                  onClick={() => handleOpenCrop(item, i)}
-                  className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
-                  title="Adjust position"
-                >
-                  <Crop className="w-3 h-3" />
-                </button>
-                <button
-                  onClick={() => handleRemove(i)}
-                  className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
-                  title="Remove"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors" />
 
-              {/* Feature button */}
-              {!isFeatured && (
-                <button
-                  onClick={() => onFeaturedChange?.(item.url, item)}
-                  className="absolute bottom-1.5 left-1.5 right-1.5 px-2 py-1 rounded-lg bg-white/90 backdrop-blur-sm text-[10px] font-medium text-neutral-700 opacity-0 group-hover:opacity-100 transition-opacity z-10 text-center"
-                >
-                  Set as Featured
-                </button>
+                  {/* Top controls */}
+                  <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    {item.type === "image" && (
+                      <button
+                        onClick={() => handleOpenCrop(item, i)}
+                        className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                        title="Adjust position"
+                      >
+                        <Crop className="w-3 h-3" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleRemove(i)}
+                      className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                      title="Remove"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {/* Feature button */}
+                  {!isFeatured && item.url && (
+                    <button
+                      onClick={() => onFeaturedChange?.(item.url, item)}
+                      className="absolute bottom-1.5 left-1.5 right-1.5 px-2 py-1 rounded-lg bg-white/90 backdrop-blur-sm text-[10px] font-medium text-neutral-700 opacity-0 group-hover:opacity-100 transition-opacity z-10 text-center"
+                    >
+                      Set as Featured
+                    </button>
+                  )}
+                </>
               )}
             </div>
           );
