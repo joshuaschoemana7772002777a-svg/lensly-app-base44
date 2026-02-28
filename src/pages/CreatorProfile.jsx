@@ -339,52 +339,77 @@ export default function CreatorProfile() {
 
         </div>
 
-        {/* Portfolio Grid */}
-        {creator.portfolio_items?.length > 0 ? (
-          <div className="mt-6">
-            <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-3">Portfolio</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {(portfolioExpanded ? creator.portfolio_items : creator.portfolio_items.slice(0, 3)).map((item, i) => {
-                const fullIndex = portfolioExpanded ? i : i;
-                return (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.05 }}
+        {/* Portfolio — Photos */}
+        {(() => {
+          const allItems = creator.portfolio_items || [];
+          const photos = allItems.filter(i => i.type === "image");
+          const videos = allItems.filter(i => i.type === "video");
+
+          const renderGrid = (section, sectionItems) => {
+            const preview = sectionItems.slice(0, 6);
+            const rest = sectionItems.slice(6);
+            const isVideo = section === "video";
+            return (
+              <div className="mt-6">
+                <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-3">
+                  {isVideo ? "Videos" : "Photos"}
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {preview.map((item, i) => {
+                    const globalIndex = allItems.indexOf(item);
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.04 }}
+                        onClick={() => {
+                          setActivePortfolioIndex(globalIndex);
+                          setIsPortfolioViewerOpen(true);
+                        }}
+                        className={`rounded-xl overflow-hidden cursor-pointer ${i === 0 ? "col-span-2 aspect-video" : "aspect-square"}`}
+                      >
+                        {isVideo ? (
+                          <div className="relative w-full h-full bg-neutral-900">
+                            {item.thumbnail_url ? (
+                              <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                            ) : null}
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                              <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
+                                <div className="w-0 h-0 border-l-[10px] border-l-black border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent ml-1" />
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <img src={item.url} alt={item.caption || ""} className="w-full h-full object-cover" />
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+                {rest.length > 0 && (
+                  <Button
                     onClick={() => {
-                      setActivePortfolioIndex(fullIndex);
+                      setActivePortfolioIndex(allItems.indexOf(sectionItems[6]));
                       setIsPortfolioViewerOpen(true);
                     }}
-                    className={`rounded-xl overflow-hidden cursor-pointer ${i === 0 ? "col-span-2 aspect-video" : "aspect-square"}`}
+                    variant="outline"
+                    className="w-full mt-3 rounded-xl"
                   >
-                    {item.type === "video" ? (
-                      <div className="relative w-full h-full">
-                        <video src={item.url} className="w-full h-full object-cover pointer-events-none" />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                          <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
-                            <div className="w-0 h-0 border-l-[10px] border-l-black border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent ml-1" />
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <img src={item.url} alt={item.caption || ""} className="w-full h-full object-cover" />
-                    )}
-                  </motion.div>
-                );
-              })}
-            </div>
-            {creator.portfolio_items.length > 3 && (
-              <Button
-                onClick={() => setPortfolioExpanded(!portfolioExpanded)}
-                variant="outline"
-                className="w-full mt-4 rounded-xl"
-              >
-                {portfolioExpanded ? "Show less" : `View more (${creator.portfolio_items.length - 3} more)`}
-              </Button>
-            )}
-          </div>
-        ) : null}
+                    View {rest.length} more {isVideo ? "video" : "photo"}{rest.length !== 1 ? "s" : ""}
+                  </Button>
+                )}
+              </div>
+            );
+          };
+
+          return (
+            <>
+              {photos.length > 0 && renderGrid("image", photos)}
+              {videos.length > 0 && renderGrid("video", videos)}
+            </>
+          );
+        })()}
 
         {/* Bio */}
         {creator.bio && (
