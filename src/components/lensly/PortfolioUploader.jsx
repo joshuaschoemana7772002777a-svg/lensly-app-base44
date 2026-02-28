@@ -4,8 +4,8 @@ import { Plus, X, Loader2, Play, Crop, Star, Clock } from "lucide-react";
 import PortfolioCropModal from "./PortfolioCropModal";
 
 const MAX_ITEMS = 12;
-const MAX_VIDEO_DURATION = 60; // seconds
-const MAX_VIDEO_SIZE = 160 * 1024 * 1024; // 160 MB
+const MAX_VIDEO_DURATION = 30; // seconds
+const MAX_VIDEO_SIZE = 150 * 1024 * 1024; // 150 MB
 
 const getCropStyle = (crop) => {
   if (!crop || crop.focalX === undefined) {
