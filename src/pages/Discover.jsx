@@ -24,6 +24,15 @@ export default function Discover() {
   const [savedMode, setSavedMode] = useState(false);
   const [sortBy, setSortBy] = useState("rating");
   const [selectedType, setSelectedType] = useState(null);
+  const [sliderMin, setSliderMin] = useState(0);
+  const [sliderMax, setSliderMax] = useState(0);
+  const [priceRange, setPriceRange] = useState([0, 0]);
+  const [hasPriceData, setHasPriceData] = useState(false);
+
+  const roundDownToStep = (val, step) => Math.floor(val / step) * step;
+  const roundUpToStep = (val, step) => Math.ceil(val / step) * step;
+
+  const isPriceDefault = priceRange[0] === sliderMin && priceRange[1] === sliderMax;
 
   // Read URL params
   useEffect(() => {
