@@ -381,7 +381,13 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
             )}
             <input
               type="file"
-              accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,video/mp4,video/quicktime,.mp4,.mov"
+              accept={
+                acceptVideo && acceptImage
+                  ? "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,video/mp4,video/quicktime,.mp4,.mov"
+                  : acceptVideo
+                  ? "video/mp4,video/quicktime,.mp4,.mov"
+                  : "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+              }
               multiple
               onChange={handleUpload}
               className="hidden"
