@@ -287,8 +287,12 @@ export default function Messages() {
                           </p>
                         </div>
                       </div>
-                      <Badge className="bg-yellow-100 text-yellow-700 text-xs px-2.5 py-1 rounded-full font-medium">
-                        Pending
+                      <Badge className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                        req.status === "accepted" ? "bg-green-100 text-green-700" :
+                        req.status === "declined" ? "bg-neutral-100 text-neutral-500" :
+                        "bg-yellow-100 text-yellow-700"
+                      }`}>
+                        {req.status === "accepted" ? "Accepted" : req.status === "declined" ? "Declined" : "Pending"}
                       </Badge>
                     </div>
                   </div>
