@@ -208,6 +208,8 @@ export default function Discover() {
     if (savedMode && !favouriteIds.has(c.id)) return false;
     if (selectedArea && !(c.service_areas || []).includes(selectedArea)) return false;
     if (selectedCategory && !(c.categories || []).includes(selectedCategory)) return false;
+    if (selectedType === "photographer" && c.creator_type !== "photographer" && c.creator_type !== "both") return false;
+    if (selectedType === "videographer" && c.creator_type !== "videographer" && c.creator_type !== "both") return false;
     return true;
   });
 
@@ -275,6 +277,28 @@ export default function Discover() {
           <div className="mt-2">
             <AreaFilterChips selected={selectedArea} onChange={setSelectedArea} />
           </div>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs text-neutral-500 font-medium shrink-0">Type:</span>
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+              {[
+                { label: "All", value: null },
+                { label: "Photographer", value: "photographer" },
+                { label: "Videographer", value: "videographer" },
+              ].map(({ label, value }) => (
+                <button
+                  key={label}
+                  onClick={() => setSelectedType(value)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                    selectedType === value
+                      ? "bg-neutral-900 text-white"
+                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -313,7 +337,7 @@ export default function Discover() {
               {savedMode ? "No saved creators yet" : "No creators found"}
             </h3>
             <p className="text-sm text-neutral-400 mt-1">
-              {savedMode ? "Save creators to find them faster later." : "Try adjusting your filters"}
+              {savedMode ? "Save creators to find them faster later." : "No creators found for this selection."}
             </p>
             {savedMode && (
               <button
