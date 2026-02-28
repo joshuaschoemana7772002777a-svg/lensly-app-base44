@@ -33,5 +33,14 @@ export default function RoleSelectionWrapper() {
 
   if (!checked) return null;
 
-  return <RoleSelectionModal open={showModal} onClose={() => setShowModal(false)} />;
+  return (
+    <RoleSelectionModal
+      open={showModal}
+      onClose={() => {
+        setShowModal(false);
+        // Signal other components that role was just selected
+        window.dispatchEvent(new CustomEvent("lensly:roleSelected"));
+      }}
+    />
+  );
 }
