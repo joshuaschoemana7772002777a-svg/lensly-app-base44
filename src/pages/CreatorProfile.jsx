@@ -242,9 +242,10 @@ export default function CreatorProfile() {
                 setRateLimitError(null);
                 const authed = await base44.auth.isAuthenticated();
                 if (!authed) {
-                  const currentUrl = window.location.href;
-                  window.location.href = createPageUrl("Login") + 
-                    `?from_url=${encodeURIComponent(currentUrl)}&intent=contact_creator&creatorId=${creator.id}`;
+                  // Store intent, redirect to built-in login, return here after auth
+                  sessionStorage.setItem("pending_intent", "contact_creator");
+                  sessionStorage.setItem("pending_creatorId", creator.id);
+                  base44.auth.redirectToLogin(window.location.href);
                   return;
                 } else {
                 const user = await base44.auth.me();
