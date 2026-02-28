@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save, Loader2, Camera, CheckCircle2, AlertCircle } from "lucide-react";
-import PortfolioUploader from "../components/lensly/PortfolioUploader";
+import PortfolioSplitUploader from "../components/lensly/PortfolioSplitUploader";
 import OnboardingSuccessModal from "../components/lensly/OnboardingSuccessModal";
 import ProfileCompletionChecklist from "../components/lensly/ProfileCompletionChecklist";
 import { createPageUrl } from "@/utils";
