@@ -83,8 +83,13 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
 
   const validateVideo = (file) =>
     new Promise((resolve, reject) => {
+      const allowed = ["video/mp4", "video/quicktime"];
+      if (!allowed.includes(file.type)) {
+        reject("Only MP4 or MOV (QuickTime) videos are supported.");
+        return;
+      }
       if (file.size > MAX_VIDEO_SIZE) {
-        reject(`Video too large. Max allowed is 160 MB.`);
+        reject("Video must be under 150MB.");
         return;
       }
       const video = document.createElement("video");
@@ -92,7 +97,7 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
       video.onloadedmetadata = () => {
         window.URL.revokeObjectURL(video.src);
         if (video.duration > MAX_VIDEO_DURATION) {
-          reject(`Video too long. Max is ${MAX_VIDEO_DURATION} seconds.`);
+          reject("Videos must be 30 seconds or shorter.");
         } else {
           resolve();
         }
