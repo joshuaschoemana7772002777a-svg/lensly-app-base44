@@ -58,7 +58,7 @@ export default function Layout({ children, currentPageName }) {
     const combinedBadge = unreadMsgCount + requests.length;
   };
 
-  const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile" || currentPageName === "Conversation";
+  const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile" || currentPageName === "Conversation" || currentPageName === "Login";
 
 
 
@@ -101,7 +101,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       <FirstOpenConsentBanner />
-      <RoleSelectionWrapper />
+      {currentPageName !== "Login" && <RoleSelectionWrapper />}
 
       {!hideNav && (
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-neutral-100 safe-area-bottom">
