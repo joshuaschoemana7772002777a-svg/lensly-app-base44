@@ -1,8 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Camera, User } from "lucide-react";
+import { Camera, User, Loader2 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import ClientSignupModal from "./ClientSignupModal";
@@ -11,8 +10,10 @@ export default function RoleSelectionModal({ open, onClose, isSwitchingRole = fa
   const [consentChecked, setConsentChecked] = React.useState(false);
   const [consentError, setConsentError] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [processingRole, setProcessingRole] = React.useState(null); // "client" | "creator"
   const [showClientModal, setShowClientModal] = React.useState(false);
   const [skipConsent, setSkipConsent] = React.useState(false);
+  const [saveError, setSaveError] = React.useState(null);
 
   React.useEffect(() => {
     if (open && isSwitchingRole) {
@@ -28,84 +29,79 @@ export default function RoleSelectionModal({ open, onClose, isSwitchingRole = fa
     }
   };
 
-  const handleCreatorRole = async () => {
-    if (!consentChecked) {
+  const handleRoleSelect = async (role) => {
+    setSaveError(null);
+
+    if (!skipConsent && !consentChecked) {
       setConsentError(true);
       return;
     }
+
     setIsProcessing(true);
-    const authed = await base44.auth.isAuthenticated();
-    if (!authed) {
-      base44.auth.redirectToLogin(window.location.origin + "?select_role=creator");
-      return;
-    }
+    setProcessingRole(role);
 
-    const user = await base44.auth.me();
-    const updates = { 
-      role: "creator",
-      roleChosenAt: user.roleChosenAt || new Date().toISOString(),
-      roleLastChangedAt: new Date().toISOString(),
-    };
-
-    if (!skipConsent) {
-      updates.termsAccepted = true;
-      updates.termsAcceptedAt = new Date().toISOString();
-      updates.termsVersion = "v1.0";
-    }
-
-    await base44.auth.updateMe(updates);
-
-    // If switching from client, disable client profile
-    if (isSwitchingRole) {
-      const clientProfiles = await base44.entities.ClientProfile.filter({ created_by: user.email });
-      if (clientProfiles.length > 0) {
-        await base44.entities.ClientProfile.update(clientProfiles[0].id, { status: "disabled" });
+    try {
+      const authed = await base44.auth.isAuthenticated();
+      if (!authed) {
+        base44.auth.redirectToLogin(window.location.origin + `?select_role=${role}`);
+        return;
       }
 
-      // Reactivate creator profile if exists
-      const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
-      if (creatorProfiles.length > 0) {
-        await base44.entities.CreatorProfile.update(creatorProfiles[0].id, { status: "draft" });
-      }
-    }
-    
-    window.location.href = createPageUrl("EditProfile");
-  };
+      const user = await base44.auth.me();
 
-  const handleClientRole = async () => {
-    if (!consentChecked) {
-      setConsentError(true);
-      return;
-    }
-    setIsProcessing(true);
-    const authed = await base44.auth.isAuthenticated();
-    if (!authed) {
-      base44.auth.redirectToLogin(window.location.origin + "?select_role=client");
-      return;
-    }
+      const updates = {
+        role,
+        roleChosenAt: user.roleChosenAt || new Date().toISOString(),
+        roleLastChangedAt: new Date().toISOString(),
+      };
 
-    const user = await base44.auth.me();
-
-    // If switching from creator, disable creator profile
-    if (isSwitchingRole) {
-      const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
-      if (creatorProfiles.length > 0) {
-        await base44.entities.CreatorProfile.update(creatorProfiles[0].id, { 
-          status: "disabled",
-          is_published: false
-        });
+      if (!skipConsent) {
+        updates.termsAccepted = true;
+        updates.termsAcceptedAt = new Date().toISOString();
+        updates.termsVersion = "v1.0";
       }
 
-      // Reactivate client profile if exists
-      const clientProfiles = await base44.entities.ClientProfile.filter({ created_by: user.email });
-      if (clientProfiles.length > 0) {
-        await base44.entities.ClientProfile.update(clientProfiles[0].id, { status: "active" });
-      }
-    }
+      if (role === "creator") {
+        await base44.auth.updateMe(updates);
 
-    // Show client account creation modal
-    setShowClientModal(true);
-    setIsProcessing(false);
+        if (isSwitchingRole) {
+          const clientProfiles = await base44.entities.ClientProfile.filter({ created_by: user.email });
+          if (clientProfiles.length > 0) {
+            await base44.entities.ClientProfile.update(clientProfiles[0].id, { status: "disabled" });
+          }
+          const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
+          if (creatorProfiles.length > 0) {
+            await base44.entities.CreatorProfile.update(creatorProfiles[0].id, { status: "draft" });
+          }
+        }
+
+        window.location.href = createPageUrl("EditProfile");
+      } else {
+        // client: show signup modal (it handles updateMe internally)
+        if (isSwitchingRole) {
+          const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
+          if (creatorProfiles.length > 0) {
+            await base44.entities.CreatorProfile.update(creatorProfiles[0].id, {
+              status: "disabled",
+              is_published: false,
+            });
+          }
+          const clientProfiles = await base44.entities.ClientProfile.filter({ created_by: user.email });
+          if (clientProfiles.length > 0) {
+            await base44.entities.ClientProfile.update(clientProfiles[0].id, { status: "active" });
+          }
+        }
+
+        setShowClientModal(true);
+        setIsProcessing(false);
+        setProcessingRole(null);
+      }
+    } catch (err) {
+      console.error("Role selection failed:", err);
+      setSaveError("Couldn't save role, try again.");
+      setIsProcessing(false);
+      setProcessingRole(null);
+    }
   };
 
   const handleClientSignupSuccess = () => {
@@ -120,111 +116,129 @@ export default function RoleSelectionModal({ open, onClose, isSwitchingRole = fa
 
   return (
     <>
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md mx-4 rounded-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl text-center">How will you use Lensly?</DialogTitle>
-          <DialogDescription className="text-center">
-            Choose what you're here to do. You can always change this later.
-          </DialogDescription>
-        </DialogHeader>
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md mx-4 rounded-2xl" style={{ zIndex: 9999 }}>
+          <DialogHeader>
+            <DialogTitle className="text-xl text-center">How will you use Lensly?</DialogTitle>
+            <DialogDescription className="text-center">
+              Choose what you're here to do. You can always change this later.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-3 mt-4">
-          <button
-            onClick={handleClientRole}
-            disabled={!consentChecked || isProcessing}
-            className="w-full p-5 rounded-2xl border-2 border-neutral-200 hover:border-blue-500 hover:bg-blue-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500 transition-colors">
-                <User className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
+          <div className="space-y-4 mt-2">
+            {/* Consent checkbox — shown FIRST so users understand why they must agree before tapping */}
+            {!skipConsent && (
+              <div className="bg-neutral-50 rounded-xl p-4 space-y-2">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="consent-role"
+                    checked={consentChecked}
+                    onCheckedChange={(checked) => {
+                      setConsentChecked(!!checked);
+                      setConsentError(false);
+                    }}
+                    className="mt-0.5 shrink-0"
+                  />
+                  <label htmlFor="consent-role" className="text-xs text-neutral-700 leading-relaxed cursor-pointer select-none">
+                    I agree to Lensly's{" "}
+                    <a
+                      href="https://getlenslyapp.com/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Terms & Conditions
+                    </a>{" "}
+                    and{" "}
+                    <a
+                      href="https://getlenslyapp.com/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Privacy Policy
+                    </a>
+                    .
+                  </label>
+                </div>
+                {consentError && (
+                  <p className="text-xs text-red-600 ml-7">
+                    Please agree to the Terms & Privacy Policy to continue.
+                  </p>
+                )}
               </div>
-              <div className="text-left flex-1">
-                <h3 className="font-semibold text-neutral-900 mb-1">I'm a Client</h3>
-                <p className="text-sm text-neutral-600">Hire photographers & videographers</p>
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={handleCreatorRole}
-            disabled={!consentChecked || isProcessing}
-            className="w-full p-5 rounded-2xl border-2 border-neutral-200 hover:border-blue-500 hover:bg-blue-50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500 transition-colors">
-                <Camera className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
-              </div>
-              <div className="text-left flex-1">
-                <h3 className="font-semibold text-neutral-900 mb-1">I'm a Creator</h3>
-                <p className="text-sm text-neutral-600">Offer photography or video services</p>
-              </div>
-            </div>
-          </button>
-        </div>
-
-        {/* Consent Checkbox - only show if not already consented */}
-        {!skipConsent && (
-          <div className="space-y-2 mt-4">
-            <div className="flex items-start gap-3">
-              <Checkbox
-                id="consent-role"
-                checked={consentChecked}
-                onCheckedChange={(checked) => {
-                  setConsentChecked(checked);
-                  setConsentError(false);
-                }}
-                className="mt-0.5"
-              />
-              <label htmlFor="consent-role" className="text-xs text-neutral-700 leading-relaxed cursor-pointer">
-                I confirm that I have read and agree to Lensly's{" "}
-                <a
-                  href="https://getlenslyapp.com/terms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline font-medium"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Terms & Conditions
-                </a>{" "}
-                and{" "}
-                <a
-                  href="https://getlenslyapp.com/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline font-medium"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Privacy Policy
-                </a>
-                .
-              </label>
-            </div>
-            {consentError && (
-              <p className="text-xs text-red-600 ml-8">
-                Please confirm that you agree to the Terms & Conditions and Privacy Policy to continue.
-              </p>
             )}
+
+            {/* Role buttons */}
+            <button
+              type="button"
+              onClick={() => handleRoleSelect("client")}
+              disabled={isProcessing}
+              className="w-full p-5 rounded-2xl border-2 border-neutral-200 hover:border-blue-500 hover:bg-blue-50 active:bg-blue-100 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ pointerEvents: isProcessing ? "none" : "auto" }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  {processingRole === "client" ? (
+                    <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                  ) : (
+                    <User className="w-6 h-6 text-blue-600" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-900 mb-0.5">I'm a Client</h3>
+                  <p className="text-sm text-neutral-500">Hire photographers & videographers</p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleRoleSelect("creator")}
+              disabled={isProcessing}
+              className="w-full p-5 rounded-2xl border-2 border-neutral-200 hover:border-blue-500 hover:bg-blue-50 active:bg-blue-100 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ pointerEvents: isProcessing ? "none" : "auto" }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  {processingRole === "creator" ? (
+                    <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                  ) : (
+                    <Camera className="w-6 h-6 text-blue-600" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-900 mb-0.5">I'm a Creator</h3>
+                  <p className="text-sm text-neutral-500">Offer photography or video services</p>
+                </div>
+              </div>
+            </button>
+
+            {saveError && (
+              <p className="text-xs text-red-600 text-center">{saveError}</p>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-sm text-neutral-400 hover:text-neutral-600 w-full text-center py-1"
+            >
+              I'll decide later
+            </button>
           </div>
-        )}
+        </DialogContent>
+      </Dialog>
 
-        <button
-          onClick={onClose}
-          className="text-sm text-neutral-500 hover:text-neutral-700 mt-4 text-center w-full"
-        >
-          I'll decide later
-        </button>
-      </DialogContent>
-    </Dialog>
-
-    {showClientModal && (
-      <ClientSignupModal
-        open={showClientModal}
-        onClose={() => setShowClientModal(false)}
-        onSuccess={handleClientSignupSuccess}
-        skipConsent={skipConsent}
-      />
-    )}
-  </>
+      {showClientModal && (
+        <ClientSignupModal
+          open={showClientModal}
+          onClose={() => setShowClientModal(false)}
+          onSuccess={handleClientSignupSuccess}
+          skipConsent={skipConsent || consentChecked}
+        />
+      )}
+    </>
   );
 }
