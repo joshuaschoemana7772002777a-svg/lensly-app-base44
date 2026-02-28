@@ -2,11 +2,16 @@ import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { ArrowLeft, Send, Loader2, Flag, MoreVertical, AlertCircle } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Flag, MoreVertical, AlertCircle, Trash2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import moment from "moment";
 import ReportModal from "../components/lensly/ReportModal";
 import ProfileAvatar from "../components/lensly/ProfileAvatar";
@@ -31,6 +36,8 @@ export default function Conversation() {
   const [canReview, setCanReview] = useState(false);
   const [replyTimeText, setReplyTimeText] = useState(null);
   const [otherPersonPhoto, setOtherPersonPhoto] = useState(null);
+  const [clearChatOpen, setClearChatOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const params = new URLSearchParams(window.location.search);
   const conversationId = params.get("id");
@@ -65,29 +72,32 @@ export default function Conversation() {
     const profiles = await base44.entities.CreatorProfile.filter({ created_by: currentUser.email });
     const isCreator = profiles.length > 0 && profiles[0].is_published && convo.creator_profile_id === profiles[0].id;
     setUserRole(isCreator ? "creator" : "client");
-    
+
     // Load other person's profile photo
     if (isCreator) {
-      // Load client photo from User entity
       const clientUsers = await base44.entities.User.filter({ email: convo.client_email });
       if (clientUsers.length > 0 && clientUsers[0].profile_photo_url) {
         setOtherPersonPhoto(clientUsers[0].profile_photo_url);
       }
     } else {
-      // Use cached creator photo from conversation
       setOtherPersonPhoto(convo.creator_image);
     }
 
-    // Check if client can review (conversation closed, no existing review)
-    if (!isCreator && convo.status === "closed") {
-      const existingReviews = await base44.entities.Review.filter({
-        conversation_id: conversationId,
-        client_email: currentUser.email,
-      });
-      setCanReview(existingReviews.length === 0);
+    // Check if client can review: must be client + 7 days since first message + no existing review
+    if (!isCreator && convo.first_message_at) {
+      const firstMsgDate = new Date(convo.first_message_at);
+      const sevenDaysLater = new Date(firstMsgDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const isEligible = new Date() >= sevenDaysLater;
+      if (isEligible) {
+        const existingReviews = await base44.entities.Review.filter({
+          conversation_id: conversationId,
+          client_email: currentUser.email,
+        });
+        setCanReview(existingReviews.length === 0);
+      }
     }
-    
-    // Check if blocked
+
+    // Check if blocked (only real block records count)
     const otherEmail = isCreator ? convo.client_email : convo.created_by;
     const blocks = await base44.entities.BlockedUser.filter({
       blocker_email: currentUser.email,
@@ -95,11 +105,17 @@ export default function Conversation() {
     });
     setIsBlocked(blocks.length > 0);
 
-    const msgs = await base44.entities.Message.filter({ conversation_id: conversationId });
+    let msgs = await base44.entities.Message.filter({ conversation_id: conversationId });
     msgs.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+
+    // Apply "clear chat" filter — only show messages after the user's last cleared timestamp
+    const clearedAt = isCreator ? convo.creator_cleared_at : convo.client_cleared_at;
+    if (clearedAt) {
+      msgs = msgs.filter(m => new Date(m.created_date) > new Date(clearedAt));
+    }
+
     setMessages(msgs);
 
-    // Calculate reply time for clients viewing creator conversations
     if (!isCreator && msgs.length > 1) {
       calculateReplyTime(msgs, convo);
     }
@@ -119,124 +135,111 @@ export default function Conversation() {
   const calculateReplyTime = (msgs, convo) => {
     const creatorEmail = convo.created_by;
     const clientEmail = convo.client_email;
-    
-    // Find reply pairs (client message followed by creator reply)
     const replyTimes = [];
     for (let i = 0; i < msgs.length - 1; i++) {
-      const currentMsg = msgs[i];
-      const nextMsg = msgs[i + 1];
-      
-      // Check if client sent message and creator replied
-      if (currentMsg.sender_email === clientEmail && nextMsg.sender_email === creatorEmail) {
-        const replyTime = new Date(nextMsg.created_date) - new Date(currentMsg.created_date);
-        replyTimes.push(replyTime);
+      const cur = msgs[i];
+      const next = msgs[i + 1];
+      if (cur.sender_email === clientEmail && next.sender_email === creatorEmail) {
+        replyTimes.push(new Date(next.created_date) - new Date(cur.created_date));
       }
     }
-    
-    // Need at least 3 replies for meaningful data
-    if (replyTimes.length < 3) {
-      return;
-    }
-    
-    // Use last 20 replies
-    const recentReplies = replyTimes.slice(-20);
-    const avgReplyTime = recentReplies.reduce((sum, time) => sum + time, 0) / recentReplies.length;
-    
-    // Convert to hours
-    const avgHours = avgReplyTime / (1000 * 60 * 60);
-    
-    // Check if creator is inactive (last reply > 7 days ago)
+    if (replyTimes.length < 3) return;
+    const recent = replyTimes.slice(-20);
+    const avgHours = (recent.reduce((s, t) => s + t, 0) / recent.length) / (1000 * 60 * 60);
     const lastCreatorMsg = [...msgs].reverse().find(m => m.sender_email === creatorEmail);
     if (lastCreatorMsg) {
-      const daysSinceLastReply = (Date.now() - new Date(lastCreatorMsg.created_date)) / (1000 * 60 * 60 * 24);
-      if (daysSinceLastReply > 7) {
-        return;
-      }
+      const daysSince = (Date.now() - new Date(lastCreatorMsg.created_date)) / (1000 * 60 * 60 * 24);
+      if (daysSince > 7) return;
     }
-    
-    // Set friendly text
-    if (avgHours < 1) {
-      setReplyTimeText("Usually replies in under 1 hour");
-    } else if (avgHours < 3) {
-      setReplyTimeText("Usually replies within a few hours");
-    } else if (avgHours < 12) {
-      setReplyTimeText("Usually replies within a few hours");
-    } else if (avgHours < 24) {
-      setReplyTimeText("Usually replies within 24 hours");
-    }
+    if (avgHours < 1) setReplyTimeText("Usually replies in under 1 hour");
+    else if (avgHours < 12) setReplyTimeText("Usually replies within a few hours");
+    else if (avgHours < 24) setReplyTimeText("Usually replies within 24 hours");
   };
 
   const sendMessage = async () => {
     if (!newMessage.trim() || sending) return;
-
     setSending(true);
     setRateLimitError(null);
 
-    try {
-      // Check rate limits (only for clients messaging creators)
-      if (userRole === "client") {
-        const rateLimitCheck = await checkMessagingRateLimit(
-          user.email,
-          conversation.creator_profile_id,
-          newMessage.trim()
-        );
-
-        if (!rateLimitCheck.allowed) {
-          setRateLimitError(rateLimitCheck.message);
-          setSending(false);
-          return;
-        }
+    if (userRole === "client") {
+      const check = await checkMessagingRateLimit(user.email, conversation.creator_profile_id, newMessage.trim());
+      if (!check.allowed) {
+        setRateLimitError(check.message);
+        setSending(false);
+        return;
       }
+    }
 
-      const messageData = {
-        conversation_id: conversationId,
-        sender_email: user.email,
-        sender_name: user.full_name,
-        content: newMessage.trim(),
-      };
+    const messageData = {
+      conversation_id: conversationId,
+      sender_email: user.email,
+      sender_name: user.full_name,
+      content: newMessage.trim(),
+    };
 
-      await base44.entities.Message.create(messageData);
+    await base44.entities.Message.create(messageData);
 
-      const otherUnreadField = userRole === "creator" ? "unread_count_client" : "unread_count_creator";
+    // Set first_message_at if not already set
+    if (!conversation.first_message_at) {
+      await base44.entities.Conversation.update(conversationId, {
+        first_message_at: new Date().toISOString(),
+        last_message: newMessage.trim(),
+        last_message_at: new Date().toISOString(),
+        [userRole === "creator" ? "unread_count_client" : "unread_count_creator"]:
+          (conversation[userRole === "creator" ? "unread_count_client" : "unread_count_creator"] || 0) + 1,
+      });
+    } else {
       await base44.entities.Conversation.update(conversationId, {
         last_message: newMessage.trim(),
         last_message_at: new Date().toISOString(),
-        [otherUnreadField]: (conversation[otherUnreadField] || 0) + 1,
+        [userRole === "creator" ? "unread_count_client" : "unread_count_creator"]:
+          (conversation[userRole === "creator" ? "unread_count_client" : "unread_count_creator"] || 0) + 1,
       });
-
-      // Track messaging activity (only for clients)
-      if (userRole === "client") {
-        await trackMessagingActivity(
-          user.email,
-          conversation.creator_profile_id,
-          newMessage.trim(),
-          conversationId
-        );
-      }
-
-      // Create notification for recipient (with throttling)
-      const recipientEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
-      const recipientIsCreator = userRole !== "creator";
-      
-      await createNotification({
-        recipientEmail: recipientIsCreator ? recipientEmail : conversation.client_email,
-        type: "message_new",
-        title: "New Message",
-        message: recipientIsCreator 
-          ? `${conversation.client_name} sent you a message`
-          : `${conversation.creator_name} replied to your message`,
-        linkUrl: createPageUrl("Conversation") + `?id=${conversationId}`,
-        relatedId: conversationId,
-        senderName: user.full_name,
-      });
-
-      setNewMessage("");
-      await loadConversation();
-    } catch (error) {
-      console.error("Error sending message:", error);
     }
-    
+
+    if (userRole === "client") {
+      await trackMessagingActivity(user.email, conversation.creator_profile_id, newMessage.trim(), conversationId);
+    }
+
+    const recipientEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
+    const recipientIsCreator = userRole !== "creator";
+    await createNotification({
+      recipientEmail: recipientIsCreator ? recipientEmail : conversation.client_email,
+      type: "message_new",
+      title: "New Message",
+      message: recipientIsCreator
+        ? `${conversation.client_name} sent you a message`
+        : `${conversation.creator_name} replied to your message`,
+      linkUrl: createPageUrl("Conversation") + `?id=${conversationId}`,
+      relatedId: conversationId,
+      senderName: user.full_name,
+    });
+
+    setNewMessage("");
+    await loadConversation();
     setSending(false);
+  };
+
+  const handleClearChat = async () => {
+    setClearing(true);
+    const field = userRole === "creator" ? "creator_cleared_at" : "client_cleared_at";
+    await base44.entities.Conversation.update(conversationId, {
+      [field]: new Date().toISOString(),
+    });
+    setClearing(false);
+    setClearChatOpen(false);
+    await loadConversation();
+    toast.success("Chat cleared from your view");
+  };
+
+  const handleBlock = async () => {
+    const otherEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
+    await base44.entities.BlockedUser.create({
+      blocker_email: user.email,
+      blocked_email: otherEmail,
+      blocked_profile_id: userRole === "client" ? conversation.creator_profile_id : null,
+    });
+    setIsBlocked(true);
   };
 
   if (loading) {
@@ -251,28 +254,25 @@ export default function Conversation() {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-5">
         <h2 className="text-lg font-semibold text-neutral-800">Conversation not found</h2>
-        <Link to={createPageUrl("Messages")} className="mt-4 text-blue-500 text-sm">
-          Back to Messages
-        </Link>
+        <Link to={createPageUrl("Messages")} className="mt-4 text-blue-500 text-sm">Back to Messages</Link>
       </div>
     );
   }
 
   const otherPersonName = userRole === "creator" ? conversation.client_name : conversation.creator_name;
-  const otherPersonImage = userRole === "creator" ? null : conversation.creator_image;
   const otherPersonEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
 
-  const handleBlock = async () => {
-    await base44.entities.BlockedUser.create({
-      blocker_email: user.email,
-      blocked_email: otherPersonEmail,
-      blocked_profile_id: userRole === "client" ? conversation.creator_profile_id : null,
-    });
-    setIsBlocked(true);
-  };
+  // Review eligibility label
+  const reviewUnlockDate = conversation.first_message_at
+    ? new Date(new Date(conversation.first_message_at).getTime() + 7 * 24 * 60 * 60 * 1000)
+    : null;
+  const daysUntilReview = reviewUnlockDate
+    ? Math.ceil((reviewUnlockDate - new Date()) / (1000 * 60 * 60 * 24))
+    : null;
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      {/* Header */}
       <div className="sticky top-0 z-20 bg-white border-b border-neutral-100 px-4 py-3">
         <div className="flex items-center gap-3">
           <Link
@@ -286,24 +286,13 @@ export default function Conversation() {
             onClick={async () => {
               if (userRole !== "client") return;
               const profileId = conversation.creator_profile_id;
-              if (!profileId) {
-                toast.error("Profile not available right now.");
-                return;
-              }
-              // Verify profile exists and is published
+              if (!profileId) return toast.error("Profile not available right now.");
               const profiles = await base44.entities.CreatorProfile.filter({ id: profileId });
-              if (profiles.length === 0 || !profiles[0].is_published) {
-                toast.error("Profile not available right now.");
-                return;
-              }
+              if (profiles.length === 0 || !profiles[0].is_published) return toast.error("Profile not available right now.");
               window.location.href = createPageUrl("CreatorProfile") + `?id=${profileId}`;
             }}
           >
-            <ProfileAvatar 
-              photoUrl={otherPersonPhoto}
-              displayName={otherPersonName}
-              size="sm"
-            />
+            <ProfileAvatar photoUrl={otherPersonPhoto} displayName={otherPersonName} size="sm" />
             <div className="flex-1 min-w-0">
               <h2 className="text-base font-semibold text-neutral-900 truncate">{otherPersonName || "User"}</h2>
               {userRole === "client" && replyTimeText && (
@@ -318,32 +307,24 @@ export default function Conversation() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {userRole === "creator" && conversation.status !== "closed" && (
-                <DropdownMenuItem onClick={async () => {
-                  await base44.entities.Conversation.update(conversationId, { status: "closed" });
-                  await loadConversation();
-                }}>
-                  <span className="w-4 h-4 mr-2">✓</span>
-                  Mark as Closed
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem onClick={() => setClearChatOpen(true)}>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear chat
+              </DropdownMenuItem>
               {userRole === "client" && canReview && (
                 <DropdownMenuItem onClick={() => setReviewModalOpen(true)}>
-                  <span className="w-4 h-4 mr-2">⭐</span>
-                  Leave a Review
+                  <Star className="w-4 h-4 mr-2" />
+                  Leave a review
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={() => {
-                setReportedEmail(otherPersonEmail);
-                setReportOpen(true);
-              }}>
+              <DropdownMenuItem onClick={() => { setReportedEmail(otherPersonEmail); setReportOpen(true); }}>
                 <Flag className="w-4 h-4 mr-2" />
                 Report
               </DropdownMenuItem>
               {!isBlocked && (
                 <DropdownMenuItem onClick={handleBlock} className="text-red-600">
                   <span className="w-4 h-4 mr-2">🚫</span>
-                  Block User
+                  Block user
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -351,6 +332,7 @@ export default function Conversation() {
         </div>
       </div>
 
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center py-12">
@@ -374,30 +356,30 @@ export default function Conversation() {
         <div ref={messagesEndRef} />
       </div>
 
-      {conversation.status === "closed" && userRole === "client" && canReview && (
-        <div className="sticky bottom-0 bg-blue-50 border-t border-blue-200 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-blue-900">How was your experience?</p>
-              <p className="text-xs text-blue-600">Help others by leaving a review</p>
-            </div>
-            <Button
-              onClick={() => setReviewModalOpen(true)}
-              className="rounded-xl bg-blue-500 hover:bg-blue-600"
-            >
-              Leave Review
-            </Button>
+      {/* Review prompt — shown for eligible clients */}
+      {userRole === "client" && canReview && (
+        <div className="bg-blue-50 border-t border-blue-200 px-4 py-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-blue-900">How was your experience?</p>
+            <p className="text-xs text-blue-600">Leave a review to help others</p>
           </div>
+          <Button onClick={() => setReviewModalOpen(true)} className="rounded-xl bg-blue-500 hover:bg-blue-600 shrink-0">
+            Leave Review
+          </Button>
         </div>
       )}
 
-      {conversation.status === "closed" && !canReview && (
-        <div className="sticky bottom-0 bg-neutral-50 border-t border-neutral-200 p-4 text-center">
-          <p className="text-sm text-neutral-600">This conversation is closed</p>
+      {/* Review not yet unlocked hint */}
+      {userRole === "client" && !canReview && conversation.first_message_at && daysUntilReview > 0 && (
+        <div className="bg-neutral-50 border-t border-neutral-100 px-4 py-2 text-center">
+          <p className="text-xs text-neutral-400">
+            Reviews unlock in {daysUntilReview} day{daysUntilReview !== 1 ? "s" : ""}
+          </p>
         </div>
       )}
 
-      {conversation.status !== "closed" && !isBlocked ? (
+      {/* Message composer — always visible unless user is blocked */}
+      {!isBlocked ? (
         <div className="sticky bottom-0 bg-white border-t border-neutral-100 p-4">
           {rateLimitError && (
             <div className="mb-3 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
@@ -412,10 +394,7 @@ export default function Conversation() {
               placeholder="Type a message..."
               className="flex-1 min-h-[44px] max-h-32 rounded-2xl resize-none"
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
               }}
             />
             <Button
@@ -423,33 +402,47 @@ export default function Conversation() {
               disabled={!newMessage.trim() || sending}
               className="h-11 w-11 rounded-full bg-blue-500 hover:bg-blue-600 flex-shrink-0"
             >
-              {sending ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Send className="w-5 h-5" />
-              )}
+              {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </Button>
           </div>
         </div>
       ) : (
         <div className="sticky bottom-0 bg-neutral-50 border-t border-neutral-200 p-4 text-center">
-          <p className="text-sm text-neutral-600">You have blocked this user</p>
+          <p className="text-sm text-neutral-600">You've blocked this user</p>
         </div>
       )}
-      
-      <ReportModal 
-        open={reportOpen} 
-        onClose={() => setReportOpen(false)} 
-        reportedUserEmail={reportedEmail}
-      />
+
+      {/* Clear chat confirmation */}
+      <Dialog open={clearChatOpen} onOpenChange={setClearChatOpen}>
+        <DialogContent className="sm:max-w-sm mx-4 rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Clear chat?</DialogTitle>
+            <DialogDescription>
+              This will remove the messages from your view. The other person will still see the full chat history.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 mt-4">
+            <Button variant="outline" onClick={() => setClearChatOpen(false)} className="flex-1 rounded-xl">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleClearChat}
+              disabled={clearing}
+              className="flex-1 rounded-xl bg-red-500 hover:bg-red-600 text-white"
+            >
+              {clearing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Clear
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} reportedUserEmail={reportedEmail} />
 
       {canReview && (
         <ReviewModal
           open={reviewModalOpen}
-          onClose={() => {
-            setReviewModalOpen(false);
-            loadConversation();
-          }}
+          onClose={() => { setReviewModalOpen(false); loadConversation(); }}
           conversation={conversation}
         />
       )}
