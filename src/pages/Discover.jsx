@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal, Heart, ArrowUpDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import * as SliderPrimitive from "@radix-ui/react-slider";
 import {
   DropdownMenu,
   DropdownMenuContent,
