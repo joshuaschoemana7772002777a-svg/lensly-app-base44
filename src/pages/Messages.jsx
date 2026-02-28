@@ -132,8 +132,11 @@ export default function Messages() {
     );
   }
 
-  const pendingRequests = requests.filter(r => r.status === "pending" || r.status === "read");
-  const pendingCount = pendingRequests.length;
+  // Creators see only pending/read; clients see all their sent requests (with status)
+  const pendingRequests = userRole === "creator"
+    ? requests.filter(r => r.status === "pending" || r.status === "read")
+    : requests;
+  const pendingCount = requests.filter(r => r.status === "pending" || r.status === "read").length;
 
   return (
     <div className="min-h-screen bg-white pb-20">
