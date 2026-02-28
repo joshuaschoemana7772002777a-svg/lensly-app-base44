@@ -127,6 +127,8 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const isVideo = file.type.startsWith("video/");
+      if (isVideo && !acceptVideo) continue;
+      if (!isVideo && !acceptImage) continue;
 
       try {
         if (isVideo) {
