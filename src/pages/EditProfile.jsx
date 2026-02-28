@@ -514,7 +514,7 @@ export default function EditProfile() {
           <p className="text-xs text-neutral-400 mb-3">
             Set a portfolio item as "Featured" to use it as your cover photo on Discover and your profile.
           </p>
-          <PortfolioUploader
+          <PortfolioSplitUploader
             items={profile?.portfolio_items || []}
             onChange={(items) => {
               const updated = { ...profile, portfolio_items: items };
@@ -524,7 +524,6 @@ export default function EditProfile() {
                 const featuredStillExists = items.some(item => item.url === profile.featuredPortfolioItemId);
                 if (!featuredStillExists) {
                   updated.featuredPortfolioItemId = null;
-                  // Reset to fallback cover
                   setDraftCoverUrl(profile.profile_image);
                 }
               }
@@ -543,7 +542,6 @@ export default function EditProfile() {
             featuredItemId={profile?.featuredPortfolioItemId}
             onFeaturedChange={(itemUrl, itemObj) => {
               setProfile(p => ({ ...p, featuredPortfolioItemId: itemUrl }));
-              // Instantly update cover preview (itemObj passed from uploader on feature/crop-save)
               if (itemUrl) {
                 const featuredItem = itemObj || (profile.portfolio_items || []).find(i => i.url === itemUrl);
                 if (featuredItem) {
@@ -553,7 +551,6 @@ export default function EditProfile() {
                   if (coverUrl) setDraftCoverUrl(coverUrl);
                 }
               } else {
-                // Featured cleared — fall back to manual cover or profile_image
                 setDraftCoverUrl(prev => profile.profile_image || prev);
               }
             }}
