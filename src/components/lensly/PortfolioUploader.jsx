@@ -113,8 +113,8 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    if (items.length + files.length > MAX_ITEMS) {
-      setError(`Max ${MAX_ITEMS} items allowed.`);
+    if (items.length + files.length > maxItems) {
+      setError(`Max ${maxItems} items allowed.`);
       setTimeout(() => setError(null), 4000);
       return;
     }
