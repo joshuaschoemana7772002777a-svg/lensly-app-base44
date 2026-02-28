@@ -362,7 +362,7 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
         })}
 
         {/* Add button */}
-        {items.length < MAX_ITEMS && (
+        {items.length < maxItems && (
           <label
             className={`aspect-square rounded-xl border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center transition-colors ${
               uploading ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:border-blue-400"
