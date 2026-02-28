@@ -541,19 +541,20 @@ export default function EditProfile() {
               setProfile(updated);
             }}
             featuredItemId={profile?.featuredPortfolioItemId}
-            onFeaturedChange={(itemUrl) => {
-              setProfile({ ...profile, featuredPortfolioItemId: itemUrl });
-              
-              // Instantly update draft cover from featured item
+            onFeaturedChange={(itemUrl, itemObj) => {
+              setProfile(p => ({ ...p, featuredPortfolioItemId: itemUrl }));
+              // Instantly update cover preview (itemObj passed from uploader on feature/crop-save)
               if (itemUrl) {
-                const featuredItem = profile.portfolio_items.find(item => item.url === itemUrl);
+                const featuredItem = itemObj || (profile.portfolio_items || []).find(i => i.url === itemUrl);
                 if (featuredItem) {
-                  if (featuredItem.type === "video" && featuredItem.thumbnail_url) {
-                    setDraftCoverUrl(featuredItem.thumbnail_url);
-                  } else if (featuredItem.type === "image") {
-                    setDraftCoverUrl(featuredItem.url);
-                  }
+                  const coverUrl = featuredItem.type === "video"
+                    ? (featuredItem.thumbnail_url || null)
+                    : featuredItem.url;
+                  if (coverUrl) setDraftCoverUrl(coverUrl);
                 }
+              } else {
+                // Featured cleared — fall back to manual cover or profile_image
+                setDraftCoverUrl(prev => profile.profile_image || prev);
               }
             }}
           />
