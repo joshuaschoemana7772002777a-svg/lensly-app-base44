@@ -72,7 +72,7 @@ const pollMuxAsset = async (uploadId) => {
   throw new Error("Mux processing timed out");
 };
 
-export default function PortfolioUploader({ items = [], onChange, featuredItemId, onFeaturedChange }) {
+export default function PortfolioUploader({ items = [], onChange, featuredItemId, onFeaturedChange, acceptVideo = true, acceptImage = true }) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadLabel, setUploadLabel] = useState("Uploading…");
