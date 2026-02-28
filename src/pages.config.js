@@ -52,6 +52,7 @@ import Conversation from './pages/Conversation';
 import CreateRequest from './pages/CreateRequest';
 import CreatorProfile from './pages/CreatorProfile';
 import Discover from './pages/Discover';
+import EditClientProfile from './pages/EditClientProfile';
 import EditProfile from './pages/EditProfile';
 import Favourites from './pages/Favourites';
 import Home from './pages/Home';
@@ -63,7 +64,6 @@ import Privacy from './pages/Privacy';
 import Settings from './pages/Settings';
 import Terms from './pages/Terms';
 import Updates from './pages/Updates';
-import EditClientProfile from './pages/EditClientProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +73,7 @@ export const PAGES = {
     "CreateRequest": CreateRequest,
     "CreatorProfile": CreatorProfile,
     "Discover": Discover,
+    "EditClientProfile": EditClientProfile,
     "EditProfile": EditProfile,
     "Favourites": Favourites,
     "Home": Home,
@@ -84,7 +85,6 @@ export const PAGES = {
     "Settings": Settings,
     "Terms": Terms,
     "Updates": Updates,
-    "EditClientProfile": EditClientProfile,
 }
 
 export const pagesConfig = {

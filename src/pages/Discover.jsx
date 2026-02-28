@@ -22,6 +22,7 @@ export default function Discover() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [savedMode, setSavedMode] = useState(false);
   const [sortBy, setSortBy] = useState("rating");
+  const [selectedType, setSelectedType] = useState(null);
 
   // Read URL params
   useEffect(() => {
