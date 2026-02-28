@@ -70,9 +70,10 @@ export default function EditProfile() {
 
   const handleSave = async () => {
     setSaving(true);
-    const wasOnboarding = isOnboarding && !profile.is_published;
+    const alreadyPublished = profile.is_published || profile.status === "published";
+    const wasOnboarding = !alreadyPublished;
     
-    // Auto-publish if all required fields are filled
+    // Check if required fields are filled
     const isComplete = !!(
       profile.display_name &&
       profile.bio &&
@@ -84,15 +85,25 @@ export default function EditProfile() {
       profile.profile_photo &&
       draftCoverUrl
     );
-    
+
+    // If already published and fields are incomplete, block save with error (do NOT unpublish)
+    if (alreadyPublished && !isComplete) {
+      setSaving(false);
+      toast.error("Please fill all required fields before saving.");
+      return;
+    }
+
+    // NEVER downgrade a published profile — preserve is_published/status if already live
     const updatedProfile = { 
       ...profile, 
       draftCoverPhotoUrl: draftCoverUrl,
       publishedCoverPhotoUrl: isComplete ? draftCoverUrl : profile.publishedCoverPhotoUrl,
-      profile_image: draftCoverUrl, // Legacy field
-      is_published: isComplete,
-      status: isComplete ? "published" : "draft",
-      publishedAt: isComplete && !profile.publishedAt ? new Date().toISOString() : profile.publishedAt
+      profile_image: draftCoverUrl,
+      // Only change publish state when going from draft → published (never published → draft)
+      is_published: alreadyPublished ? true : isComplete,
+      status: alreadyPublished ? "published" : (isComplete ? "published" : "draft"),
+      publishedAt: isComplete && !profile.publishedAt ? new Date().toISOString() : profile.publishedAt,
+      lastSavedAt: new Date().toISOString(),
     };
     let savedProfileId = profile.id;
     
@@ -111,7 +122,6 @@ export default function EditProfile() {
         setShowSuccessModal(true);
       }, 500);
     } else {
-      // Auto-redirect to live profile after save (Option A)
       toast.success(isComplete ? "Profile updated and live on Discover" : "Changes saved as draft", {
         duration: 2000,
       });
