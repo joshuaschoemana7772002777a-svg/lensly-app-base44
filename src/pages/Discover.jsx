@@ -181,6 +181,21 @@ export default function Discover() {
       });
       
       setCreators(sorted);
+
+      // Compute price bounds from published creators with a price
+      const priced = sorted.filter(c => c.starting_price > 0);
+      if (priced.length > 0) {
+        const minPrice = Math.min(...priced.map(c => c.starting_price));
+        const maxPrice = Math.max(...priced.map(c => c.starting_price));
+        const sMin = roundDownToStep(minPrice, 500);
+        const sMax = roundUpToStep(maxPrice, 500);
+        setSliderMin(sMin);
+        setSliderMax(sMax);
+        setPriceRange([sMin, sMax]);
+        setHasPriceData(true);
+      } else {
+        setHasPriceData(false);
+      }
     } catch (error) {
       console.error("Error loading creators:", error);
       setCreators([]);
