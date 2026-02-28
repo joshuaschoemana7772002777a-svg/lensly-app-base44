@@ -391,7 +391,7 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
               multiple
               onChange={handleUpload}
               className="hidden"
-              disabled={uploading || items.length >= MAX_ITEMS}
+              disabled={uploading || items.length >= maxItems}
             />
           </label>
         )}
