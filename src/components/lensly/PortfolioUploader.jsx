@@ -263,10 +263,10 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
       )}
       <p className="text-xs text-neutral-400">
         {acceptVideo && acceptImage
-          ? `Upload photos or short videos (MP4 or MOV, max 30 seconds, under 150MB). Max ${MAX_ITEMS} items.`
+          ? `Upload photos or short videos (MP4 or MOV, max 30 seconds, under 150MB). Max ${maxItems} items.`
           : acceptVideo
-          ? `Upload short videos (MP4 or MOV, max 30 seconds, under 150MB). Max ${MAX_ITEMS} items.`
-          : `Upload photos (JPEG, PNG, or WebP). Max ${MAX_ITEMS} items.`}
+          ? `Upload short videos (MP4 or MOV, max 30 seconds, under 150MB). Max ${maxItems} items.`
+          : `Upload photos (JPEG, PNG, or WebP). Max ${maxItems} items.`}
       </p>
       <div className="grid grid-cols-3 gap-2">
         {items.map((item, i) => {
