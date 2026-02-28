@@ -228,6 +228,10 @@ export default function Discover() {
     if (selectedCategory && !(c.categories || []).includes(selectedCategory)) return false;
     if (selectedType === "photographer" && c.creator_type !== "photographer" && c.creator_type !== "both") return false;
     if (selectedType === "videographer" && c.creator_type !== "videographer" && c.creator_type !== "both") return false;
+    if (hasPriceData && !isPriceDefault) {
+      if (!c.starting_price) return false;
+      if (c.starting_price < priceRange[0] || c.starting_price > priceRange[1]) return false;
+    }
     return true;
   });
 
