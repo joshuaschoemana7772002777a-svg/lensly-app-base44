@@ -40,6 +40,28 @@ export default function CreatorProfile() {
     if (creatorId) loadCreator();
   }, [creatorId]);
 
+  // Resume pending contact intent after login redirect
+  useEffect(() => {
+    const resumeIntent = async () => {
+      const intent = sessionStorage.getItem("pending_intent");
+      const pendingCreatorId = sessionStorage.getItem("pending_creatorId");
+      if (intent === "contact_creator" && pendingCreatorId === creatorId) {
+        const authed = await base44.auth.isAuthenticated();
+        if (authed) {
+          const user = await base44.auth.me();
+          if (user.role) {
+            // Clear intent and trigger contact flow
+            sessionStorage.removeItem("pending_intent");
+            sessionStorage.removeItem("pending_creatorId");
+            setContactOpen(true);
+          }
+          // If no role, RoleSelectionWrapper will handle it; we'll re-check after role is set
+        }
+      }
+    };
+    if (creatorId) resumeIntent();
+  }, [creatorId]);
+
   useEffect(() => {
     if (showSuccess === "true") {
       toast.success("Your profile is live 🎉");

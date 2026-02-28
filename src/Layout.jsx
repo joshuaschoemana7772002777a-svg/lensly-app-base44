@@ -101,7 +101,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       <FirstOpenConsentBanner />
-      {currentPageName !== "Login" && <RoleSelectionWrapper />}
+      <RoleSelectionWrapper />
 
       {!hideNav && (
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-neutral-100 safe-area-bottom">
