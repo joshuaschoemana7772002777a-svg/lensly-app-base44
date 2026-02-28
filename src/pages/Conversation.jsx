@@ -281,7 +281,24 @@ export default function Conversation() {
           >
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </Link>
-          <div className="flex items-center gap-3 flex-1">
+          <button
+            className="flex items-center gap-3 flex-1 active:opacity-60 transition-opacity text-left"
+            onClick={async () => {
+              if (userRole !== "client") return;
+              const profileId = conversation.creator_profile_id;
+              if (!profileId) {
+                toast.error("Profile not available right now.");
+                return;
+              }
+              // Verify profile exists and is published
+              const profiles = await base44.entities.CreatorProfile.filter({ id: profileId });
+              if (profiles.length === 0 || !profiles[0].is_published) {
+                toast.error("Profile not available right now.");
+                return;
+              }
+              window.location.href = createPageUrl("CreatorProfile") + `?id=${profileId}`;
+            }}
+          >
             <ProfileAvatar 
               photoUrl={otherPersonPhoto}
               displayName={otherPersonName}
@@ -293,7 +310,7 @@ export default function Conversation() {
                 <p className="text-xs text-neutral-400 mt-0.5">{replyTimeText}</p>
               )}
             </div>
-          </div>
+          </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="w-9 h-9 rounded-full hover:bg-neutral-100 flex items-center justify-center">
