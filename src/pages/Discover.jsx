@@ -60,15 +60,8 @@ export default function Discover() {
         is_hidden: false 
       }, "-created_date", 100);
       
-      // Filter for complete profiles - require: cover image, featured specialties (1-2), starting price
-      const complete = data.filter(creator => {
-        const hasCoverImage = !!creator.profile_image;
-        const hasFeaturedSpecialties = creator.featured_categories?.length > 0;
-        const hasStartingPrice = !!creator.starting_price;
-        const hasCategories = creator.categories?.length > 0;
-        const hasAreas = creator.service_areas?.length > 0;
-        return hasCoverImage && hasFeaturedSpecialties && hasStartingPrice && hasCategories && hasAreas;
-      });
+      // All published, non-hidden, non-deleted creators are eligible — no field-based exclusions
+      const complete = data.filter(creator => !creator.isDeleted && !creator.isBanned);
 
       // Load reviews for all creators
       const allReviews = await base44.entities.Review.list("-created_date", 1000);
