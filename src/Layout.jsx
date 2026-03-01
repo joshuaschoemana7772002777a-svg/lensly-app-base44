@@ -67,14 +67,61 @@ export default function Layout({ children, currentPageName }) {
       <style>{`
         :root {
           --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          --safe-top: env(safe-area-inset-top, 0px);
+          --safe-bottom: env(safe-area-inset-bottom, 0px);
+          --safe-left: env(safe-area-inset-left, 0px);
+          --safe-right: env(safe-area-inset-right, 0px);
         }
-        body {
+        html, body {
           font-family: var(--font-sans);
           -webkit-font-smoothing: antialiased;
           background: white;
+          /* Prevent elastic overscroll / bounce on iOS */
+          overscroll-behavior: none;
+          overscroll-behavior-y: none;
+          height: 100%;
+        }
+        #root {
+          height: 100%;
+          overflow-y: auto;
+          overscroll-behavior-y: none;
+          /* Safe area padding at document root */
+          padding-top: var(--safe-top);
+          padding-left: var(--safe-left);
+          padding-right: var(--safe-right);
         }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Prevent text selection + long-press callout on all non-input elements */
+        *:not(input):not(textarea):not([contenteditable]) {
+          -webkit-user-select: none;
+          user-select: none;
+          -webkit-touch-callout: none;
+        }
+        input, textarea, [contenteditable] {
+          -webkit-user-select: text;
+          user-select: text;
+          -webkit-touch-callout: default;
+        }
+
+        /* Remove tap highlight on buttons and links */
+        button, a, [role="button"] {
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+        }
+
+        /* Prevent overscroll in scrollable sub-containers */
+        .overflow-y-auto, .overflow-auto, .overflow-y-scroll {
+          overscroll-behavior-y: contain;
+        }
+
+        /* Lock body scroll when modals/sheets are open (add class via JS) */
+        body.modal-open {
+          overflow: hidden;
+          position: fixed;
+          width: 100%;
+        }
       `}</style>
       
       <main>{children}</main>
