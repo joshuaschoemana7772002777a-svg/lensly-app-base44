@@ -293,12 +293,12 @@ export default function Discover() {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-neutral-500 font-medium">Price Range</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-neutral-800">
-                    {isPriceDefault ? "Any price" : `R${priceRange[0].toLocaleString()} – R${priceRange[1].toLocaleString()}`}
+                  <span className="text-xs font-semibold text-blue-600">
+                    {isPriceDefault ? "Any price" : `Up to R${priceMax.toLocaleString()}`}
                   </span>
                   {!isPriceDefault && (
                     <button
-                      onClick={() => setPriceRange([sliderMin, sliderMax])}
+                      onClick={() => setPriceMax(sliderMax)}
                       className="text-[10px] text-blue-500 hover:text-blue-700 font-medium"
                     >
                       Reset
@@ -309,15 +309,14 @@ export default function Discover() {
               <SliderPrimitive.Root
                 className="relative flex items-center select-none touch-none w-full h-5"
                 min={sliderMin} max={sliderMax} step={500}
-                value={priceRange} onValueChange={setPriceRange}
+                value={[priceMax]} onValueChange={([val]) => setPriceMax(val)}
               >
                 <SliderPrimitive.Track className="bg-neutral-200 relative grow rounded-full h-1.5">
-                  <SliderPrimitive.Range className="absolute bg-neutral-900 rounded-full h-full" />
+                  <SliderPrimitive.Range className="absolute bg-blue-500 rounded-full h-full" />
                 </SliderPrimitive.Track>
-                <SliderPrimitive.Thumb className="block w-4 h-4 bg-white border-2 border-neutral-900 rounded-full shadow focus:outline-none cursor-grab active:cursor-grabbing" />
-                <SliderPrimitive.Thumb className="block w-4 h-4 bg-white border-2 border-neutral-900 rounded-full shadow focus:outline-none cursor-grab active:cursor-grabbing" />
+                <SliderPrimitive.Thumb className="block w-4 h-4 bg-white border-2 border-blue-500 rounded-full shadow focus:outline-none cursor-grab active:cursor-grabbing" />
               </SliderPrimitive.Root>
-              <p className="text-[10px] text-neutral-400 mt-1">Filters by creator starting price</p>
+              <p className="text-[10px] text-neutral-400 mt-1">Filters by creator starting price (max)</p>
             </div>
           )}
         </div>
