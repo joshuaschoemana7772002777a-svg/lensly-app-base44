@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Plus, X, Loader2, Play, Crop, Star, Clock } from "lucide-react";
 import PortfolioCropModal from "./PortfolioCropModal";
 
-const MAX_ITEMS = 12;
+const MAX_ITEMS = 8;
 const MAX_VIDEO_DURATION = 30; // seconds
 const MAX_VIDEO_SIZE = 150 * 1024 * 1024; // 150 MB
 
