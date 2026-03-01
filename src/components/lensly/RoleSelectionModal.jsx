@@ -87,7 +87,7 @@ export default function RoleSelectionModal({ open, onClose }) {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onClose}>
+      <Dialog open={open} onOpenChange={() => {}}>
         <DialogContent className="sm:max-w-md mx-4 rounded-2xl" style={{ zIndex: 9999 }}>
           <DialogHeader>
             <DialogTitle className="text-xl text-center">How will you use Lensly?</DialogTitle>
