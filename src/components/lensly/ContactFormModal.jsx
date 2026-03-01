@@ -24,6 +24,7 @@ export default function ContactFormModal({ open, onClose, creator }) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [abuseError, setAbuseError] = useState(null);
+  useScrollLock(open);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
