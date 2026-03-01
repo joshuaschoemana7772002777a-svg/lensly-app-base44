@@ -226,7 +226,7 @@ export default function Discover() {
   // Reset pagination when filters change
   useEffect(() => {
     setDisplayCount(PAGE_SIZE);
-  }, [selectedArea, selectedCategory, selectedType, priceRange, savedMode, sortBy]);
+  }, [selectedArea, selectedCategory, selectedType, priceMax, savedMode, sortBy]);
 
   const activeFilters = [selectedCategory, selectedArea].filter(Boolean).length;
 
