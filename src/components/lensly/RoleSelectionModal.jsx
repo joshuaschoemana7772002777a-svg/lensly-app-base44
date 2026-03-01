@@ -97,7 +97,7 @@ export default function RoleSelectionModal({ open, onClose }) {
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
-            {/* Consent checkbox — shown FIRST so users understand why they must agree before tapping */}
+            {/* Consent checkbox */}
             {!skipConsent && (
               <div className="bg-neutral-50 rounded-xl p-4 space-y-2">
                 <div className="flex items-start gap-3">
