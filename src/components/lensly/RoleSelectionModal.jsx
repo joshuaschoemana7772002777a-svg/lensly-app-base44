@@ -50,7 +50,7 @@ export default function RoleSelectionModal({ open, onClose }) {
       const user = await base44.auth.me();
 
       const updates = {
-        role,
+        lenslyRole: role,
         roleChosenAt: user.roleChosenAt || new Date().toISOString(),
         roleLastChangedAt: new Date().toISOString(),
       };
