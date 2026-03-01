@@ -43,9 +43,12 @@ export default function CreatorCard({ creator, isFavourite, onToggleFavourite, i
             <h3 className="text-white font-semibold text-lg leading-tight mb-2.5">{creator.display_name}</h3>
             
             {featuredCategories.length > 0 && (
-              <div className="flex gap-1.5 mb-2">
+              <div className="flex flex-wrap gap-x-1.5 gap-y-1.5 mb-2">
                 {featuredCategories.map((cat) => (
-                  <span key={cat} className="px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm text-xs font-medium text-neutral-800">
+                  <span
+                    key={cat}
+                    className="flex-shrink-0 px-2.5 py-1 h-6 rounded-full bg-white/90 backdrop-blur-sm text-xs font-medium text-neutral-800 whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]"
+                  >
                     {cat}
                   </span>
                 ))}
