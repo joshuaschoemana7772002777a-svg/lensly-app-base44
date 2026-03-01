@@ -121,7 +121,7 @@ export default function PortfolioViewer({
 
         {/* Swipe Area for Mobile */}
         <div
-          className="absolute inset-0 md:hidden"
+          className="absolute inset-0 md:hidden pointer-events-none"
           onTouchStart={(e) => {
             const touchStart = e.touches[0].clientX;
             const handleTouchEnd = (endEvent) => {
