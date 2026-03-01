@@ -6,7 +6,7 @@ import { createPageUrl } from "@/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import ClientSignupModal from "./ClientSignupModal";
 
-export default function RoleSelectionModal({ open, onClose, isSwitchingRole = false }) {
+export default function RoleSelectionModal({ open, onClose }) {
   const [consentChecked, setConsentChecked] = React.useState(false);
   const [consentError, setConsentError] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState(false);
@@ -16,12 +16,12 @@ export default function RoleSelectionModal({ open, onClose, isSwitchingRole = fa
   const [saveError, setSaveError] = React.useState(null);
 
   React.useEffect(() => {
-    if (open && isSwitchingRole) {
-      checkIfConsentNeeded();
-    }
-  }, [open, isSwitchingRole]);
+    if (open) checkIfConsentNeeded();
+  }, [open]);
 
   const checkIfConsentNeeded = async () => {
+    const authed = await base44.auth.isAuthenticated();
+    if (!authed) return;
     const user = await base44.auth.me();
     if (user?.termsAccepted) {
       setSkipConsent(true);
