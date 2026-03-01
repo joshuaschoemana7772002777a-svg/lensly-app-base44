@@ -190,11 +190,11 @@ export default function RoleSelectionModal({ open, onClose }) {
             {saveError && (
               <p className="text-xs text-red-600 text-center">{saveError}</p>
             )}
-          </div>
-          <DialogDescription className="text-center text-xs text-neutral-400 mt-2">
-            You can always add the other profile type later in Settings.
-          </DialogDescription>
-          <div>
+
+            <p className="text-center text-xs text-neutral-400">
+              You can always add the other profile type later in Settings.
+            </p>
+
             <button
               type="button"
               onClick={onClose}
@@ -202,6 +202,7 @@ export default function RoleSelectionModal({ open, onClose }) {
             >
               I'll decide later
             </button>
+          </div>
         </DialogContent>
       </Dialog>
 
