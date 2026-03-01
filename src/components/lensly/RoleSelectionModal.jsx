@@ -206,6 +206,7 @@ export default function RoleSelectionModal({ open, onClose }) {
         </DialogContent>
       </Dialog>
 
+
       {showClientModal && (
         <ClientSignupModal
           open={showClientModal}
