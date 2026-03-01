@@ -163,7 +163,7 @@ export default function Discover() {
       const sMax = roundUpToStep(maxP, 500);
       setSliderMin(sMin);
       setSliderMax(sMax);
-      setPriceRange([sMin, sMax]);
+      setPriceMax(sMax);
       setHasPriceData(true);
     } else {
       setHasPriceData(false);
