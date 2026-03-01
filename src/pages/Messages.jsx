@@ -115,6 +115,8 @@ export default function Messages() {
           last_message: req.message,
           last_message_at: msgTimestamp,
           first_message_at: msgTimestamp,
+          unread_count_client: 0,
+          unread_count_creator: 0,
         });
         convoId = newConvo.id;
 
