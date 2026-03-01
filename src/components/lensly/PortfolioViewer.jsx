@@ -103,14 +103,9 @@ export default function PortfolioViewer({
             >
               {currentItem.type === "video" ? (
                 <div className="relative">
-                  <video
-                    src={currentItem.mux_mp4_url || currentItem.mux_playback_url || currentItem.url}
-                    poster={currentItem.thumbnail_url}
-                    controls
-                    playsInline
+                  <HlsVideoPlayer
+                    item={currentItem}
                     className="max-w-full max-h-[90vh] rounded-lg"
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
                   />
                 </div>
               ) : (
