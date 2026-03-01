@@ -82,21 +82,15 @@ export default function EditClientProfile() {
     
     setSaving(true);
     try {
-      // Update user record
-      await base44.auth.updateMe({
-        display_name: profile.display_name,
-        profilePhoto: profile.profilePhoto,
-        profile_photo_url: profile.profilePhoto,
-      });
-      
       // Generate initials
       const nameParts = profile.display_name.trim().split(" ");
       const initials = nameParts.length === 1 
         ? nameParts[0].substring(0, 2).toUpperCase()
         : (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
       
-      // Update user initials
+      // Update user record (single call, correct field names)
       await base44.auth.updateMe({
+        profilePhotoUrl: profile.profilePhoto,
         profileInitials: initials,
       });
       

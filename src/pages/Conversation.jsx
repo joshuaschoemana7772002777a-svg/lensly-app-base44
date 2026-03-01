@@ -212,7 +212,7 @@ export default function Conversation() {
       type: "message_new",
       title: "New Message",
       message: userRole === "creator"
-        ? `${conversation.creator_name} sent you a message`
+        ? `${conversation.client_name} sent you a message`
         : `${conversation.creator_name} replied to your message`,
       linkUrl: createPageUrl("Conversation") + `?id=${conversationId}`,
       relatedId: conversationId,
