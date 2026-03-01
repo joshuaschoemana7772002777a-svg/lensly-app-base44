@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Send, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { createNotification } from "./NotificationService";
 import { checkRequestAbuseLimit, trackRequestActivity } from "./RequestAbuseDetection";
+import useScrollLock from "./useScrollLock";
 
 const CATEGORIES = ["Corporate", "Brand / Commercial", "Wedding", "Event", "Lifestyle", "Social Media Content"];
 
