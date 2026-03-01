@@ -104,6 +104,7 @@ export default function Messages() {
       if (existingConvos.length > 0) {
         convoId = existingConvos[0].id;
       } else {
+        const msgTimestamp = req.created_date ? new Date(req.created_date).toISOString() : new Date().toISOString();
         const newConvo = await base44.entities.Conversation.create({
           creator_profile_id: profiles[0].id,
           creator_name: profiles[0].display_name,
@@ -111,9 +112,22 @@ export default function Messages() {
           client_email: req.sender_email,
           client_name: req.sender_name,
           contact_request_id: requestId,
-          last_message_at: new Date().toISOString(),
+          last_message: req.message,
+          last_message_at: msgTimestamp,
+          first_message_at: msgTimestamp,
         });
         convoId = newConvo.id;
+
+        // Seed the conversation with the original request message
+        if (req.message) {
+          await base44.entities.Message.create({
+            conversation_id: convoId,
+            sender_email: req.sender_email,
+            sender_name: req.sender_name,
+            content: req.message,
+            is_read: true,
+          });
+        }
       }
 
       window.location.href = createPageUrl("Conversation") + `?id=${convoId}`;
