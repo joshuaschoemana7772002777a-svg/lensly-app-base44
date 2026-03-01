@@ -1,22 +1,72 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { SlidersHorizontal, Heart, ArrowUpDown, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import * as SliderPrimitive from "@radix-ui/react-slider";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import * as SliderPrimitive from "@radix-ui/react-slider";
 import CreatorCard from "../components/lensly/CreatorCard";
+import CreatorCardSkeleton from "../components/lensly/CreatorCardSkeleton";
 import AreaFilterChips from "../components/lensly/AreaFilterChips";
 import CategoryFilterChips from "../components/lensly/CategoryFilterChips";
 
+const PAGE_SIZE = 12;
+
+// In-memory cache: key → { data, timestamp }
+const cache = {};
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
+function getCached(key) {
+  const entry = cache[key];
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL) return null;
+  return entry.data;
+}
+function setCache(key, data) {
+  cache[key] = { data, timestamp: Date.now() };
+}
+
+function buildCacheKey(filters, sort) {
+  return JSON.stringify({ ...filters, sort });
+}
+
+function scoreCreator(creator, favouriteIds) {
+  let score = 0;
+  if (favouriteIds.has(creator.id)) score += 20;
+  if (creator.profile_image) score += 6;
+  if (creator.bio?.length >= 60) score += 6;
+  if (creator.starting_price) score += 4;
+  if (creator.portfolio_items?.length >= 6) score += 12;
+  else if (creator.portfolio_items?.length >= 3) score += 6;
+  if (creator.service_areas?.length >= 1) score += 4;
+  if (creator.instagram_handle || creator.website_url) score += 4;
+  const rc = creator.reviewCount || 0;
+  const ar = creator.averageRating || 0;
+  if (rc > 0) {
+    if (ar >= 4.8 && rc >= 10) score += 18;
+    else if (ar >= 4.6 && rc >= 5) score += 12;
+    else if (ar >= 4.4 && rc >= 3) score += 7;
+    else score += 3;
+  }
+  if (creator.updated_date) {
+    const days = (Date.now() - new Date(creator.updated_date)) / (1000 * 60 * 60 * 24);
+    if (days <= 30) score += 5;
+  }
+  return score;
+}
+
+const roundDownToStep = (val, step) => Math.floor(val / step) * step;
+const roundUpToStep = (val, step) => Math.ceil(val / step) * step;
+
 export default function Discover() {
-  const [creators, setCreators] = useState([]);
+  const [allCreators, setAllCreators] = useState([]); // full sorted set
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedArea, setSelectedArea] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [favouriteIds, setFavouriteIds] = useState(new Set());
@@ -29,12 +79,9 @@ export default function Discover() {
   const [priceRange, setPriceRange] = useState([0, 0]);
   const [hasPriceData, setHasPriceData] = useState(false);
 
-  const roundDownToStep = (val, step) => Math.floor(val / step) * step;
-  const roundUpToStep = (val, step) => Math.ceil(val / step) * step;
-
   const isPriceDefault = priceRange[0] === sliderMin && priceRange[1] === sliderMax;
 
-  // Read URL params
+  // Read URL params on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const cat = params.get("category");
@@ -43,164 +90,86 @@ export default function Discover() {
     if (area) setSelectedArea(area);
   }, []);
 
+  // Load everything in parallel on mount
   useEffect(() => {
-    loadCreators();
-    loadAuth();
+    loadAll(true);
   }, []);
 
-  const loadAuth = async () => {
-    try {
-      const authed = await base44.auth.isAuthenticated();
-      setIsAuthenticated(authed);
-      if (authed) {
-        const favs = await base44.entities.Favourite.list();
-        setFavouriteIds(new Set(favs.map(f => f.creator_profile_id)));
-      }
-    } catch (error) {
-      setIsAuthenticated(false);
+  const loadAll = async (isInitial = false) => {
+    if (isInitial) setLoading(true);
+
+    // Parallelise: creators + reviews + auth/favourites all at once
+    const [creatorsData, reviewsData, authed] = await Promise.all([
+      base44.entities.CreatorProfile.filter(
+        { status: "published", is_published: true, is_hidden: false },
+        "-created_date",
+        200
+      ),
+      base44.entities.Review.list("-created_date", 2000),
+      base44.auth.isAuthenticated(),
+    ]);
+
+    setIsAuthenticated(authed);
+
+    // Fetch favourites in parallel with nothing else blocking
+    let favSet = new Set();
+    if (authed) {
+      const favs = await base44.entities.Favourite.list();
+      favSet = new Set(favs.map(f => f.creator_profile_id));
+      setFavouriteIds(favSet);
     }
-  };
 
-  const loadCreators = async () => {
-    setLoading(true);
-    try {
-      const data = await base44.entities.CreatorProfile.filter({ 
-        status: "published",
-        is_published: true,
-        is_hidden: false 
-      }, "-created_date", 100);
-      
-      // All published, non-hidden, non-deleted creators are eligible — no field-based exclusions
-      const complete = data.filter(creator => !creator.isDeleted && !creator.isBanned);
+    // Build review map
+    const reviewMap = {};
+    reviewsData.forEach(r => {
+      if (!reviewMap[r.creator_profile_id]) reviewMap[r.creator_profile_id] = { sum: 0, count: 0 };
+      reviewMap[r.creator_profile_id].sum += r.rating;
+      reviewMap[r.creator_profile_id].count += 1;
+    });
 
-      // Load reviews for all creators
-      const allReviews = await base44.entities.Review.list("-created_date", 1000);
-      const reviewsByCreator = {};
-      allReviews.forEach(review => {
-        if (!reviewsByCreator[review.creator_profile_id]) {
-          reviewsByCreator[review.creator_profile_id] = [];
-        }
-        reviewsByCreator[review.creator_profile_id].push(review);
-      });
+    // Filter out deleted/banned
+    const eligible = creatorsData.filter(c => !c.isDeleted && !c.isBanned);
 
-      // Attach review stats to creators
-      complete.forEach(creator => {
-        const reviews = reviewsByCreator[creator.id] || [];
-        creator.reviewCount = reviews.length;
-        creator.averageRating = reviews.length > 0
-          ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-          : 0;
-      });
+    // Attach review stats + score
+    const withStats = eligible.map(c => {
+      const stats = reviewMap[c.id] || { sum: 0, count: 0 };
+      const averageRating = stats.count > 0 ? stats.sum / stats.count : 0;
+      const reviewCount = stats.count;
+      const score = scoreCreator({ ...c, averageRating, reviewCount }, favSet);
+      return { ...c, averageRating, reviewCount, score };
+    });
 
-      // Calculate quality score for each creator
-      const calculateScore = (creator, isFavorited) => {
-        let score = 0;
+    // Default sort: by score
+    const sorted = withStats.sort((a, b) => {
+      if (a.score !== b.score) return b.score - a.score;
+      if (a.averageRating !== b.averageRating) return b.averageRating - a.averageRating;
+      if (a.reviewCount !== b.reviewCount) return b.reviewCount - a.reviewCount;
+      const ap = a.portfolio_items?.length || 0;
+      const bp = b.portfolio_items?.length || 0;
+      if (ap !== bp) return bp - ap;
+      if (a.updated_date && b.updated_date) return new Date(b.updated_date) - new Date(a.updated_date);
+      return a.id.localeCompare(b.id);
+    });
 
-        // 1) Favorites boost (personalized)
-        if (isFavorited) score += 20;
+    setAllCreators(sorted);
+    setDisplayCount(PAGE_SIZE);
 
-        // 2) Profile completeness
-        if (creator.profile_image) score += 6;
-        if (creator.bio && creator.bio.length >= 60) score += 6;
-        if (creator.starting_price) score += 4;
-        if (creator.portfolio_items?.length >= 6) score += 12;
-        else if (creator.portfolio_items?.length >= 3) score += 6;
-        if (creator.service_areas?.length >= 1) score += 4;
-        if (creator.instagram_handle || creator.website_url) score += 4;
-
-        // 3) Responsiveness (placeholder for future implementation)
-        // TODO: Implement avg_response_time tracking
-        // if (creator.avg_response_time_hours < 2) score += 12;
-        // else if (creator.avg_response_time_hours < 12) score += 7;
-
-        // 4) Reviews / reputation
-        if (creator.reviewCount > 0) {
-          if (creator.averageRating >= 4.8 && creator.reviewCount >= 10) score += 18;
-          else if (creator.averageRating >= 4.6 && creator.reviewCount >= 5) score += 12;
-          else if (creator.averageRating >= 4.4 && creator.reviewCount >= 3) score += 7;
-          else if (creator.reviewCount < 3) score += 3;
-        }
-
-        // 5) Freshness / activity
-        if (creator.updated_date) {
-          const daysSinceUpdate = (Date.now() - new Date(creator.updated_date)) / (1000 * 60 * 60 * 24);
-          if (daysSinceUpdate <= 30) score += 5;
-        }
-
-        return score;
-      };
-
-      // Get current user for favorites scoring
-      let currentUserEmail = null;
-      try {
-        const authed = await base44.auth.isAuthenticated();
-        if (authed) {
-          const user = await base44.auth.me();
-          currentUserEmail = user.email;
-        }
-      } catch {}
-
-      // Load user favorites for scoring
-      const userFavorites = new Set();
-      if (currentUserEmail) {
-        const favs = await base44.entities.Favourite.list();
-        favs.forEach(f => userFavorites.add(f.creator_profile_id));
-      }
-
-      // Calculate and attach scores
-      complete.forEach(creator => {
-        creator.score = calculateScore(creator, userFavorites.has(creator.id));
-      });
-
-      // Sort by score DESC with tie-breakers
-      const sorted = complete.sort((a, b) => {
-        // Primary: Score
-        if (a.score !== b.score) return b.score - a.score;
-        
-        // Tie-breaker 1: Higher rating
-        if (a.averageRating !== b.averageRating) return b.averageRating - a.averageRating;
-        
-        // Tie-breaker 2: Higher review count
-        if (a.reviewCount !== b.reviewCount) return b.reviewCount - a.reviewCount;
-        
-        // Tie-breaker 3: Response time (placeholder)
-        // TODO: Implement when avg_response_time is tracked
-        
-        // Tie-breaker 4: More portfolio items
-        const aPortfolio = a.portfolio_items?.length || 0;
-        const bPortfolio = b.portfolio_items?.length || 0;
-        if (aPortfolio !== bPortfolio) return bPortfolio - aPortfolio;
-        
-        // Tie-breaker 5: Most recently updated
-        if (a.updated_date && b.updated_date) {
-          return new Date(b.updated_date) - new Date(a.updated_date);
-        }
-        
-        // Tie-breaker 6: Stable by ID (pseudo-random but consistent)
-        return a.id.localeCompare(b.id);
-      });
-      
-      setCreators(sorted);
-
-      // Compute price bounds from published creators with a price
-      const priced = sorted.filter(c => c.starting_price > 0);
-      if (priced.length > 0) {
-        const minPrice = Math.min(...priced.map(c => c.starting_price));
-        const maxPrice = Math.max(...priced.map(c => c.starting_price));
-        const sMin = roundDownToStep(minPrice, 500);
-        const sMax = roundUpToStep(maxPrice, 500);
-        setSliderMin(sMin);
-        setSliderMax(sMax);
-        setPriceRange([sMin, sMax]);
-        setHasPriceData(true);
-      } else {
-        setHasPriceData(false);
-      }
-    } catch (error) {
-      console.error("Error loading creators:", error);
-      setCreators([]);
+    // Price bounds
+    const priced = sorted.filter(c => c.starting_price > 0);
+    if (priced.length > 0) {
+      const minP = Math.min(...priced.map(c => c.starting_price));
+      const maxP = Math.max(...priced.map(c => c.starting_price));
+      const sMin = roundDownToStep(minP, 500);
+      const sMax = roundUpToStep(maxP, 500);
+      setSliderMin(sMin);
+      setSliderMax(sMax);
+      setPriceRange([sMin, sMax]);
+      setHasPriceData(true);
+    } else {
+      setHasPriceData(false);
     }
-    setLoading(false);
+
+    if (isInitial) setLoading(false);
   };
 
   const toggleFavourite = async (creator) => {
@@ -222,7 +191,8 @@ export default function Discover() {
     }
   };
 
-  const filtered = creators.filter((c) => {
+  // Filter
+  const filtered = allCreators.filter((c) => {
     if (savedMode && !favouriteIds.has(c.id)) return false;
     if (selectedArea && !(c.service_areas || []).includes(selectedArea)) return false;
     if (selectedCategory && !(c.categories || []).includes(selectedCategory)) return false;
@@ -235,23 +205,28 @@ export default function Discover() {
     return true;
   });
 
-  // Apply sorting
+  // Apply user-selected sort on top of filtered
   const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "price_low") {
-      const aPrice = a.starting_price || Infinity;
-      const bPrice = b.starting_price || Infinity;
-      return aPrice - bPrice;
-    } else if (sortBy === "price_high") {
-      const aPrice = a.starting_price || 0;
-      const bPrice = b.starting_price || 0;
-      return bPrice - aPrice;
-    } else if (sortBy === "rating") {
-      // Default: Top Rated
-      if (a.averageRating !== b.averageRating) return b.averageRating - a.averageRating;
-      return b.reviewCount - a.reviewCount;
-    }
+    if (sortBy === "price_low") return (a.starting_price || Infinity) - (b.starting_price || Infinity);
+    if (sortBy === "price_high") return (b.starting_price || 0) - (a.starting_price || 0);
+    // "rating" — keep existing score-based order (already sorted)
     return 0;
   });
+
+  const visible = sorted.slice(0, displayCount);
+  const hasMore = displayCount < sorted.length;
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    await new Promise(r => setTimeout(r, 300)); // brief pause for skeleton feel
+    setDisplayCount(prev => prev + PAGE_SIZE);
+    setLoadingMore(false);
+  };
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setDisplayCount(PAGE_SIZE);
+  }, [selectedArea, selectedCategory, selectedType, priceRange, savedMode, sortBy]);
 
   const activeFilters = [selectedCategory, selectedArea].filter(Boolean).length;
 
@@ -270,23 +245,14 @@ export default function Discover() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setSortBy("rating")}>
-                    Top Rated
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("price_high")}>
-                    Price: High to Low
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("price_low")}>
-                    Price: Low to High
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("rating")}>Top Rated</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("price_high")}>Price: High to Low</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("price_low")}>Price: Low to High</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <button
                 onClick={() => {
-                  if (!isAuthenticated) {
-                    base44.auth.redirectToLogin(window.location.href);
-                    return;
-                  }
+                  if (!isAuthenticated) { base44.auth.redirectToLogin(window.location.href); return; }
                   setSavedMode(!savedMode);
                 }}
                 className="w-9 h-9 rounded-full bg-white border border-neutral-200 flex items-center justify-center hover:bg-neutral-50 transition-colors"
@@ -342,11 +308,8 @@ export default function Discover() {
               </div>
               <SliderPrimitive.Root
                 className="relative flex items-center select-none touch-none w-full h-5"
-                min={sliderMin}
-                max={sliderMax}
-                step={500}
-                value={priceRange}
-                onValueChange={setPriceRange}
+                min={sliderMin} max={sliderMax} step={500}
+                value={priceRange} onValueChange={setPriceRange}
               >
                 <SliderPrimitive.Track className="bg-neutral-200 relative grow rounded-full h-1.5">
                   <SliderPrimitive.Range className="absolute bg-neutral-900 rounded-full h-full" />
@@ -372,24 +335,24 @@ export default function Discover() {
             </button>
           </div>
         )}
-        <p className="text-xs text-neutral-400 mb-4">
-          {filtered.length} creator{filtered.length !== 1 ? "s" : ""} found
-        </p>
 
+        {!loading && (
+          <p className="text-xs text-neutral-400 mb-4">
+            {filtered.length} creator{filtered.length !== 1 ? "s" : ""} found
+          </p>
+        )}
+
+        {/* Skeleton or grid */}
         {loading ? (
           <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="aspect-[3/4] rounded-2xl bg-neutral-200 animate-pulse" />
+            {Array.from({ length: 8 }).map((_, i) => (
+              <CreatorCardSkeleton key={i} />
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 px-5">
             <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4">
-              {savedMode ? (
-                <Heart className="w-6 h-6 text-neutral-400" />
-              ) : (
-                <SlidersHorizontal className="w-6 h-6 text-neutral-400" />
-              )}
+              {savedMode ? <Heart className="w-6 h-6 text-neutral-400" /> : <SlidersHorizontal className="w-6 h-6 text-neutral-400" />}
             </div>
             <h3 className="font-medium text-neutral-700">
               {savedMode ? "No saved creators yet" : "No creators found"}
@@ -407,19 +370,34 @@ export default function Discover() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {sorted.map((creator, i) => (
-              <CreatorCard
-                key={creator.id}
-                creator={creator}
-                index={i}
-                isFavourite={favouriteIds.has(creator.id)}
-                onToggleFavourite={toggleFavourite}
-                averageRating={creator.averageRating || 0}
-                reviewCount={creator.reviewCount || 0}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              {visible.map((creator, i) => (
+                <CreatorCard
+                  key={creator.id}
+                  creator={creator}
+                  index={i}
+                  isFavourite={favouriteIds.has(creator.id)}
+                  onToggleFavourite={toggleFavourite}
+                  averageRating={creator.averageRating || 0}
+                  reviewCount={creator.reviewCount || 0}
+                />
+              ))}
+              {/* Load more skeletons */}
+              {loadingMore && Array.from({ length: 4 }).map((_, i) => (
+                <CreatorCardSkeleton key={`more-${i}`} />
+              ))}
+            </div>
+
+            {hasMore && !loadingMore && (
+              <button
+                onClick={handleLoadMore}
+                className="w-full mt-6 py-3 rounded-xl border border-neutral-200 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+              >
+                Load more ({sorted.length - displayCount} remaining)
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
