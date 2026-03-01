@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Camera, Heart, Mail, User, LogOut, ChevronRight, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Camera, User, LogOut, ChevronRight, AlertTriangle, Plus } from "lucide-react";
 import { createPageUrl } from "@/utils";
-import RoleSelectionModal from "../components/lensly/RoleSelectionModal";
+import ClientSignupModal from "../components/lensly/ClientSignupModal";
 import AccountDeletionModal from "../components/lensly/AccountDeletionModal";
-import RoleSwitchConfirmModal from "../components/lensly/RoleSwitchConfirmModal";
 
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [hasCreatorProfile, setHasCreatorProfile] = useState(false);
+  const [hasClientProfile, setHasClientProfile] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showRoleModal, setShowRoleModal] = useState(false);
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const [deletionAction, setDeletionAction] = useState(null);
-  const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
-  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
+  const [showClientModal, setShowClientModal] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -29,12 +26,26 @@ export default function Settings() {
     }
     const userData = await base44.auth.me();
     setUser(userData);
-    
-    // Check for creator profile
-    const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: userData.email });
+
+    const [creatorProfiles, clientProfiles] = await Promise.all([
+      base44.entities.CreatorProfile.filter({ created_by: userData.email }),
+      base44.entities.ClientProfile.filter({ created_by: userData.email }),
+    ]);
+
     setHasCreatorProfile(creatorProfiles.length > 0);
-    
+    setHasClientProfile(clientProfiles.length > 0);
     setLoading(false);
+  };
+
+  const handleAddCreatorProfile = async () => {
+    // Ensure user.role reflects creator so EditProfile works correctly
+    await base44.auth.updateMe({ role: "creator" });
+    window.location.href = createPageUrl("EditProfile");
+  };
+
+  const handleClientSignupSuccess = () => {
+    setShowClientModal(false);
+    loadUserData();
   };
 
   if (loading) {
@@ -57,7 +68,7 @@ export default function Settings() {
           <div className="p-4 border-b border-neutral-100">
             <h2 className="text-sm font-semibold text-neutral-900">Account</h2>
           </div>
-          <div className="p-4 space-y-1">
+          <div className="p-4">
             <div className="flex items-center gap-3 py-2">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                 <User className="w-5 h-5 text-blue-600" />
@@ -70,30 +81,14 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Profile Management */}
+        {/* Profile Management — additive, show all that exist */}
         <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
           <div className="p-4 border-b border-neutral-100">
-            <h2 className="text-sm font-semibold text-neutral-900">Profile</h2>
+            <h2 className="text-sm font-semibold text-neutral-900">Profiles</h2>
           </div>
           <div className="divide-y divide-neutral-100">
-            {!user?.role ? (
-              <button
-                onClick={() => {
-                  setIsSwitchingRole(false);
-                  setShowRoleModal(true);
-                }}
-                className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <User className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-neutral-900">Create Profile</p>
-                  <p className="text-xs text-neutral-500">Set up how you'll use Lensly</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-neutral-400" />
-              </button>
-            ) : user.role === "creator" ? (
+            {/* Creator Profile */}
+            {hasCreatorProfile ? (
               <button
                 onClick={() => window.location.href = createPageUrl("EditProfile")}
                 className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
@@ -102,12 +97,29 @@ export default function Settings() {
                   <Camera className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-neutral-900">Creator Profile</p>
-                  <p className="text-xs text-neutral-500">Edit your creator profile</p>
+                  <p className="text-sm font-medium text-neutral-900">Edit Creator Profile</p>
+                  <p className="text-xs text-neutral-500">Manage your creator portfolio</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-neutral-400" />
               </button>
             ) : (
+              <button
+                onClick={handleAddCreatorProfile}
+                className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                  <Plus className="w-5 h-5 text-purple-600" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-medium text-neutral-900">Create Creator Profile</p>
+                  <p className="text-xs text-neutral-500">Offer photography or video services</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-neutral-400" />
+              </button>
+            )}
+
+            {/* Client Profile */}
+            {hasClientProfile ? (
               <button
                 onClick={() => window.location.href = createPageUrl("EditClientProfile")}
                 className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
@@ -116,25 +128,22 @@ export default function Settings() {
                   <User className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-neutral-900">Client Profile</p>
-                  <p className="text-xs text-neutral-500">Edit your client profile</p>
+                  <p className="text-sm font-medium text-neutral-900">Edit Client Profile</p>
+                  <p className="text-xs text-neutral-500">Update your client details</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-neutral-400" />
               </button>
-            )}
-            
-            {/* Switch Role - only show if user has a role */}
-            {user?.role && (
+            ) : (
               <button
-                onClick={() => setShowSwitchConfirm(true)}
+                onClick={() => setShowClientModal(true)}
                 className="w-full p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
               >
                 <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                  <Camera className="w-5 h-5 text-purple-600" />
+                  <Plus className="w-5 h-5 text-purple-600" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-neutral-900">Switch role</p>
-                  <p className="text-xs text-neutral-500">Change how you use Lensly</p>
+                  <p className="text-sm font-medium text-neutral-900">Create Client Profile</p>
+                  <p className="text-xs text-neutral-500">Hire photographers & videographers</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-neutral-400" />
               </button>
@@ -178,7 +187,7 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Log Out */}
         <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
           <button
             onClick={() => base44.auth.logout()}
@@ -200,10 +209,7 @@ export default function Settings() {
           </div>
           <div className="divide-y divide-neutral-100">
             <button
-              onClick={() => {
-                setDeletionAction("deactivate");
-                setShowDeletionModal(true);
-              }}
+              onClick={() => { setDeletionAction("deactivate"); setShowDeletionModal(true); }}
               className="w-full p-4 flex items-center gap-3 hover:bg-orange-50 transition-colors"
             >
               <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
@@ -216,10 +222,7 @@ export default function Settings() {
               <ChevronRight className="w-5 h-5 text-neutral-400" />
             </button>
             <button
-              onClick={() => {
-                setDeletionAction("delete");
-                setShowDeletionModal(true);
-              }}
+              onClick={() => { setDeletionAction("delete"); setShowDeletionModal(true); }}
               className="w-full p-4 flex items-center gap-3 hover:bg-red-50 transition-colors"
             >
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
@@ -235,30 +238,17 @@ export default function Settings() {
         </div>
       </div>
 
-      <RoleSelectionModal 
-        open={showRoleModal} 
-        onClose={() => {
-          setShowRoleModal(false);
-          setIsSwitchingRole(false);
-        }} 
-        isSwitchingRole={isSwitchingRole}
-      />
-      <RoleSwitchConfirmModal
-        open={showSwitchConfirm}
-        onClose={() => setShowSwitchConfirm(false)}
-        currentRole={user?.role}
-        onContinue={() => {
-          setShowSwitchConfirm(false);
-          setIsSwitchingRole(true);
-          setShowRoleModal(true);
-        }}
-      />
-      <AccountDeletionModal 
-        open={showDeletionModal} 
-        onClose={() => {
-          setShowDeletionModal(false);
-          setDeletionAction(null);
-        }}
+      {showClientModal && (
+        <ClientSignupModal
+          open={showClientModal}
+          onClose={() => setShowClientModal(false)}
+          onSuccess={handleClientSignupSuccess}
+          skipConsent={!!user?.termsAccepted}
+        />
+      )}
+      <AccountDeletionModal
+        open={showDeletionModal}
+        onClose={() => { setShowDeletionModal(false); setDeletionAction(null); }}
         actionType={deletionAction}
       />
     </div>
