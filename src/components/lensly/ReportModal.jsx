@@ -22,6 +22,7 @@ export default function ReportModal({ open, onClose, reportedUserEmail, reported
   const [details, setDetails] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  useScrollLock(open);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
