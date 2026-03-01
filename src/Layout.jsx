@@ -151,7 +151,7 @@ export default function Layout({ children, currentPageName }) {
       <RoleSelectionWrapper />
 
       {!hideNav && (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-neutral-100 safe-area-bottom">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-neutral-100" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
             {NAV_ITEMS.map((item) => {
               const isActive = currentPageName === item.page;
