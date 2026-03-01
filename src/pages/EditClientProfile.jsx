@@ -239,14 +239,14 @@ export default function EditClientProfile() {
       </div>
 
       {/* Save Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-5 safe-area-bottom">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-5" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}>
         <Button
           onClick={handleSave}
           disabled={saving || !profile.display_name}
           className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 h-12 text-sm font-medium disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-          Save Profile
+          {profile.id ? "Update Profile" : "Save Profile"}
         </Button>
       </div>
     </div>
