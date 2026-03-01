@@ -82,11 +82,7 @@ export default function RoleSelectionModal({ open, onClose, isSwitchingRole = fa
   const handleClientSignupSuccess = () => {
     setShowClientModal(false);
     onClose();
-    if (isSwitchingRole) {
-      window.location.href = createPageUrl("Settings");
-    } else {
-      window.location.href = createPageUrl("Discover");
-    }
+    window.location.href = createPageUrl("Discover");
   };
 
   return (
