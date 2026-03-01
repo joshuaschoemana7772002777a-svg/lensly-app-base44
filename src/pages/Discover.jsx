@@ -76,10 +76,10 @@ export default function Discover() {
   const [selectedType, setSelectedType] = useState(null);
   const [sliderMin, setSliderMin] = useState(0);
   const [sliderMax, setSliderMax] = useState(0);
-  const [priceRange, setPriceRange] = useState([0, 0]);
+  const [priceMax, setPriceMax] = useState(0);
   const [hasPriceData, setHasPriceData] = useState(false);
 
-  const isPriceDefault = priceRange[0] === sliderMin && priceRange[1] === sliderMax;
+  const isPriceDefault = priceMax === sliderMax;
 
   // Read URL params on mount
   useEffect(() => {
