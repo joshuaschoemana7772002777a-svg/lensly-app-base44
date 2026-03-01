@@ -102,6 +102,8 @@ export default function MyRequests() {
           client_name: req.sender_name,
           contact_request_id: requestId,
           last_message_at: new Date().toISOString(),
+          unread_count_client: 0,
+          unread_count_creator: 0,
         });
         convoId = newConvo.id;
       }
@@ -304,6 +306,8 @@ export default function MyRequests() {
                           
                           if (existingConvos.length > 0) {
                             window.location.href = createPageUrl("Conversation") + `?id=${existingConvos[0].id}`;
+                          } else {
+                            alert("No conversation found yet. The creator hasn't messaged you yet.");
                           }
                         }}
                         variant="outline"

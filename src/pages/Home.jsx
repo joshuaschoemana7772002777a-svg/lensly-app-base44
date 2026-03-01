@@ -32,9 +32,9 @@ export default function Home() {
       const authed = await base44.auth.isAuthenticated();
       if (authed) {
         const user = await base44.auth.me();
-        if (!user.account_type) {
-          setShowRoleModal(true);
-        }
+        if (!user.role || (user.role !== "client" && user.role !== "creator")) {
+            setShowRoleModal(true);
+          }
       }
     }
   };
