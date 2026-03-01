@@ -194,14 +194,6 @@ export default function RoleSelectionModal({ open, onClose }) {
             <p className="text-center text-xs text-neutral-400">
               You can always add the other profile type later in Settings.
             </p>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-sm text-neutral-400 hover:text-neutral-600 w-full text-center py-1"
-            >
-              I'll decide later
-            </button>
           </div>
         </DialogContent>
       </Dialog>
