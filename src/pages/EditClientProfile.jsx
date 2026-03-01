@@ -239,7 +239,7 @@ export default function EditClientProfile() {
       </div>
 
       {/* Save Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-5" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}>
+      <div className="px-5 pt-4 pb-24">
         <Button
           onClick={handleSave}
           disabled={saving || !profile.display_name}
