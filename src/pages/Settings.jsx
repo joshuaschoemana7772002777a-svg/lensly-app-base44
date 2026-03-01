@@ -37,9 +37,7 @@ export default function Settings() {
     setLoading(false);
   };
 
-  const handleAddCreatorProfile = async () => {
-    // Ensure user.role reflects creator so EditProfile works correctly
-    await base44.auth.updateMe({ role: "creator" });
+  const handleAddCreatorProfile = () => {
     window.location.href = createPageUrl("EditProfile");
   };
 
