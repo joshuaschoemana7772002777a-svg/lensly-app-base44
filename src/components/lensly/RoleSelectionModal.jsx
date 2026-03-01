@@ -202,7 +202,6 @@ export default function RoleSelectionModal({ open, onClose }) {
             >
               I'll decide later
             </button>
-          </div>
         </DialogContent>
       </Dialog>
 
