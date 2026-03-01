@@ -25,8 +25,8 @@ export default function RoleSelectionWrapper() {
 
       const user = await base44.auth.me();
 
-      // If user already chose a role, don't interrupt
-      if (user.role) {
+      // If user already chose a role (client or creator specifically), don't interrupt
+      if (user.role === "client" || user.role === "creator") {
         setChecked(true);
         return;
       }
