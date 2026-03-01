@@ -97,12 +97,16 @@ export default function Conversation() {
       }
     }
 
-    // Check if blocked (only real block records count)
-    const otherEmail = isCreator ? convo.client_email : convo.created_by;
-    const blocks = await base44.entities.BlockedUser.filter({
+    // Check if blocked — for clients, look up creator's email from their profile
+    let otherEmail = isCreator ? convo.client_email : null;
+    if (!isCreator) {
+      const creatorProfiles = await base44.entities.CreatorProfile.filter({ id: convo.creator_profile_id });
+      otherEmail = creatorProfiles.length > 0 ? creatorProfiles[0].created_by : null;
+    }
+    const blocks = otherEmail ? await base44.entities.BlockedUser.filter({
       blocker_email: currentUser.email,
       blocked_email: otherEmail,
-    });
+    }) : [];
     setIsBlocked(blocks.length > 0);
 
     let msgs = await base44.entities.Message.filter({ conversation_id: conversationId });
@@ -201,14 +205,14 @@ export default function Conversation() {
       await trackMessagingActivity(user.email, conversation.creator_profile_id, newMessage.trim(), conversationId);
     }
 
+    // recipient is always the OTHER person
     const recipientEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
-    const recipientIsCreator = userRole !== "creator";
     await createNotification({
-      recipientEmail: recipientIsCreator ? recipientEmail : conversation.client_email,
+      recipientEmail,
       type: "message_new",
       title: "New Message",
-      message: recipientIsCreator
-        ? `${conversation.client_name} sent you a message`
+      message: userRole === "creator"
+        ? `${conversation.creator_name} sent you a message`
         : `${conversation.creator_name} replied to your message`,
       linkUrl: createPageUrl("Conversation") + `?id=${conversationId}`,
       relatedId: conversationId,
@@ -233,7 +237,12 @@ export default function Conversation() {
   };
 
   const handleBlock = async () => {
-    const otherEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
+    let otherEmail = userRole === "creator" ? conversation.client_email : null;
+    if (userRole === "client") {
+      const creatorProfiles = await base44.entities.CreatorProfile.filter({ id: conversation.creator_profile_id });
+      otherEmail = creatorProfiles.length > 0 ? creatorProfiles[0].created_by : null;
+    }
+    if (!otherEmail) return;
     await base44.entities.BlockedUser.create({
       blocker_email: user.email,
       blocked_email: otherEmail,

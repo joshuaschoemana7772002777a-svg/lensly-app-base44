@@ -295,28 +295,29 @@ export default function MyRequests() {
                       ) : null}
                     </div>
                   ) : (
-                    <div className="pt-2">
-                      <Button
-                        onClick={async () => {
-                          const user = await base44.auth.me();
-                          const existingConvos = await base44.entities.Conversation.filter({
-                            creator_profile_id: req.creator_profile_id,
-                            client_email: user.email,
-                          });
-                          
-                          if (existingConvos.length > 0) {
-                            window.location.href = createPageUrl("Conversation") + `?id=${existingConvos[0].id}`;
-                          } else {
-                            alert("No conversation found yet. The creator hasn't messaged you yet.");
-                          }
-                        }}
-                        variant="outline"
-                        className="w-full h-10 rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
-                      >
-                        <MessageCircle className="w-4 h-4 mr-1.5" />
-                        View Conversation
-                      </Button>
-                    </div>
+                    (req.status === "accepted" || req.status === "messaged") && (
+                      <div className="pt-2">
+                        <Button
+                          onClick={async () => {
+                            const user = await base44.auth.me();
+                            const existingConvos = await base44.entities.Conversation.filter({
+                              creator_profile_id: req.creator_profile_id,
+                              client_email: user.email,
+                            });
+                            if (existingConvos.length > 0) {
+                              window.location.href = createPageUrl("Conversation") + `?id=${existingConvos[0].id}`;
+                            } else {
+                              window.location.href = createPageUrl("Messages");
+                            }
+                          }}
+                          variant="outline"
+                          className="w-full h-10 rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-1.5" />
+                          View Conversation
+                        </Button>
+                      </div>
+                    )
                   )}
                 </div>
               </div>
