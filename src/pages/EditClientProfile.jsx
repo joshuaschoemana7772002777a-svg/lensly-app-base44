@@ -146,7 +146,7 @@ export default function EditClientProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-32">
+    <div className="min-h-screen bg-white pb-8">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white border-b border-neutral-100 px-5 py-4">
         <div className="flex items-center gap-3">
