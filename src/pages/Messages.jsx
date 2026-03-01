@@ -54,8 +54,8 @@ export default function Messages() {
       });
       const photoMap = {};
       users.forEach(u => {
-        if (u.profile_photo_url) {
-          photoMap[u.email] = u.profile_photo_url;
+        if (u.profilePhotoUrl) {
+          photoMap[u.email] = u.profilePhotoUrl;
         }
       });
       setClientPhotos(photoMap);

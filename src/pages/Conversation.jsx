@@ -76,8 +76,8 @@ export default function Conversation() {
     // Load other person's profile photo
     if (isCreator) {
       const clientUsers = await base44.entities.User.filter({ email: convo.client_email });
-      if (clientUsers.length > 0 && clientUsers[0].profile_photo_url) {
-        setOtherPersonPhoto(clientUsers[0].profile_photo_url);
+      if (clientUsers.length > 0 && clientUsers[0].profilePhotoUrl) {
+        setOtherPersonPhoto(clientUsers[0].profilePhotoUrl);
       }
     } else {
       setOtherPersonPhoto(convo.creator_image);

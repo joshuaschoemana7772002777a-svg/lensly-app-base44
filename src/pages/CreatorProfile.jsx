@@ -48,7 +48,7 @@ export default function CreatorProfile() {
       const authed = await base44.auth.isAuthenticated();
       if (authed) {
         const user = await base44.auth.me();
-        if (user.role) {
+        if (user.role === "client" || user.role === "creator") {
           sessionStorage.removeItem("pending_intent");
           sessionStorage.removeItem("pending_creatorId");
           setContactOpen(true);
