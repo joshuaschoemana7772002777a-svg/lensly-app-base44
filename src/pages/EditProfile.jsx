@@ -12,7 +12,7 @@ import ProfileCompletionChecklist from "../components/lensly/ProfileCompletionCh
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 
-const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Lifestyle", "Social Media Content"];
+const CATEGORIES = ["Corporate", "Brand / Commercial", "Wedding", "Event", "Lifestyle", "Social Media Content"];
 const AREAS = ["Sandton", "Johannesburg", "Pretoria", "Cape Town"];
 
 export default function EditProfile() {

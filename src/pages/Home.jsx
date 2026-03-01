@@ -8,7 +8,7 @@ import { base44 } from "@/api/base44Client";
 import CategoryCard from "../components/lensly/CategoryCard";
 import RoleSelectionModal from "../components/lensly/RoleSelectionModal";
 
-const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Lifestyle", "Social Media Content"];
+const CATEGORIES = ["Corporate", "Brand / Commercial", "Wedding", "Event", "Lifestyle", "Social Media Content"];
 
 export default function Home() {
   const [showRoleModal, setShowRoleModal] = useState(false);

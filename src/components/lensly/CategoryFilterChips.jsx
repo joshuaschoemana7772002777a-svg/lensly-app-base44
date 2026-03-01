@@ -1,6 +1,6 @@
 import React from "react";
 
-const CATEGORIES = ["All", "Corporate", "Brand / Commercial", "Weddings", "Events", "Lifestyle", "Social Media Content"];
+const CATEGORIES = ["All", "Corporate", "Brand / Commercial", "Wedding", "Event", "Lifestyle", "Social Media Content"];
 
 export default function CategoryFilterChips({ selected, onChange }) {
   return (

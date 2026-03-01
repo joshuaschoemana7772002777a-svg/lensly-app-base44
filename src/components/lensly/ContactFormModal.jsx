@@ -11,7 +11,7 @@ import { Send, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { createNotification } from "./NotificationService";
 import { checkRequestAbuseLimit, trackRequestActivity } from "./RequestAbuseDetection";
 
-const CATEGORIES = ["Corporate", "Brand / Commercial", "Weddings", "Events", "Lifestyle", "Social Media Content"];
+const CATEGORIES = ["Corporate", "Brand / Commercial", "Wedding", "Event", "Lifestyle", "Social Media Content"];
 
 export default function ContactFormModal({ open, onClose, creator }) {
   const [form, setForm] = useState({
