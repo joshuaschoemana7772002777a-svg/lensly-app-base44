@@ -63,35 +63,10 @@ export default function RoleSelectionModal({ open, onClose, isSwitchingRole = fa
 
       if (role === "creator") {
         await base44.auth.updateMe(updates);
-
-        if (isSwitchingRole) {
-          const clientProfiles = await base44.entities.ClientProfile.filter({ created_by: user.email });
-          if (clientProfiles.length > 0) {
-            await base44.entities.ClientProfile.update(clientProfiles[0].id, { status: "disabled" });
-          }
-          const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
-          if (creatorProfiles.length > 0) {
-            await base44.entities.CreatorProfile.update(creatorProfiles[0].id, { status: "draft" });
-          }
-        }
-
+        // Additive: do NOT disable client profile — just send user to create/edit creator profile
         window.location.href = createPageUrl("EditProfile");
       } else {
-        // client: show signup modal (it handles updateMe internally)
-        if (isSwitchingRole) {
-          const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
-          if (creatorProfiles.length > 0) {
-            await base44.entities.CreatorProfile.update(creatorProfiles[0].id, {
-              status: "disabled",
-              is_published: false,
-            });
-          }
-          const clientProfiles = await base44.entities.ClientProfile.filter({ created_by: user.email });
-          if (clientProfiles.length > 0) {
-            await base44.entities.ClientProfile.update(clientProfiles[0].id, { status: "active" });
-          }
-        }
-
+        // client: show signup modal — additive, do NOT disable creator profile
         setShowClientModal(true);
         setIsProcessing(false);
         setProcessingRole(null);
