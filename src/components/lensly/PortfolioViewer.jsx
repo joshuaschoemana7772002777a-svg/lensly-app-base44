@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { X, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import HlsVideoPlayer from "./HlsVideoPlayer";
 
 export default function PortfolioViewer({ 
   isOpen, 
