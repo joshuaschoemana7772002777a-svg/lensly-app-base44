@@ -57,7 +57,7 @@ export default function PortfolioSplitUploader({ items = [], onChange, featuredI
           onFeaturedChange={onFeaturedChange}
           acceptVideo={true}
           acceptImage={false}
-          maxItems={2}
+          maxItems={1}
         />
       </div>
     </div>
