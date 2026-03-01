@@ -96,7 +96,7 @@ export default function RoleSelectionModal({ open, onClose }) {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 mt-2">
+          <div className="space-y-4 mt-4">
             {/* Consent checkbox */}
             {!skipConsent && (
               <div className="bg-neutral-50 rounded-xl p-4 space-y-2">
