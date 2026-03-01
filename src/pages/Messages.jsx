@@ -146,10 +146,8 @@ export default function Messages() {
     );
   }
 
-  // Creators see only pending/read; clients see all their sent requests (with status)
-  const pendingRequests = userRole === "creator"
-    ? requests.filter(r => r.status === "pending" || r.status === "read")
-    : requests;
+  // Creators see pending/read; clients see pending/read/declined only (accepted = moved to Messages)
+  const pendingRequests = requests.filter(r => r.status === "pending" || r.status === "read" || (userRole === "client" && r.status === "declined"));
   const pendingCount = requests.filter(r => r.status === "pending" || r.status === "read").length;
 
   return (
