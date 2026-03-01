@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
+import useScrollLock from "./useScrollLock";
 
 const REPORT_REASONS = [
   { value: "inappropriate_content", label: "Inappropriate content" },
