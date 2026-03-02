@@ -63,20 +63,16 @@ export default function ClientSignupModal({ open, onClose, onSuccess, skipConsen
         ? nameParts[0].substring(0, 2).toUpperCase()
         : (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
       
-      // Update user role
+      const now = new Date().toISOString();
       const updates = {
-        role: "client",
-        roleChosenAt: user.roleChosenAt || new Date().toISOString(),
-        roleLastChangedAt: new Date().toISOString(),
+        userRole: "client",
+        roleChosenAt: user.roleChosenAt || now,
+        roleLastChangedAt: now,
         profilePhotoUrl: form.profilePhotoUrl || null,
         profileInitials: initials,
+        termsAcceptedAt: now,
+        termsVersion: "v1.0",
       };
-
-      if (!skipConsent) {
-        updates.termsAccepted = true;
-        updates.termsAcceptedAt = new Date().toISOString();
-        updates.termsVersion = "v1.0";
-      }
 
       await base44.auth.updateMe(updates);
       
