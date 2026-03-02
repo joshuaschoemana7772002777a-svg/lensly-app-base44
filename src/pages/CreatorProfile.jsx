@@ -284,7 +284,7 @@ export default function CreatorProfile() {
 
                 const user = await base44.auth.me();
                 const needsTerms = !user.termsAcceptedAt || user.termsVersion !== TERMS_VERSION;
-                const needsRole = !user.role || (user.role !== "client" && user.role !== "creator");
+                const needsRole = !user.userRole || (user.userRole !== "client" && user.userRole !== "creator");
 
                 if (needsTerms || needsRole) {
                   setPendingContactAction("open_form");
