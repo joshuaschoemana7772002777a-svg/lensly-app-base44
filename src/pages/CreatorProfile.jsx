@@ -34,6 +34,8 @@ export default function CreatorProfile() {
   const [isPortfolioViewerOpen, setIsPortfolioViewerOpen] = useState(false);
   const [activePortfolioIndex, setActivePortfolioIndex] = useState(0);
   const [isOwner, setIsOwner] = useState(false);
+  const [showOnboardingGate, setShowOnboardingGate] = useState(false);
+  const [pendingContactAction, setPendingContactAction] = useState(null);
 
   const params = new URLSearchParams(window.location.search);
   const creatorId = params.get("id");
