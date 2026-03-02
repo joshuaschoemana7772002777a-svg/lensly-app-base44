@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart, MapPin, Mail, Globe, Instagram, Camera, Send, ChevronLeft, ChevronRight, Flag, AlertCircle, Star, Edit3 } from "lucide-react";
+import { ArrowLeft, Heart, MapPin, Globe, Instagram, Camera, Send, Flag, AlertCircle, Star, Edit3 } from "lucide-react";
 import ProfileAvatar from "../components/lensly/ProfileAvatar";
 import { Button } from "@/components/ui/button";
 import PortfolioViewer from "../components/lensly/PortfolioViewer";
@@ -10,9 +10,12 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ContactFormModal from "../components/lensly/ContactFormModal";
 import ReportModal from "../components/lensly/ReportModal";
+import RoleSelectionModal from "../components/lensly/RoleSelectionModal";
 import { checkMessagingRateLimit, trackMessagingActivity } from "../components/lensly/MessagingRateLimitCheck";
 import StarRating from "../components/lensly/StarRating";
 import { toast } from "sonner";
+
+const TERMS_VERSION = "v1.0";
 
 export default function CreatorProfile() {
   const [creator, setCreator] = useState(null);
