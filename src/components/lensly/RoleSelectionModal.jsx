@@ -73,7 +73,7 @@ export default function RoleSelectionModal({ open, onClose, onSuccess, allowDism
 
       const now = new Date().toISOString();
       const updates = {
-        role,
+        userRole: role,
         roleChosenAt: now,
         roleLastChangedAt: now,
         termsAcceptedAt: now,
