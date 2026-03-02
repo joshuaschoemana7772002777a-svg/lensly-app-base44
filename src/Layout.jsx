@@ -3,9 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Home, Search, Heart, Camera, Mail, Settings, Bell } from "lucide-react";
-import RoleSelectionModal from "./components/lensly/RoleSelectionModal";
 import FirstOpenConsentBanner from "./components/lensly/FirstOpenConsentBanner";
-import RoleSelectionWrapper from "./components/lensly/RoleSelectionWrapper";
 
 const NAV_ITEMS = [
   { name: "Home", icon: Home, page: "Home" },
