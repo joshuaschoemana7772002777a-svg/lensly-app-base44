@@ -277,13 +277,21 @@ export default function CreatorProfile() {
                 setRateLimitError(null);
                 const authed = await base44.auth.isAuthenticated();
                 if (!authed) {
-                  // Store intent, redirect to built-in login, return here after auth
                   sessionStorage.setItem("pending_intent", "contact_creator");
                   sessionStorage.setItem("pending_creatorId", creator.id);
                   base44.auth.redirectToLogin(window.location.href);
                   return;
-                } else {
+                }
+
                 const user = await base44.auth.me();
+                const needsTerms = !user.termsAcceptedAt || user.termsVersion !== TERMS_VERSION;
+                const needsRole = !user.role || (user.role !== "client" && user.role !== "creator");
+
+                if (needsTerms || needsRole) {
+                  setPendingContactAction("open_form");
+                  setShowOnboardingGate(true);
+                  return;
+                }
 
                 // Check if user has sent a request to this creator
                 const sentRequests = await base44.entities.ContactRequest.filter({
@@ -292,21 +300,16 @@ export default function CreatorProfile() {
                 });
 
                 if (sentRequests.length === 0) {
-                  // No request sent - open contact form
                   setContactOpen(true);
                   return;
                 }
 
-                // Has sent request - check if it's been accepted
-                const acceptedRequest = sentRequests.find(r => r.status === "accepted");
-
-                if (!acceptedRequest) {
-                  // Request pending - redirect to Updates tab
+                const acceptedOrMessaged = sentRequests.find(r => r.status === "accepted" || r.status === "messaged");
+                if (!acceptedOrMessaged) {
                   window.location.href = createPageUrl("Messages");
                   return;
                 }
 
-                // Request accepted - find conversation
                 const existingConvos = await base44.entities.Conversation.filter({
                   creator_profile_id: creator.id,
                   client_email: user.email,
@@ -315,9 +318,7 @@ export default function CreatorProfile() {
                 if (existingConvos.length > 0) {
                   window.location.href = createPageUrl("Conversation") + `?id=${existingConvos[0].id}`;
                 } else {
-                  // Conversation should exist after accept, but create if missing
                   window.location.href = createPageUrl("Messages");
-                }
                 }
               }}
               className="w-full h-14 mt-5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-base shadow-lg"
