@@ -53,11 +53,17 @@ export default function CreatorProfile() {
       const authed = await base44.auth.isAuthenticated();
       if (authed) {
         const user = await base44.auth.me();
-        if (user.role === "client" || user.role === "creator") {
-          sessionStorage.removeItem("pending_intent");
-          sessionStorage.removeItem("pending_creatorId");
-          setContactOpen(true);
+        const needsTerms = !user.termsAcceptedAt || user.termsVersion !== TERMS_VERSION;
+        const needsRole = !user.role || (user.role !== "client" && user.role !== "creator");
+        if (needsTerms || needsRole) {
+          // Show onboarding gate, then proceed to contact after
+          setPendingContactAction("open_form");
+          setShowOnboardingGate(true);
+          return;
         }
+        sessionStorage.removeItem("pending_intent");
+        sessionStorage.removeItem("pending_creatorId");
+        setContactOpen(true);
       }
     }
   };
