@@ -66,33 +66,39 @@ export default function RoleSelectionModal({ open, onClose, onSuccess, allowDism
         return;
       }
 
-      const updates = {
-        role,
-        roleChosenAt: new Date().toISOString(),
-        roleLastChangedAt: new Date().toISOString(),
-      };
-
-      // Always write terms fields if not already accepted
-      if (!termsAlreadyAccepted) {
-        updates.termsAcceptedAt = new Date().toISOString();
-        updates.termsVersion = TERMS_VERSION;
+      const user = await base44.auth.me();
+      if (!user || !user.email) {
+        throw new Error("Could not load user profile — please refresh and try again.");
       }
 
+      const now = new Date().toISOString();
+      const updates = {
+        role,
+        roleChosenAt: now,
+        roleLastChangedAt: now,
+        termsAcceptedAt: now,
+        termsVersion: TERMS_VERSION,
+      };
+
+      console.log("[RoleSelection] Saving updates:", updates, "for user:", user.email);
+
+      await base44.auth.updateMe(updates);
+
+      console.log("[RoleSelection] Save succeeded, role:", role);
+
       if (role === "creator") {
-        await base44.auth.updateMe(updates);
         setIsProcessing(false);
         setProcessingRole(null);
         if (onSuccess) onSuccess();
         window.location.href = createPageUrl("EditProfile");
       } else {
-        // For client: save terms+role immediately, then show client signup modal
-        await base44.auth.updateMe(updates);
         setShowClientModal(true);
         setIsProcessing(false);
         setProcessingRole(null);
       }
     } catch (err) {
-      console.error("Role selection failed:", err);
+      const msg = err?.message || err?.response?.data?.error || String(err);
+      console.error("[RoleSelection] FAILED — status:", err?.response?.status, "message:", msg, "full error:", err);
       setSaveError("Couldn't save your choice, please try again.");
       setIsProcessing(false);
       setProcessingRole(null);
