@@ -523,6 +523,21 @@ export default function CreatorProfile() {
 
 
 
+      <RoleSelectionModal
+        open={showOnboardingGate}
+        allowDismiss={true}
+        onClose={() => { setShowOnboardingGate(false); setPendingContactAction(null); }}
+        onSuccess={() => {
+          setShowOnboardingGate(false);
+          if (pendingContactAction === "open_form") {
+            sessionStorage.removeItem("pending_intent");
+            sessionStorage.removeItem("pending_creatorId");
+            setContactOpen(true);
+          }
+          setPendingContactAction(null);
+        }}
+      />
+
       <ContactFormModal open={contactOpen} onClose={() => setContactOpen(false)} creator={creator} />
       <ReportModal 
         open={reportOpen} 
