@@ -47,18 +47,22 @@ export default function Messages() {
     convos.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
     
     // Load client profile photos if user is creator
-    if (isCreator) {
-      const clientEmails = [...new Set(convos.map(c => c.client_email))];
-      const users = await base44.entities.User.filter({ 
-        email: { $in: clientEmails }
-      });
-      const photoMap = {};
-      users.forEach(u => {
-        if (u.profilePhotoUrl) {
-          photoMap[u.email] = u.profilePhotoUrl;
-        }
-      });
-      setClientPhotos(photoMap);
+    if (isCreator && convos.length > 0) {
+      try {
+        const clientEmails = [...new Set(convos.map(c => c.client_email))];
+        const clientProfiles = await base44.entities.ClientProfile.filter({
+          created_by: { $in: clientEmails }
+        });
+        const photoMap = {};
+        clientProfiles.forEach(p => {
+          if (p.profilePhotoUrl) {
+            photoMap[p.created_by] = p.profilePhotoUrl;
+          }
+        });
+        setClientPhotos(photoMap);
+      } catch (e) {
+        // non-critical, photos just won't show
+      }
     }
     
     setConversations(convos);
