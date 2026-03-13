@@ -75,10 +75,12 @@ export default function Conversation() {
 
     // Load other person's profile photo
     if (isCreator) {
-      const clientUsers = await base44.entities.User.filter({ email: convo.client_email });
-      if (clientUsers.length > 0 && clientUsers[0].profilePhotoUrl) {
-        setOtherPersonPhoto(clientUsers[0].profilePhotoUrl);
-      }
+      try {
+        const clientProfiles = await base44.entities.ClientProfile.filter({ created_by: convo.client_email });
+        if (clientProfiles.length > 0 && clientProfiles[0].profilePhotoUrl) {
+          setOtherPersonPhoto(clientProfiles[0].profilePhotoUrl);
+        }
+      } catch (e) { /* non-critical */ }
     } else {
       setOtherPersonPhoto(convo.creator_image);
     }
