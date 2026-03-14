@@ -301,60 +301,85 @@ export default function Discover() {
           <div className="mt-2">
             <AreaFilterChips selected={selectedArea} onChange={setSelectedArea} />
           </div>
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-xs text-neutral-500 font-medium shrink-0">Type:</span>
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-              {[
-                { label: "All", value: null },
-                { label: "Photographer", value: "photographer" },
-                { label: "Videographer", value: "videographer" },
-              ].map(({ label, value }) => (
-                <button
-                  key={label}
-                  onClick={() => setSelectedType(value)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                    selectedType === value
-                      ? "bg-neutral-900 text-white"
-                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
 
-          {hasPriceData && sliderMax > sliderMin && (
-            <div className="mt-3 pb-1">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-neutral-500 font-medium">Price Range</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-blue-600">
-                    {isPriceDefault ? "Any price" : `Up to R${priceMax.toLocaleString()}`}
-                  </span>
-                  {!isPriceDefault && (
-                    <button
-                      onClick={() => setPriceMax(sliderMax)}
-                      className="text-[10px] text-blue-500 hover:text-blue-700 font-medium"
-                    >
-                      Reset
-                    </button>
-                  )}
-                </div>
-              </div>
-              <SliderPrimitive.Root
-                className="relative flex items-center select-none touch-none w-full h-5"
-                min={sliderMin} max={sliderMax} step={500}
-                value={[priceMax]} onValueChange={([val]) => setPriceMax(val)}
+          {/* Collapsible advanced filters */}
+          <AnimatePresence initial={false}>
+            {filtersExpanded && (
+              <motion.div
+                key="advanced-filters"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: "easeInOut" }}
+                style={{ overflow: "hidden" }}
               >
-                <SliderPrimitive.Track className="bg-neutral-200 relative grow rounded-full h-1.5">
-                  <SliderPrimitive.Range className="absolute bg-blue-500 rounded-full h-full" />
-                </SliderPrimitive.Track>
-                <SliderPrimitive.Thumb className="block w-4 h-4 bg-white border-2 border-blue-500 rounded-full shadow focus:outline-none cursor-grab active:cursor-grabbing" />
-              </SliderPrimitive.Root>
-              <p className="text-[10px] text-neutral-400 mt-1">Filters by creator starting price (max)</p>
-            </div>
-          )}
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-xs text-neutral-500 font-medium shrink-0">Type:</span>
+                  <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+                    {[
+                      { label: "All", value: null },
+                      { label: "Photographer", value: "photographer" },
+                      { label: "Videographer", value: "videographer" },
+                    ].map(({ label, value }) => (
+                      <button
+                        key={label}
+                        onClick={() => setSelectedType(value)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                          selectedType === value
+                            ? "bg-neutral-900 text-white"
+                            : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {hasPriceData && sliderMax > sliderMin && (
+                  <div className="mt-3 pb-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-neutral-500 font-medium">Price Range</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-blue-600">
+                          {isPriceDefault ? "Any price" : `Up to R${priceMax.toLocaleString()}`}
+                        </span>
+                        {!isPriceDefault && (
+                          <button
+                            onClick={() => setPriceMax(sliderMax)}
+                            className="text-[10px] text-blue-500 hover:text-blue-700 font-medium"
+                          >
+                            Reset
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <SliderPrimitive.Root
+                      className="relative flex items-center select-none touch-none w-full h-5"
+                      min={sliderMin} max={sliderMax} step={500}
+                      value={[priceMax]} onValueChange={([val]) => setPriceMax(val)}
+                    >
+                      <SliderPrimitive.Track className="bg-neutral-200 relative grow rounded-full h-1.5">
+                        <SliderPrimitive.Range className="absolute bg-blue-500 rounded-full h-full" />
+                      </SliderPrimitive.Track>
+                      <SliderPrimitive.Thumb className="block w-4 h-4 bg-white border-2 border-blue-500 rounded-full shadow focus:outline-none cursor-grab active:cursor-grabbing" />
+                    </SliderPrimitive.Root>
+                    <p className="text-[10px] text-neutral-400 mt-1">Filters by creator starting price (max)</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Show more / Show less toggle */}
+          <div className="flex justify-end mt-1.5">
+            <button
+              onClick={handleToggleFilters}
+              className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors font-medium"
+            >
+              {filtersExpanded ? "Show less" : "Show more"}
+            </button>
+          </div>
         </div>
       </div>
 
