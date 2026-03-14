@@ -80,6 +80,42 @@ export default function Discover() {
   const [hasPriceData, setHasPriceData] = useState(false);
 
   const isPriceDefault = priceMax === sliderMax;
+  const [filtersExpanded, setFiltersExpanded] = useState(true);
+  const [manualOverride, setManualOverride] = useState(null); // null | 'expanded' | 'collapsed'
+  const lastScrollY = useRef(0);
+  const scrollContainerRef = useRef(null);
+
+  // Scroll-based auto collapse/expand
+  useEffect(() => {
+    const container = document.getElementById("root") || window;
+    const handleScroll = () => {
+      const scrollY = container === window ? window.scrollY : container.scrollTop;
+      const delta = scrollY - lastScrollY.current;
+
+      if (delta > 40 && scrollY > 80) {
+        // Scrolled down significantly
+        if (manualOverride !== 'expanded') {
+          setFiltersExpanded(false);
+          if (manualOverride === null) setManualOverride(null); // let auto take over
+        }
+      } else if (scrollY < 60) {
+        // Near the top — always expand
+        setFiltersExpanded(true);
+        setManualOverride(null);
+      }
+
+      lastScrollY.current = scrollY;
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [manualOverride]);
+
+  const handleToggleFilters = () => {
+    const next = !filtersExpanded;
+    setFiltersExpanded(next);
+    setManualOverride(next ? 'expanded' : 'collapsed');
+  };
 
   // Read URL params on mount
   useEffect(() => {
