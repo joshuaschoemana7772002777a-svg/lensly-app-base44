@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal, Heart, ArrowUpDown, X } from "lucide-react";
 import {
   DropdownMenu,
