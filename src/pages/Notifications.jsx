@@ -22,6 +22,7 @@ export default function Notifications({ inboxMode = false }) {
     }
     const currentUser = await base44.auth.me();
     setUser(currentUser);
+    // Fetch notifications immediately after getting email — no extra await chain
     const notifs = await base44.entities.Notification.filter(
       { recipient_email: currentUser.email },
       "-created_date",
