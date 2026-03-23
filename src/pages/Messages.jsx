@@ -35,50 +35,32 @@ export default function Messages() {
 
     const profiles = await base44.entities.CreatorProfile.filter({ created_by: currentUser.email });
     const isCreator = profiles.length > 0 && profiles[0].is_published;
+    const profileId = isCreator ? profiles[0].id : null;
     setUserRole(isCreator ? "creator" : "client");
 
-    // Load conversations
-    let convos = [];
-    if (isCreator) {
-      convos = await base44.entities.Conversation.filter({ creator_profile_id: profiles[0].id });
-    } else {
-      convos = await base44.entities.Conversation.filter({ client_email: currentUser.email });
-    }
-    convos.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
-    
-    // Load client profile photos if user is creator
-    if (isCreator && convos.length > 0) {
-      try {
-        const clientEmails = [...new Set(convos.map(c => c.client_email))];
-        const clientProfiles = await base44.entities.ClientProfile.filter({
-          created_by: { $in: clientEmails }
-        });
-        const photoMap = {};
-        clientProfiles.forEach(p => {
-          if (p.profilePhotoUrl) {
-            photoMap[p.created_by] = p.profilePhotoUrl;
-          }
-        });
-        setClientPhotos(photoMap);
-      } catch (e) {
-        // non-critical, photos just won't show
-      }
-    }
-    
-    setConversations(convos);
+    // Fetch conversations + requests in parallel
+    const [convos, requestsList] = await Promise.all([
+      isCreator
+        ? base44.entities.Conversation.filter({ creator_profile_id: profileId })
+        : base44.entities.Conversation.filter({ client_email: currentUser.email }),
+      isCreator
+        ? base44.entities.ContactRequest.filter({ creator_profile_id: profileId }, "-created_date")
+        : base44.entities.ContactRequest.filter({ sender_email: currentUser.email }, "-created_date"),
+    ]);
 
-    // Load requests
-    let requestsList = [];
-    if (isCreator) {
-      requestsList = await base44.entities.ContactRequest.filter({
-        creator_profile_id: profiles[0].id,
-      }, "-created_date");
-    } else {
-      requestsList = await base44.entities.ContactRequest.filter({
-        sender_email: currentUser.email,
-      }, "-created_date");
-    }
+    convos.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
+    setConversations(convos);
     setRequests(requestsList);
+
+    // Load client profile photos (non-blocking, fire and forget)
+    if (isCreator && convos.length > 0) {
+      const clientEmails = [...new Set(convos.map(c => c.client_email))];
+      base44.entities.ClientProfile.filter({ created_by: { $in: clientEmails } }).then(clientProfiles => {
+        const photoMap = {};
+        clientProfiles.forEach(p => { if (p.profilePhotoUrl) photoMap[p.created_by] = p.profilePhotoUrl; });
+        setClientPhotos(photoMap);
+      }).catch(() => {});
+    }
 
     // Default to Updates tab if there are pending requests
     const pendingCount = requestsList.filter(r => r.status === "pending" || r.status === "read").length;
