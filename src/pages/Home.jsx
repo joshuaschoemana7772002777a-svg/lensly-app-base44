@@ -15,26 +15,18 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-    checkRoleSelectionParam();
+    init();
   }, []);
 
-  const checkAuth = async () => {
+  const init = async () => {
     const authed = await base44.auth.isAuthenticated();
     setIsAuthenticated(authed);
-  };
 
-  const checkRoleSelectionParam = async () => {
     const params = new URLSearchParams(window.location.search);
-    const selectRole = params.get("select_role");
-    
-    if (selectRole) {
-      const authed = await base44.auth.isAuthenticated();
-      if (authed) {
-        const user = await base44.auth.me();
-        if (!user.role || (user.role !== "client" && user.role !== "creator")) {
-            setShowRoleModal(true);
-          }
+    if (params.get("select_role") && authed) {
+      const user = await base44.auth.me();
+      if (!user.role || (user.role !== "client" && user.role !== "creator")) {
+        setShowRoleModal(true);
       }
     }
   };
