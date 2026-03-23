@@ -99,7 +99,7 @@ export default function Conversation() {
       : Promise.resolve([]);
 
     // Fetch messages, block check, and review check all in parallel
-    const [msgs, blocks, reviewResult] = await Promise.all([
+    let [msgs, blocks, reviewResult] = await Promise.all([
       base44.entities.Message.filter({ conversation_id: conversationId }),
       blockCheckPromise,
       reviewCheckPromise,
