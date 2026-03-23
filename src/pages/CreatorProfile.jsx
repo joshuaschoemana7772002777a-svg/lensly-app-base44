@@ -397,7 +397,7 @@ export default function CreatorProfile() {
                 {rest.length > 0 && (
                   <Button
                     onClick={() => {
-                      const idx = allItems.findIndex(i => i === sectionItems[6]);
+                      const idx = allItems.findIndex(i => i === sectionItems[7]);
                       setActivePortfolioIndex(idx >= 0 ? idx : 0);
                       setIsPortfolioViewerOpen(true);
                     }}
