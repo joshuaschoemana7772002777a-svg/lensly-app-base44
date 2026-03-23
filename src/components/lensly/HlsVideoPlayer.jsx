@@ -15,13 +15,13 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
     const video = videoRef.current;
     if (!video) return;
 
-    // Priority: MOV → MP4 → HLS → fallback
-    if (movUrl) {
-      video.src = movUrl;
-      video.type = "video/quicktime";
-    } else if (mp4Url) {
+    // Priority: MP4 → MOV → HLS → fallback
+    if (mp4Url) {
       video.src = mp4Url;
       video.type = "video/mp4";
+    } else if (movUrl) {
+      video.src = movUrl;
+      video.type = "video/quicktime";
     } else if (hlsUrl) {
       video.src = hlsUrl;
       video.type = "application/x-mpegURL";
