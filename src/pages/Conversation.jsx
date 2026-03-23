@@ -184,46 +184,48 @@ export default function Conversation() {
       content: newMessage.trim(),
     };
 
-    await base44.entities.Message.create(messageData);
-
-    // Set first_message_at if not already set
-    if (!conversation.first_message_at) {
-      await base44.entities.Conversation.update(conversationId, {
-        first_message_at: new Date().toISOString(),
-        last_message: newMessage.trim(),
-        last_message_at: new Date().toISOString(),
-        [userRole === "creator" ? "unread_count_client" : "unread_count_creator"]:
-          (conversation[userRole === "creator" ? "unread_count_client" : "unread_count_creator"] || 0) + 1,
-      });
-    } else {
-      await base44.entities.Conversation.update(conversationId, {
-        last_message: newMessage.trim(),
-        last_message_at: new Date().toISOString(),
-        [userRole === "creator" ? "unread_count_client" : "unread_count_creator"]:
-          (conversation[userRole === "creator" ? "unread_count_client" : "unread_count_creator"] || 0) + 1,
-      });
-    }
-
-    if (userRole === "client") {
-      await trackMessagingActivity(user.email, conversation.creator_profile_id, newMessage.trim(), conversationId);
-    }
-
-    // recipient is always the OTHER person
-    const recipientEmail = userRole === "creator" ? conversation.client_email : conversation.created_by;
-    await createNotification({
-      recipientEmail,
-      type: "message_new",
-      title: "New Message",
-      message: userRole === "creator"
-        ? `${conversation.client_name} sent you a message`
-        : `${conversation.creator_name} replied to your message`,
-      linkUrl: createPageUrl("Conversation") + `?id=${conversationId}`,
-      relatedId: conversationId,
-      senderName: user.full_name,
-    });
-
+    const trimmed = newMessage.trim();
     setNewMessage("");
-    await loadConversation();
+
+    // Optimistically append the message locally for instant UI feedback
+    const optimisticMsg = {
+      id: `optimistic-${Date.now()}`,
+      conversation_id: conversationId,
+      sender_email: user.email,
+      sender_name: user.full_name,
+      content: trimmed,
+      created_date: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, optimisticMsg]);
+
+    const unreadField = userRole === "creator" ? "unread_count_client" : "unread_count_creator";
+    const convoUpdate = {
+      last_message: trimmed,
+      last_message_at: new Date().toISOString(),
+      [unreadField]: (conversation[unreadField] || 0) + 1,
+      ...(!conversation.first_message_at ? { first_message_at: new Date().toISOString() } : {}),
+    };
+
+    // Fire all side-effects in parallel
+    await Promise.all([
+      base44.entities.Message.create(messageData),
+      base44.entities.Conversation.update(conversationId, convoUpdate),
+      userRole === "client"
+        ? trackMessagingActivity(user.email, conversation.creator_profile_id, trimmed, conversationId)
+        : Promise.resolve(),
+      createNotification({
+        recipientEmail: userRole === "creator" ? conversation.client_email : conversation.created_by,
+        type: "message_new",
+        title: "New Message",
+        message: userRole === "creator"
+          ? `${conversation.client_name} sent you a message`
+          : `${conversation.creator_name} replied to your message`,
+        linkUrl: createPageUrl("Conversation") + `?id=${conversationId}`,
+        relatedId: conversationId,
+        senderName: user.full_name,
+      }),
+    ]);
+
     setSending(false);
   };
 
