@@ -252,11 +252,8 @@ export default function Discover() {
   const visible = sorted.slice(0, displayCount);
   const hasMore = displayCount < sorted.length;
 
-  const handleLoadMore = async () => {
-    setLoadingMore(true);
-    await new Promise(r => setTimeout(r, 300)); // brief pause for skeleton feel
+  const handleLoadMore = () => {
     setDisplayCount(prev => prev + PAGE_SIZE);
-    setLoadingMore(false);
   };
 
   // Reset pagination when filters change
