@@ -39,8 +39,8 @@ export default function EditProfile() {
     if (!authed) { setLoading(false); return; }
     const user = await base44.auth.me();
     const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
-    if (profiles.length > 0) {
-      const existingProfile = profiles[0];
+    if (creatorProfiles.length > 0) {
+      const existingProfile = creatorProfiles[0];
       setProfile(existingProfile);
       setIsOnboarding(!existingProfile.is_published);
       // Load draft cover if exists, otherwise use published
