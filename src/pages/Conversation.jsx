@@ -91,10 +91,17 @@ export default function Conversation() {
       ? base44.entities.Review.filter({ conversation_id: conversationId, client_email: currentUser.email })
       : Promise.resolve(null);
 
-    // Fetch messages, block check, review check, and client photo all in parallel
-    const [msgs, otherEmail, reviewResult] = await Promise.all([
+    // Resolve otherEmail first so we can include block check in the same Promise.all
+    const otherEmail = await otherEmailPromise;
+
+    const blockCheckPromise = otherEmail
+      ? base44.entities.BlockedUser.filter({ blocker_email: currentUser.email, blocked_email: otherEmail })
+      : Promise.resolve([]);
+
+    // Fetch messages, block check, and review check all in parallel
+    const [msgs, blocks, reviewResult] = await Promise.all([
       base44.entities.Message.filter({ conversation_id: conversationId }),
-      otherEmailPromise,
+      blockCheckPromise,
       reviewCheckPromise,
     ]);
 
@@ -105,11 +112,6 @@ export default function Conversation() {
       }).catch(() => {});
     }
 
-    // Block check (parallel with above already resolved)
-    const blocks = otherEmail ? await base44.entities.BlockedUser.filter({
-      blocker_email: currentUser.email,
-      blocked_email: otherEmail,
-    }) : [];
     setIsBlocked(blocks.length > 0);
 
     if (reviewResult !== null) setCanReview(reviewResult.length === 0);
