@@ -442,7 +442,7 @@ export default function Discover() {
 
             </div>
 
-            {hasMore && !loadingMore && (
+            {hasMore && (
               <button
                 onClick={handleLoadMore}
                 className="w-full mt-6 py-3 rounded-xl border border-neutral-200 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
