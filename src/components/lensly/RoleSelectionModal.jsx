@@ -87,9 +87,11 @@ export default function RoleSelectionModal({ open, onClose, onSuccess, allowDism
       if (role === "creator") {
         setIsProcessing(false);
         setProcessingRole(null);
+        if (onClose) onClose();
         if (onSuccess) onSuccess();
         window.location.href = createPageUrl("EditProfile");
       } else {
+        if (onClose) onClose();
         setShowClientModal(true);
         setIsProcessing(false);
         setProcessingRole(null);
