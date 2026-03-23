@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
 
 /**
@@ -7,7 +7,7 @@ import { base44 } from "@/api/base44Client";
  */
 export default function HlsVideoPlayer({ item, className = "", poster }) {
   const videoRef = useRef(null);
-  const [proxiedUrl, setProxiedUrl] = React.useState(null);
+  const [proxiedUrl, setProxiedUrl] = useState(null);
 
   const movUrl = item?.mux_mov_url;
   const mp4Url = item?.mux_mp4_url;
