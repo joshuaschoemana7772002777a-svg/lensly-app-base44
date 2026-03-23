@@ -439,10 +439,7 @@ export default function Discover() {
                   reviewCount={creator.reviewCount || 0}
                 />
               ))}
-              {/* Load more skeletons */}
-              {loadingMore && Array.from({ length: 4 }).map((_, i) => (
-                <CreatorCardSkeleton key={`more-${i}`} />
-              ))}
+
             </div>
 
             {hasMore && !loadingMore && (
