@@ -66,7 +66,6 @@ export default function Discover() {
   const [allCreators, setAllCreators] = useState([]); // full sorted set
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedArea, setSelectedArea] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [favouriteIds, setFavouriteIds] = useState(new Set());
