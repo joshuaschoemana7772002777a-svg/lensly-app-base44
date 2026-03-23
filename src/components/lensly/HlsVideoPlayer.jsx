@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 /**
  * Video player supporting MOV and MP4 formats
@@ -11,6 +11,25 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
   const hlsUrl = item?.mux_playback_url;
   const fallbackUrl = item?.url;
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Priority: MOV → MP4 → HLS → fallback
+    if (movUrl) {
+      video.src = movUrl;
+      video.type = "video/quicktime";
+    } else if (mp4Url) {
+      video.src = mp4Url;
+      video.type = "video/mp4";
+    } else if (hlsUrl) {
+      video.src = hlsUrl;
+      video.type = "application/x-mpegURL";
+    } else if (fallbackUrl) {
+      video.src = fallbackUrl;
+    }
+  }, [movUrl, mp4Url, hlsUrl, fallbackUrl]);
+
   return (
     <video
       ref={videoRef}
@@ -19,11 +38,6 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
       playsInline
       preload="metadata"
       className={className}
-    >
-      {movUrl && <source src={movUrl} type="video/quicktime" />}
-      {mp4Url && <source src={mp4Url} type="video/mp4" />}
-      {hlsUrl && <source src={hlsUrl} type="application/x-mpegURL" />}
-      {fallbackUrl && <source src={fallbackUrl} type="video/mp4" />}
-    </video>
+    />
   );
 }
