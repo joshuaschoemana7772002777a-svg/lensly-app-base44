@@ -1,7 +1,14 @@
 Deno.serve(async (req) => {
   try {
-    const url = new URL(req.url);
-    const videoUrl = url.searchParams.get("url");
+    let videoUrl;
+    
+    if (req.method === "POST") {
+      const body = await req.json();
+      videoUrl = body.url;
+    } else {
+      const url = new URL(req.url);
+      videoUrl = url.searchParams.get("url");
+    }
 
     if (!videoUrl) {
       return Response.json({ error: "Missing url parameter" }, { status: 400 });

@@ -31,14 +31,8 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
 
       if (!sourceUrl) return;
 
-      // Route through proxy function to avoid CORS issues
-      try {
-        const result = await base44.functions.invoke("videoProxy", { url: sourceUrl });
-        setProxiedUrl(result.data?.proxied_url || sourceUrl);
-      } catch {
-        // Fallback to direct URL if proxy fails
-        setProxiedUrl(sourceUrl);
-      }
+      // Use direct URL - sandbox should handle it now
+      setProxiedUrl(sourceUrl);
     };
 
     setupVideo();
