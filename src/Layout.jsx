@@ -24,36 +24,25 @@ export default function Layout({ children, currentPageName }) {
     const authed = await base44.auth.isAuthenticated();
     if (!authed) return;
     const user = await base44.auth.me();
-    
-    // Count unread messages
+
+    // Fetch creator profile first to determine role
     const profiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
     const isCreator = profiles.length > 0 && profiles[0].is_published;
-    
-    let convos = [];
-    if (isCreator) {
-      convos = await base44.entities.Conversation.filter({ creator_profile_id: profiles[0].id });
-    } else {
-      convos = await base44.entities.Conversation.filter({ client_email: user.email });
-    }
+    const profileId = isCreator ? profiles[0].id : null;
+
+    // Parallelise conversations + requests
+    const [convos, requests] = await Promise.all([
+      isCreator
+        ? base44.entities.Conversation.filter({ creator_profile_id: profileId })
+        : base44.entities.Conversation.filter({ client_email: user.email }),
+      isCreator
+        ? base44.entities.ContactRequest.filter({ creator_profile_id: profileId, status: { $in: ["pending", "read"] } })
+        : base44.entities.ContactRequest.filter({ sender_email: user.email }),
+    ]);
+
     const unreadMsgCount = convos.reduce((sum, c) => sum + (isCreator ? c.unread_count_creator : c.unread_count_client), 0);
     setUnreadMessages(unreadMsgCount);
-    
-    // Count pending requests
-    let requests = [];
-    if (isCreator) {
-      requests = await base44.entities.ContactRequest.filter({
-        creator_profile_id: profiles[0].id,
-        status: { $in: ["pending", "read"] }
-      });
-    } else {
-      requests = await base44.entities.ContactRequest.filter({
-        sender_email: user.email,
-      });
-    }
     setPendingRequests(requests.length);
-    
-    // Combined badge = unread messages + pending requests
-    const combinedBadge = unreadMsgCount + requests.length;
   };
 
   const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile" || currentPageName === "Conversation" || currentPageName === "Login";
