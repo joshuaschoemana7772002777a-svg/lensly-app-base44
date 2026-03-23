@@ -26,9 +26,12 @@ export default function Favourites() {
     const favs = await base44.entities.Favourite.list("-created_date");
     setFavourites(favs);
     if (favs.length > 0) {
-      const allCreators = await base44.entities.CreatorProfile.list();
-      const favIds = new Set(favs.map(f => f.creator_profile_id));
-      setCreators(allCreators.filter(c => favIds.has(c.id)));
+      // Fetch only the specific creator profiles we need, not all of them
+      const favIds = favs.map(f => f.creator_profile_id);
+      const matchedCreators = await Promise.all(
+        favIds.map(id => base44.entities.CreatorProfile.filter({ id }))
+      );
+      setCreators(matchedCreators.flat().filter(Boolean));
     }
     setLoading(false);
   };
