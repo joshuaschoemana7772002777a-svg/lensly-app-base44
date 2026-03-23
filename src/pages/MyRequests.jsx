@@ -26,24 +26,26 @@ export default function MyRequests() {
     if (!authed) { setLoading(false); return; }
     const user = await base44.auth.me();
     setUserEmail(user.email);
-    
-    const profiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
+
+    // Fetch creator profile + client requests in parallel, pick whichever applies
+    const [profiles, clientReqs] = await Promise.all([
+      base44.entities.CreatorProfile.filter({ created_by: user.email }),
+      base44.entities.ContactRequest.filter({ sender_email: user.email }, "-created_date"),
+    ]);
+
     const creatorProfile = profiles.length > 0 && profiles[0].is_published;
     setIsCreator(!!creatorProfile);
-    
-    let reqs = [];
+
     if (creatorProfile) {
-      reqs = await base44.entities.ContactRequest.filter(
+      // Creator: need requests addressed to their profile — fetch now
+      const creatorReqs = await base44.entities.ContactRequest.filter(
         { creator_profile_id: profiles[0].id },
         "-created_date"
       );
+      setRequests(creatorReqs);
     } else {
-      reqs = await base44.entities.ContactRequest.filter(
-        { sender_email: user.email },
-        "-created_date"
-      );
+      setRequests(clientReqs);
     }
-    setRequests(reqs);
     setLoading(false);
   };
 
