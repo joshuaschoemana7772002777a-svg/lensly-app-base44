@@ -133,8 +133,8 @@ export default function Discover() {
   const loadAll = async (isInitial = false) => {
     if (isInitial) setLoading(true);
 
-    // Parallelise: creators + reviews + auth/favourites all at once
-    const [creatorsData, reviewsData, authed] = await Promise.all([
+    // Parallelise: creators + reviews + auth + favourites all at once
+    const [creatorsData, reviewsData, authed, favsData] = await Promise.all([
       base44.entities.CreatorProfile.filter(
         { status: "published", is_published: true, is_hidden: false },
         "-created_date",
@@ -142,15 +142,14 @@ export default function Discover() {
       ),
       base44.entities.Review.list("-created_date", 2000),
       base44.auth.isAuthenticated(),
+      base44.entities.Favourite.list().catch(() => []),
     ]);
 
     setIsAuthenticated(authed);
 
     let favSet = new Set();
     if (authed) {
-      // Already fetched in parallel above — but favourites depend on auth result so fetch now
-      const favs = await base44.entities.Favourite.list();
-      favSet = new Set(favs.map(f => f.creator_profile_id));
+      favSet = new Set(favsData.map(f => f.creator_profile_id));
       setFavouriteIds(favSet);
     }
 
