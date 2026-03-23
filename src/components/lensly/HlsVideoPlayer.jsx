@@ -32,6 +32,15 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
       } else if (Hls.isSupported()) {
         // Chrome, Firefox, Android — HLS.js
         const hls = new Hls({ enableWorker: true, lowLatencyMode: false });
+        
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.warn("HLS error:", data);
+          // Fallback to MP4 on HLS error
+          if (data.fatal && mp4Url) {
+            video.src = mp4Url;
+          }
+        });
+        
         hls.loadSource(hlsUrl);
         hls.attachMedia(video);
         hlsRef.current = hls;
@@ -47,7 +56,17 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
       video.src = fallbackUrl || "";
     }
 
+    // Fallback for video load errors
+    const handleError = () => {
+      if (mp4Url && video.src !== mp4Url) {
+        console.log("Video load failed, trying MP4 fallback");
+        video.src = mp4Url;
+      }
+    };
+    video.addEventListener("error", handleError);
+
     return () => {
+      video.removeEventListener("error", handleError);
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
