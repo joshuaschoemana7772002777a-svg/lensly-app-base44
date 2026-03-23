@@ -384,7 +384,7 @@ export default function CreatorProfile() {
                         {isVideo ? (
                           <div className="relative w-full h-full bg-neutral-900">
                             {item.thumbnail_url ? (
-                              <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                              <img src={item.thumbnail_url} alt="" loading="lazy" className="w-full h-full object-cover" />
                             ) : null}
                             <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                               <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
