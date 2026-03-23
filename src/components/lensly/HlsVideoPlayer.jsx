@@ -1,42 +1,39 @@
-import React, { useEffect, useRef, useState } from "react";
-import { base44 } from "@/api/base44Client";
+import React, { useEffect, useRef } from "react";
 
 /**
- * Video player supporting MOV and MP4 formats
- * Routes external videos through proxy function to avoid CORS issues
+ * Video player for Mux URLs (MP4 format)
+ * Mux URLs from mux_mp4_url are direct MP4 streams
  */
 export default function HlsVideoPlayer({ item, className = "", poster }) {
   const videoRef = useRef(null);
-  const [proxiedUrl, setProxiedUrl] = useState(null);
 
-  const movUrl = item?.mux_mov_url;
   const mp4Url = item?.mux_mp4_url;
   const hlsUrl = item?.mux_playback_url;
   const fallbackUrl = item?.url;
 
+  // Priority: MP4 → HLS → fallback
+  const videoUrl = mp4Url || hlsUrl || fallbackUrl;
+
   useEffect(() => {
-    const setupVideo = async () => {
-      let sourceUrl = null;
+    const video = videoRef.current;
+    if (!video || !videoUrl) return;
 
-      // Priority: MP4 → MOV → HLS → fallback
-      if (mp4Url) {
-        sourceUrl = mp4Url;
-      } else if (movUrl) {
-        sourceUrl = movUrl;
-      } else if (hlsUrl) {
-        sourceUrl = hlsUrl;
-      } else if (fallbackUrl) {
-        sourceUrl = fallbackUrl;
-      }
+    // Clear existing sources
+    video.innerHTML = "";
 
-      if (!sourceUrl) return;
+    // Determine MIME type based on URL pattern
+    let mimeType = "video/mp4"; // default
+    if (videoUrl.includes(".m3u8") || videoUrl.includes("hls")) {
+      mimeType = "application/x-mpegURL";
+    } else if (videoUrl.includes(".mov")) {
+      mimeType = "video/quicktime";
+    }
 
-      // Use direct URL - sandbox should handle it now
-      setProxiedUrl(sourceUrl);
-    };
-
-    setupVideo();
-  }, [movUrl, mp4Url, hlsUrl, fallbackUrl]);
+    const source = document.createElement("source");
+    source.src = videoUrl;
+    source.type = mimeType;
+    video.appendChild(source);
+  }, [videoUrl]);
 
   return (
     <video
@@ -47,16 +44,6 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
       preload="metadata"
       className={className}
     >
-      {proxiedUrl && (
-        <>
-          {proxiedUrl.includes(".mp4") && <source src={proxiedUrl} type="video/mp4" />}
-          {proxiedUrl.includes(".mov") && <source src={proxiedUrl} type="video/quicktime" />}
-          {proxiedUrl.includes(".m3u8") && <source src={proxiedUrl} type="application/x-mpegURL" />}
-          {!proxiedUrl.includes(".mp4") && !proxiedUrl.includes(".mov") && !proxiedUrl.includes(".m3u8") && (
-            <source src={proxiedUrl} type="video/mp4" />
-          )}
-        </>
-      )}
       Your browser does not support the video tag.
     </video>
   );
