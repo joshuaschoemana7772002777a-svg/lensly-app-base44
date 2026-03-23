@@ -35,8 +35,6 @@ export default function RoleSelectionModal({ open, onClose, onSuccess, allowDism
 
   const checkExistingTerms = async () => {
     try {
-      const authed = await base44.auth.isAuthenticated();
-      if (!authed) return;
       const user = await base44.auth.me();
       if (user?.termsAcceptedAt && user?.termsVersion === TERMS_VERSION && user?.userRole) {
         setTermsAlreadyAccepted(true);
