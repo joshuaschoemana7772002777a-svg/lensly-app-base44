@@ -353,8 +353,8 @@ export default function CreatorProfile() {
           const videos = allItems.filter(i => i.type === "video");
 
           const renderGrid = (section, sectionItems) => {
-            const preview = sectionItems.slice(0, 6);
-            const rest = sectionItems.slice(6);
+            const preview = sectionItems.slice(0, 7);
+            const rest = sectionItems.slice(7);
             const isVideo = section === "video";
             return (
               <div className="mt-6">
