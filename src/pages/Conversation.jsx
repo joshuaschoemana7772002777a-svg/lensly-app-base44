@@ -73,45 +73,46 @@ export default function Conversation() {
     const isCreator = profiles.length > 0 && profiles[0].is_published && convo.creator_profile_id === profiles[0].id;
     setUserRole(isCreator ? "creator" : "client");
 
-    // Load other person's profile photo
+    // Determine other person's email for block check
+    let otherEmailPromise;
     if (isCreator) {
-      try {
-        const clientProfiles = await base44.entities.ClientProfile.filter({ created_by: convo.client_email });
-        if (clientProfiles.length > 0 && clientProfiles[0].profilePhotoUrl) {
-          setOtherPersonPhoto(clientProfiles[0].profilePhotoUrl);
-        }
-      } catch (e) { /* non-critical */ }
+      otherEmailPromise = Promise.resolve(convo.client_email);
+      setOtherPersonPhoto(null); // will update below
     } else {
+      otherEmailPromise = base44.entities.CreatorProfile.filter({ id: convo.creator_profile_id })
+        .then(cp => cp.length > 0 ? cp[0].created_by : null);
       setOtherPersonPhoto(convo.creator_image);
     }
 
-    // Check if client can review: must be client + 7 days since first message + no existing review
-    if (!isCreator && convo.first_message_at) {
-      const firstMsgDate = new Date(convo.first_message_at);
-      const sevenDaysLater = new Date(firstMsgDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const isEligible = new Date() >= sevenDaysLater;
-      if (isEligible) {
-        const existingReviews = await base44.entities.Review.filter({
-          conversation_id: conversationId,
-          client_email: currentUser.email,
-        });
-        setCanReview(existingReviews.length === 0);
-      }
+    // Build review eligibility check promise
+    const reviewEligible = !isCreator && convo.first_message_at &&
+      new Date() >= new Date(new Date(convo.first_message_at).getTime() + 7 * 24 * 60 * 60 * 1000);
+    const reviewCheckPromise = reviewEligible
+      ? base44.entities.Review.filter({ conversation_id: conversationId, client_email: currentUser.email })
+      : Promise.resolve(null);
+
+    // Fetch messages, block check, review check, and client photo all in parallel
+    const [msgs, otherEmail, reviewResult] = await Promise.all([
+      base44.entities.Message.filter({ conversation_id: conversationId }),
+      otherEmailPromise,
+      reviewCheckPromise,
+    ]);
+
+    // Non-blocking: load client photo if creator
+    if (isCreator) {
+      base44.entities.ClientProfile.filter({ created_by: convo.client_email }).then(cp => {
+        if (cp.length > 0 && cp[0].profilePhotoUrl) setOtherPersonPhoto(cp[0].profilePhotoUrl);
+      }).catch(() => {});
     }
 
-    // Check if blocked — for clients, look up creator's email from their profile
-    let otherEmail = isCreator ? convo.client_email : null;
-    if (!isCreator) {
-      const creatorProfiles = await base44.entities.CreatorProfile.filter({ id: convo.creator_profile_id });
-      otherEmail = creatorProfiles.length > 0 ? creatorProfiles[0].created_by : null;
-    }
+    // Block check (parallel with above already resolved)
     const blocks = otherEmail ? await base44.entities.BlockedUser.filter({
       blocker_email: currentUser.email,
       blocked_email: otherEmail,
     }) : [];
     setIsBlocked(blocks.length > 0);
 
-    let msgs = await base44.entities.Message.filter({ conversation_id: conversationId });
+    if (reviewResult !== null) setCanReview(reviewResult.length === 0);
     msgs.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
     // Apply "clear chat" filter — only show messages after the user's last cleared timestamp
