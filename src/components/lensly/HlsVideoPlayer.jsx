@@ -18,8 +18,21 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
     }
 
     if (HLS.isSupported()) {
-      const hls = new HLS();
+      const hls = new HLS({
+        enableWorker: true,
+        lowLatencyMode: true,
+      });
       hlsRef.current = hls;
+
+      hls.on(HLS.Events.MANIFEST_PARSED, () => {
+        console.log("[HLS] Manifest parsed, starting playback");
+        video.play().catch((e) => console.error("[HLS] Play failed:", e));
+      });
+
+      hls.on(HLS.Events.ERROR, (event, data) => {
+        console.error("[HLS] Error:", data);
+      });
+
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
