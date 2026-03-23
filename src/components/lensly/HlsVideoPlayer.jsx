@@ -24,6 +24,8 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
     if (HLS.isSupported()) {
       const hls = new HLS({
         enableWorker: true,
+        lowLatencyMode: false,
+        backBufferLength: 90,
         xhrSetup: (xhr, url) => {
           xhr.withCredentials = false;
         },
@@ -40,11 +42,13 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
         console.error("[HLS] Error event:", data);
         if (data.fatal) {
           setError(`HLS Error: ${data.type}`);
+          hls.startLoad();
         }
       });
 
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
+      hls.startLoad();
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       console.log("[HLS] Using native Safari HLS");
       video.src = hlsUrl;
