@@ -392,7 +392,7 @@ export default function CreatorProfile() {
                             </div>
                           </div>
                         ) : (
-                          <img src={item.url} alt={item.caption || ""} className="w-full h-full object-cover" />
+                          <img src={item.url} alt={item.caption || ""} loading="lazy" className="w-full h-full object-cover" />
                         )}
                       </motion.div>
                     );
