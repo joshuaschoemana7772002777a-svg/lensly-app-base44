@@ -38,12 +38,6 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
     setupVideo();
   }, [movUrl, mp4Url, hlsUrl, fallbackUrl]);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !proxiedUrl) return;
-    video.src = proxiedUrl;
-  }, [proxiedUrl]);
-
   return (
     <video
       ref={videoRef}
@@ -52,6 +46,18 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
       playsInline
       preload="metadata"
       className={className}
-    />
+    >
+      {proxiedUrl && (
+        <>
+          {proxiedUrl.includes(".mp4") && <source src={proxiedUrl} type="video/mp4" />}
+          {proxiedUrl.includes(".mov") && <source src={proxiedUrl} type="video/quicktime" />}
+          {proxiedUrl.includes(".m3u8") && <source src={proxiedUrl} type="application/x-mpegURL" />}
+          {!proxiedUrl.includes(".mp4") && !proxiedUrl.includes(".mov") && !proxiedUrl.includes(".m3u8") && (
+            <source src={proxiedUrl} type="video/mp4" />
+          )}
+        </>
+      )}
+      Your browser does not support the video tag.
+    </video>
   );
 }
