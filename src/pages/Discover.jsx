@@ -147,9 +147,9 @@ export default function Discover() {
 
     setIsAuthenticated(authed);
 
-    // Fetch favourites in parallel with nothing else blocking
     let favSet = new Set();
     if (authed) {
+      // Already fetched in parallel above — but favourites depend on auth result so fetch now
       const favs = await base44.entities.Favourite.list();
       favSet = new Set(favs.map(f => f.creator_profile_id));
       setFavouriteIds(favSet);
