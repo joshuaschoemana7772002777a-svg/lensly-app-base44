@@ -1,39 +1,39 @@
 import React, { useEffect, useRef } from "react";
+import HLS from "hls.js";
 
-/**
- * Video player for Mux URLs (MP4 format)
- * Mux URLs from mux_mp4_url are direct MP4 streams
- */
 export default function HlsVideoPlayer({ item, className = "", poster }) {
   const videoRef = useRef(null);
+  const hlsRef = useRef(null);
 
-  const mp4Url = item?.mux_mp4_url;
   const hlsUrl = item?.mux_playback_url;
   const fallbackUrl = item?.url;
 
-  // Priority: MP4 → HLS → fallback
-  const videoUrl = mp4Url || hlsUrl || fallbackUrl;
-
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !videoUrl) return;
+    if (!video || !hlsUrl) return;
 
-    // Clear existing sources
-    video.innerHTML = "";
-
-    // Determine MIME type based on URL pattern
-    let mimeType = "video/mp4"; // default
-    if (videoUrl.includes(".m3u8") || videoUrl.includes("hls")) {
-      mimeType = "application/x-mpegURL";
-    } else if (videoUrl.includes(".mov")) {
-      mimeType = "video/quicktime";
+    // Clean up previous HLS instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
     }
 
-    const source = document.createElement("source");
-    source.src = videoUrl;
-    source.type = mimeType;
-    video.appendChild(source);
-  }, [videoUrl]);
+    if (HLS.isSupported()) {
+      const hls = new HLS();
+      hlsRef.current = hls;
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(video);
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      // Safari native HLS support
+      video.src = hlsUrl;
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [hlsUrl]);
 
   return (
     <video
@@ -43,8 +43,6 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
       playsInline
       preload="metadata"
       className={className}
-    >
-      Your browser does not support the video tag.
-    </video>
+    />
   );
 }
