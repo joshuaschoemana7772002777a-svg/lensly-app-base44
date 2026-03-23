@@ -84,43 +84,38 @@ export default function CreatorProfile() {
 
   const loadCreator = async () => {
     setLoading(true);
-    try {
-      const data = await base44.entities.CreatorProfile.filter({ id: creatorId });
-      if (data.length > 0) setCreator(data[0]);
-      
-      // Load reviews
-      const creatorReviews = await base44.entities.Review.filter({ 
-        creator_profile_id: creatorId 
-      }, "-created_date");
-      setReviews(creatorReviews);
-      setReviewCount(creatorReviews.length);
-      if (creatorReviews.length > 0) {
-        const avgRating = creatorReviews.reduce((sum, r) => sum + r.rating, 0) / creatorReviews.length;
-        setAverageRating(avgRating);
-      }
-      
-      const authed = await base44.auth.isAuthenticated();
-      setIsAuthenticated(authed);
-      if (authed) {
-        const user = await base44.auth.me();
-        const favs = await base44.entities.Favourite.filter({ creator_profile_id: creatorId });
-        setIsFavourite(favs.length > 0);
-        
-        // Check if blocked
-        const blocks = await base44.entities.BlockedUser.filter({
-          blocker_email: user.email,
-          blocked_profile_id: creatorId,
-        });
-        setIsBlocked(blocks.length > 0);
-        
-        // Check if owner
-        if (data.length > 0 && data[0].created_by === user.email) {
-          setIsOwner(true);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading creator profile:", error);
+
+    // Fetch profile, reviews, and auth status all in parallel
+    const [data, creatorReviews, authed] = await Promise.all([
+      base44.entities.CreatorProfile.filter({ id: creatorId }),
+      base44.entities.Review.filter({ creator_profile_id: creatorId }, "-created_date"),
+      base44.auth.isAuthenticated(),
+    ]);
+
+    if (data.length > 0) setCreator(data[0]);
+
+    setReviews(creatorReviews);
+    setReviewCount(creatorReviews.length);
+    if (creatorReviews.length > 0) {
+      setAverageRating(creatorReviews.reduce((sum, r) => sum + r.rating, 0) / creatorReviews.length);
     }
+
+    setIsAuthenticated(authed);
+
+    if (authed) {
+      const user = await base44.auth.me();
+
+      // Fetch favs + blocks in parallel
+      const [favs, blocks] = await Promise.all([
+        base44.entities.Favourite.filter({ creator_profile_id: creatorId }),
+        base44.entities.BlockedUser.filter({ blocker_email: user.email, blocked_profile_id: creatorId }),
+      ]);
+
+      setIsFavourite(favs.length > 0);
+      setIsBlocked(blocks.length > 0);
+      if (data.length > 0 && data[0].created_by === user.email) setIsOwner(true);
+    }
+
     setLoading(false);
   };
 
