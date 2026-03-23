@@ -112,6 +112,7 @@ export default function PortfolioViewer({
                 <img
                   src={currentItem.url}
                   alt={currentItem.caption || ""}
+                  loading="lazy"
                   className="max-w-full max-h-[90vh] object-contain rounded-lg"
                 />
               )}
