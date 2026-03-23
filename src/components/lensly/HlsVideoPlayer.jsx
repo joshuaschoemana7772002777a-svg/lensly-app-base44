@@ -24,11 +24,6 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
       });
       hlsRef.current = hls;
 
-      hls.on(HLS.Events.MANIFEST_PARSED, () => {
-        console.log("[HLS] Manifest parsed, starting playback");
-        video.play().catch((e) => console.error("[HLS] Play failed:", e));
-      });
-
       hls.on(HLS.Events.ERROR, (event, data) => {
         console.error("[HLS] Error:", data);
       });
