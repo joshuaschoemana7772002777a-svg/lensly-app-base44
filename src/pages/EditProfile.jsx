@@ -37,13 +37,7 @@ export default function EditProfile() {
     const authed = await base44.auth.isAuthenticated();
     setIsAuthenticated(authed);
     if (!authed) { setLoading(false); return; }
-    const [user, profiles] = await Promise.all([
-      base44.auth.me(),
-      // We don't have the email yet, so fetch all own profiles via created_by — resolved after user loads
-      // Use a two-step: get user first, then fire both in parallel below
-      Promise.resolve(null),
-    ]);
-    // Now fetch profiles with the resolved email
+    const user = await base44.auth.me();
     const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
     if (profiles.length > 0) {
       const existingProfile = profiles[0];
