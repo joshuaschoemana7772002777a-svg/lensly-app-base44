@@ -37,7 +37,6 @@ export default function EditProfile() {
     const authed = await base44.auth.isAuthenticated();
     setIsAuthenticated(authed);
     if (!authed) { setLoading(false); return; }
-    // Fetch user + profiles in parallel
     const user = await base44.auth.me();
     const profiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
     if (profiles.length > 0) {
