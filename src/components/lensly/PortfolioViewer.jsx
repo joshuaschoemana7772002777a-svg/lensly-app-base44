@@ -120,23 +120,25 @@ export default function PortfolioViewer({
           </AnimatePresence>
         </div>
 
-        {/* Swipe Area for Mobile */}
-        <div
-          className="absolute inset-0 md:hidden"
-          onTouchStart={(e) => {
-            const touchStart = e.touches[0].clientX;
-            const handleTouchEnd = (endEvent) => {
-              const touchEnd = endEvent.changedTouches[0].clientX;
-              const diff = touchStart - touchEnd;
-              if (Math.abs(diff) > 50) {
-                if (diff > 0 && canGoNext) setActiveIndex(prev => prev + 1);
-                if (diff < 0 && canGoPrev) setActiveIndex(prev => prev - 1);
-              }
-              document.removeEventListener("touchend", handleTouchEnd);
-            };
-            document.addEventListener("touchend", handleTouchEnd);
-          }}
-        />
+        {/* Swipe Area for Mobile - only on images */}
+        {currentItem.type === "image" && (
+          <div
+            className="absolute inset-0 md:hidden"
+            onTouchStart={(e) => {
+              const touchStart = e.touches[0].clientX;
+              const handleTouchEnd = (endEvent) => {
+                const touchEnd = endEvent.changedTouches[0].clientX;
+                const diff = touchStart - touchEnd;
+                if (Math.abs(diff) > 50) {
+                  if (diff > 0 && canGoNext) setActiveIndex(prev => prev + 1);
+                  if (diff < 0 && canGoPrev) setActiveIndex(prev => prev - 1);
+                }
+                document.removeEventListener("touchend", handleTouchEnd);
+              };
+              document.addEventListener("touchend", handleTouchEnd);
+            }}
+          />
+        )}
 
         {/* Caption (if exists) */}
         {currentItem.caption && (
