@@ -33,6 +33,7 @@ export default function HlsVideoPlayer({ item, className = "", poster }) {
       hls.on(HLS.Events.MANIFEST_PARSED, () => {
         console.log("[HLS] Manifest loaded successfully");
         setError(null);
+        video.play().catch((e) => console.error("[HLS] Play failed:", e));
       });
 
       hls.on(HLS.Events.ERROR, (event, data) => {
