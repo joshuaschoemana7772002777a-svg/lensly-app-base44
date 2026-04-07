@@ -303,7 +303,7 @@ export default function EditProfile() {
         <div className="space-y-2">
           <Label className="text-xs text-neutral-500 block">Cover Photo</Label>
           <p className="text-xs text-neutral-400 mb-3">
-            Upload a fallback cover image. If you set a Featured portfolio item, it will instantly replace this preview. Changes publish when you tap "Save Profile".
+            Upload a fallback cover image. If you set a Featured portfolio item, it will instantly replace this preview. Changes publish when you tap "Save Profile". (Only accept webp format)
           </p>
           {coverImageError && (
             <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-700">
@@ -331,7 +331,7 @@ export default function EditProfile() {
         <div className="space-y-2">
           <Label className="text-xs text-neutral-500 block">Profile Photo *</Label>
           <p className="text-xs text-neutral-400 mb-3">
-            Upload a clear photo of yourself. This appears as a small circular image on your profile, messages, and reviews.
+            Upload a clear photo of yourself. This appears as a small circular image on your profile, messages, and reviews. (Only accept webp format)
           </p>
           <label className="relative cursor-pointer block">
             <div className="w-32 h-32 rounded-full bg-neutral-200 overflow-hidden flex items-center justify-center mx-auto border-2 border-neutral-100">
