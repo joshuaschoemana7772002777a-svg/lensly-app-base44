@@ -180,7 +180,12 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
           });
 
         } else {
-          // Image — use standard UploadFile
+          // Image — validate WebP only
+          if (file.type !== "image/webp") {
+            setError("Only WebP images are accepted.");
+            setTimeout(() => setError(null), 4000);
+            continue;
+          }
           setUploadLabel("Uploading image…");
           setUploadProgress(Math.round(((i + 0.3) / files.length) * 100));
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
@@ -266,7 +271,7 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
           ? `Upload photos or short videos (MP4 or MOV, max 30 seconds, under 150MB). Max ${maxItems} items.`
           : acceptVideo
           ? `Upload short videos (MP4 or MOV, max 30 seconds, under 150MB). Max ${maxItems} items.`
-          : `Upload photos (JPEG, PNG, or WebP). Max ${maxItems} items.`}
+          : `Upload photos (WebP only). Max ${maxItems} items.`}
       </p>
       <div className="grid grid-cols-3 gap-2">
         {items.map((item, i) => {
@@ -383,10 +388,10 @@ export default function PortfolioUploader({ items = [], onChange, featuredItemId
               type="file"
               accept={
                 acceptVideo && acceptImage
-                  ? "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,video/mp4,video/quicktime,.mp4,.mov"
+                  ? "image/webp,.webp,video/mp4,video/quicktime,.mp4,.mov"
                   : acceptVideo
                   ? "video/mp4,video/quicktime,.mp4,.mov"
-                  : "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                  : "image/webp,.webp"
               }
               multiple
               onChange={handleUpload}
