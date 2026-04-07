@@ -170,7 +170,7 @@ export default function EditClientProfile() {
           </div>
           <input
             type="file"
-            accept="image/*"
+            accept="image/webp,.webp"
             onChange={handlePhotoUpload}
             className="hidden"
             id="photo-upload"

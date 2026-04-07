@@ -173,6 +173,12 @@ export default function EditProfile() {
       e.target.value = '';
       return;
     }
+    if (file.type !== 'image/webp') {
+      setCoverImageError("Only WebP images are accepted.");
+      setTimeout(() => setCoverImageError(null), 4000);
+      e.target.value = '';
+      return;
+    }
     
     setCoverImageError(null);
     setProfileImageUploading(true);
@@ -188,6 +194,11 @@ export default function EditProfile() {
     
     if (file.type.startsWith('video/')) {
       toast.error("Please upload an image for your profile photo.");
+      e.target.value = '';
+      return;
+    }
+    if (file.type !== 'image/webp') {
+      toast.error("Only WebP images are accepted.");
       e.target.value = '';
       return;
     }
@@ -312,7 +323,7 @@ export default function EditProfile() {
                 </div>
               )}
             </div>
-            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleProfileImageUpload} className="hidden" />
+            <input type="file" accept="image/webp,.webp" onChange={handleProfileImageUpload} className="hidden" />
           </label>
         </div>
 
@@ -335,7 +346,7 @@ export default function EditProfile() {
                 </div>
               )}
             </div>
-            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleProfilePhotoUpload} className="hidden" />
+            <input type="file" accept="image/webp,.webp" onChange={handleProfilePhotoUpload} className="hidden" />
           </label>
         </div>
 
