@@ -268,6 +268,7 @@ export default function EditProfile() {
   const completedSteps = steps.filter(s => s.complete).length;
 
   return (
+    <>
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] pb-32">
       {/* Success Banner - Only show if profile is published and has been saved at least once */}
@@ -624,5 +625,6 @@ export default function EditProfile() {
           window.location.href = createPageUrl("Home");
         }}
       />
+    </>
   );
 }
