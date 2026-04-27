@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import PullToRefresh from "../components/lensly/PullToRefresh";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal, Heart, ArrowUpDown, X } from "lucide-react";
@@ -261,18 +262,23 @@ export default function Discover() {
 
   const activeFilters = [selectedCategory, selectedArea].filter(Boolean).length;
 
+  const handleRefresh = async () => {
+    await loadAll(false);
+  };
+
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <PullToRefresh onRefresh={handleRefresh}>
+    <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-neutral-100">
+      <div className="sticky top-0 z-20 bg-white/90 dark:bg-[hsl(222,18%,10%)]/95 backdrop-blur-xl border-b border-neutral-100 dark:border-neutral-800">
         <div className="px-5 pt-5 pb-3">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-bold text-neutral-900">Discover</h1>
+            <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">Discover</h1>
             <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="w-9 h-9 rounded-full bg-white border border-neutral-200 flex items-center justify-center hover:bg-neutral-50 transition-colors">
-                    <ArrowUpDown className="w-5 h-5 text-neutral-600" />
+                  <button className="w-9 h-9 rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors">
+                    <ArrowUpDown className="w-5 h-5 text-neutral-600 dark:text-neutral-300" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -282,11 +288,11 @@ export default function Discover() {
                 </DropdownMenuContent>
               </DropdownMenu>
               <button
-                onClick={() => {
-                  if (!isAuthenticated) { base44.auth.redirectToLogin(window.location.href); return; }
-                  setSavedMode(!savedMode);
-                }}
-                className="w-9 h-9 rounded-full bg-white border border-neutral-200 flex items-center justify-center hover:bg-neutral-50 transition-colors"
+              onClick={() => {
+                if (!isAuthenticated) { base44.auth.redirectToLogin(window.location.href); return; }
+                setSavedMode(!savedMode);
+              }}
+              className="w-9 h-9 rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
               >
                 <Heart className={`w-5 h-5 ${savedMode ? "fill-red-500 text-red-500" : "text-neutral-600"}`} />
               </button>
@@ -309,7 +315,7 @@ export default function Discover() {
                 style={{ overflow: "hidden" }}
               >
                 <div className="mt-2 flex items-center gap-2">
-                  <span className="text-xs text-neutral-500 font-medium shrink-0">Type:</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 font-medium shrink-0">Type:</span>
                   <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
                     {[
                       { label: "All", value: null },
@@ -321,8 +327,8 @@ export default function Discover() {
                         onClick={() => setSelectedType(value)}
                         className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
                           selectedType === value
-                            ? "bg-neutral-900 text-white"
-                            : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                            ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900"
+                            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700"
                         }`}
                       >
                         {label}
@@ -336,7 +342,7 @@ export default function Discover() {
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-neutral-500 font-medium">Price Range</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-blue-600">
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
                           {isPriceDefault ? "Any price" : `Up to R${priceMax.toLocaleString()}`}
                         </span>
                         {!isPriceDefault && (
@@ -354,12 +360,12 @@ export default function Discover() {
                       min={sliderMin} max={sliderMax} step={500}
                       value={[priceMax]} onValueChange={([val]) => setPriceMax(val)}
                     >
-                      <SliderPrimitive.Track className="bg-neutral-200 relative grow rounded-full h-1.5">
+                      <SliderPrimitive.Track className="bg-neutral-200 dark:bg-neutral-700 relative grow rounded-full h-1.5">
                         <SliderPrimitive.Range className="absolute bg-blue-500 rounded-full h-full" />
                       </SliderPrimitive.Track>
-                      <SliderPrimitive.Thumb className="block w-4 h-4 bg-white border-2 border-blue-500 rounded-full shadow focus:outline-none cursor-grab active:cursor-grabbing" />
+                      <SliderPrimitive.Thumb className="block w-4 h-4 bg-white dark:bg-neutral-200 border-2 border-blue-500 rounded-full shadow focus:outline-none cursor-grab active:cursor-grabbing" />
                     </SliderPrimitive.Root>
-                    <p className="text-[10px] text-neutral-400 mt-1">Filters by creator starting price (max)</p>
+                    <p className="text-[10px] text-neutral-400 dark:text-neutral-500 mt-1">Filters by creator starting price (max)</p>
                   </div>
                 )}
               </motion.div>
@@ -383,7 +389,7 @@ export default function Discover() {
           <div className="mb-3">
             <button
               onClick={() => setSortBy("rating")}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-neutral-100 rounded-full text-xs font-medium text-neutral-700 hover:bg-neutral-200 transition-colors"
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-full text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
             >
               Sorted: {sortBy === "price_low" ? "Price: Low to High" : "Price: High to Low"}
               <X className="w-3.5 h-3.5" />
@@ -392,7 +398,7 @@ export default function Discover() {
         )}
 
         {!loading && (
-          <p className="text-xs text-neutral-400 mb-4">
+          <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-4">
             {filtered.length} creator{filtered.length !== 1 ? "s" : ""} found
           </p>
         )}
@@ -406,13 +412,13 @@ export default function Discover() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 px-5">
-            <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mx-auto mb-4">
               {savedMode ? <Heart className="w-6 h-6 text-neutral-400" /> : <SlidersHorizontal className="w-6 h-6 text-neutral-400" />}
             </div>
-            <h3 className="font-medium text-neutral-700">
+            <h3 className="font-medium text-neutral-700 dark:text-neutral-300">
               {savedMode ? "No saved creators yet" : "No creators found"}
             </h3>
-            <p className="text-sm text-neutral-400 mt-1">
+            <p className="text-sm text-neutral-400 dark:text-neutral-500 mt-1">
               {savedMode ? "Save creators to find them faster later." : "No creators found for this selection."}
             </p>
             {savedMode && (
@@ -444,7 +450,7 @@ export default function Discover() {
             {hasMore && (
               <button
                 onClick={handleLoadMore}
-                className="w-full mt-6 py-3 rounded-xl border border-neutral-200 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+                className="w-full mt-6 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
               >
                 Load more ({sorted.length - displayCount} remaining)
               </button>
@@ -453,5 +459,6 @@ export default function Discover() {
         )}
       </div>
     </div>
+    </PullToRefresh>
   );
 }

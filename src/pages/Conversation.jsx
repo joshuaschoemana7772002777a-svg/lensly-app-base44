@@ -260,7 +260,7 @@ export default function Conversation() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-neutral-300 border-t-blue-500 animate-spin" />
       </div>
     );
@@ -268,7 +268,7 @@ export default function Conversation() {
 
   if (!conversation) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-5">
+      <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] flex flex-col items-center justify-center p-5">
         <h2 className="text-lg font-semibold text-neutral-800">Conversation not found</h2>
         <Link to={createPageUrl("Messages")} className="mt-4 text-blue-500 text-sm">Back to Messages</Link>
       </div>
@@ -287,15 +287,15 @@ export default function Conversation() {
     : null;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-white border-b border-neutral-100 px-4 py-3">
+      <div className="sticky top-0 z-20 bg-white dark:bg-[hsl(222,18%,13%)] border-b border-neutral-100 dark:border-neutral-800 px-4 py-3">
         <div className="flex items-center gap-3">
           <Link
-            to={createPageUrl("Messages")}
-            className="w-9 h-9 rounded-full hover:bg-neutral-100 flex items-center justify-center"
+          to={createPageUrl("Messages")}
+          className="w-9 h-9 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5 text-neutral-700" />
+          <ArrowLeft className="w-5 h-5 text-neutral-700 dark:text-neutral-300" />
           </Link>
           <button
             className="flex items-center gap-3 flex-1 active:opacity-60 transition-opacity text-left"
@@ -310,16 +310,16 @@ export default function Conversation() {
           >
             <ProfileAvatar photoUrl={otherPersonPhoto} displayName={otherPersonName} size="sm" />
             <div className="flex-1 min-w-0">
-              <h2 className="text-base font-semibold text-neutral-900 truncate">{otherPersonName || "User"}</h2>
+              <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 truncate">{otherPersonName || "User"}</h2>
               {userRole === "client" && replyTimeText && (
-                <p className="text-xs text-neutral-400 mt-0.5">{replyTimeText}</p>
+                <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">{replyTimeText}</p>
               )}
             </div>
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="w-9 h-9 rounded-full hover:bg-neutral-100 flex items-center justify-center">
-                <MoreVertical className="w-5 h-5 text-neutral-600" />
+              <button className="w-9 h-9 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center">
+                <MoreVertical className="w-5 h-5 text-neutral-600 dark:text-neutral-300" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -351,17 +351,17 @@ export default function Conversation() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center py-12">
-            <p className="text-sm text-neutral-400">No messages yet. Start the conversation!</p>
-          </div>
+        <div className="flex items-center justify-center py-12">
+          <p className="text-sm text-neutral-400 dark:text-neutral-500">No messages yet. Start the conversation!</p>
+        </div>
         ) : (
-          messages.map((msg) => {
-            const isMe = msg.sender_email === user.email;
-            return (
-              <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[75%] ${isMe ? "bg-blue-500 text-white" : "bg-neutral-100 text-neutral-900"} rounded-2xl px-4 py-2.5`}>
+        messages.map((msg) => {
+          const isMe = msg.sender_email === user.email;
+          return (
+            <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[75%] ${isMe ? "bg-blue-500 text-white" : "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"} rounded-2xl px-4 py-2.5`}>
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                  <span className={`text-xs mt-1 block ${isMe ? "text-blue-100" : "text-neutral-400"}`}>
+                  <span className={`text-xs mt-1 block ${isMe ? "text-blue-100" : "text-neutral-400 dark:text-neutral-500"}`}>
                     {moment(msg.created_date).format("h:mm A")}
                   </span>
                 </div>
@@ -396,7 +396,7 @@ export default function Conversation() {
 
       {/* Message composer — always visible unless user is blocked */}
       {!isBlocked ? (
-        <div className="sticky bottom-0 bg-white border-t border-neutral-100 p-4">
+        <div className="sticky bottom-0 bg-white dark:bg-[hsl(222,18%,13%)] border-t border-neutral-100 dark:border-neutral-800 p-4">
           {rateLimitError && (
             <div className="mb-3 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -423,8 +423,8 @@ export default function Conversation() {
           </div>
         </div>
       ) : (
-        <div className="sticky bottom-0 bg-neutral-50 border-t border-neutral-200 p-4 text-center">
-          <p className="text-sm text-neutral-600">You've blocked this user</p>
+        <div className="sticky bottom-0 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 p-4 text-center">
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">You've blocked this user</p>
         </div>
       )}
 

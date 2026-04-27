@@ -50,7 +50,7 @@ export default function Layout({ children, currentPageName }) {
 
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)]">
       <style>{`
         :root {
           --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -115,8 +115,8 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Footer - show on all pages */}
       {!hideNav && (
-        <footer className="bg-neutral-50 border-t border-neutral-200 py-8 px-5 pb-28">
-          <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-4 text-xs text-neutral-500">
+        <footer className="bg-neutral-50 dark:bg-[hsl(222,18%,8%)] border-t border-neutral-200 dark:border-neutral-800 py-8 px-5 pb-28">
+          <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
             <span>© 2026 Lensly</span>
             <span>•</span>
             <a href={createPageUrl("Terms")} className="hover:text-neutral-900 transition-colors">
@@ -137,7 +137,7 @@ export default function Layout({ children, currentPageName }) {
       <FirstOpenConsentBanner />
 
       {!hideNav && (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-neutral-100" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-[hsl(222,18%,10%)]/90 backdrop-blur-xl border-t border-neutral-100 dark:border-neutral-800" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
             {NAV_ITEMS.map((item) => {
               const isActive = currentPageName === item.page;
@@ -153,7 +153,7 @@ export default function Layout({ children, currentPageName }) {
                   key={item.page}
                   to={createPageUrl(item.page)}
                   className={`flex flex-col items-center gap-0.5 px-3 py-1 transition-colors relative ${
-                    isActive ? "text-blue-500" : "text-neutral-400"
+                    isActive ? "text-blue-500" : "text-neutral-400 dark:text-neutral-500"
                   }`}
                 >
                   <div className="relative">

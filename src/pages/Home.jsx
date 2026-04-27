@@ -36,9 +36,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)]">
       {/* Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-white px-5 pt-14 pb-10">
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-white dark:from-[hsl(222,18%,13%)] dark:to-[hsl(222,18%,10%)] px-5 pt-14 pb-10">
         <div className="relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -52,10 +52,10 @@ export default function Home() {
                 className="h-16"
               />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 leading-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-neutral-100 leading-tight">
               Find photographers and videographers near you.
             </h1>
-            <p className="text-neutral-500 mt-3 text-sm max-w-md leading-relaxed">
+            <p className="text-neutral-500 dark:text-neutral-400 mt-3 text-sm max-w-md leading-relaxed">
               Browse by shoot type and operating area, view portfolios, and contact creators when you're ready.
             </p>
           </motion.div>
@@ -87,7 +87,7 @@ export default function Home() {
       {/* Categories */}
       <div className="px-5 pt-8 pb-24">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-neutral-900">Browse by Category</h2>
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Browse by Category</h2>
           <Link to={createPageUrl("Discover")} className="text-blue-500 text-xs font-medium flex items-center gap-1">
             See all <ArrowRight className="w-3 h-3" />
           </Link>

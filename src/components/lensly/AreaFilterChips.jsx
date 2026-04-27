@@ -6,7 +6,7 @@ const AREAS = ["All", "Sandton", "Johannesburg", "Pretoria", "Cape Town"];
 export default function AreaFilterChips({ selected, onChange }) {
   return (
     <div>
-      <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">Operating Area</h3>
+      <h3 className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">Operating Area</h3>
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {AREAS.map((area) => {
           const isActive = area === "All" ? !selected : selected === area;
@@ -17,7 +17,7 @@ export default function AreaFilterChips({ selected, onChange }) {
               className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                 isActive
                   ? "bg-blue-500 text-white shadow-lg"
-                  : "bg-white text-neutral-600 border border-neutral-200 hover:border-blue-300"
+                  : "bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 hover:border-blue-300 dark:hover:border-blue-500"
               }`}
             >
               {area !== "All" && <MapPin className="w-3 h-3" />}

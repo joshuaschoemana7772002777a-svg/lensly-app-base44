@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PullToRefresh from "../components/lensly/PullToRefresh";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -126,9 +127,13 @@ export default function Messages() {
     }
   };
 
+  const handleRefresh = async () => {
+    await loadData();
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center pb-20">
+      <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] flex items-center justify-center pb-20">
         <div className="w-8 h-8 rounded-full border-2 border-neutral-300 border-t-blue-500 animate-spin" />
       </div>
     );
@@ -139,19 +144,20 @@ export default function Messages() {
   const pendingCount = requests.filter(r => r.status === "pending" || r.status === "read").length;
 
   return (
-    <div className="min-h-screen bg-white pb-20">
-      <div className="sticky top-0 z-20 bg-white border-b border-neutral-100">
+    <PullToRefresh onRefresh={handleRefresh}>
+    <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] pb-20">
+      <div className="sticky top-0 z-20 bg-white dark:bg-[hsl(222,18%,10%)] border-b border-neutral-100 dark:border-neutral-800">
         <div className="px-5 pt-6 pb-3">
-          <h1 className="text-2xl font-bold text-neutral-900 mb-4">Messages</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">Messages</h1>
           
           {/* Sub-tabs */}
-          <div className="flex gap-1 bg-neutral-100 rounded-xl p-1">
+          <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1">
             <button
               onClick={() => setActiveTab("messages")}
               className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
                 activeTab === "messages"
-                  ? "bg-white text-neutral-900 shadow-sm"
-                  : "text-neutral-500 hover:text-neutral-700"
+                  ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm"
+                  : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
               }`}
             >
               Messages
@@ -160,8 +166,8 @@ export default function Messages() {
               onClick={() => setActiveTab("updates")}
               className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all relative ${
                 activeTab === "updates"
-                  ? "bg-white text-neutral-900 shadow-sm"
-                  : "text-neutral-500 hover:text-neutral-700"
+                  ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm"
+                  : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
               }`}
             >
               Updates
@@ -180,11 +186,11 @@ export default function Messages() {
         <>
           {conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-5">
-              <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
                 <MessageCircle className="w-7 h-7 text-neutral-400" />
               </div>
-              <h3 className="font-medium text-neutral-700">No conversations yet</h3>
-              <p className="text-sm text-neutral-500 text-center mt-2 max-w-sm">
+              <h3 className="font-medium text-neutral-700 dark:text-neutral-300">No conversations yet</h3>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center mt-2 max-w-sm">
                 Conversations appear here when you accept a request.
               </p>
               {userRole === "client" && (
@@ -197,7 +203,7 @@ export default function Messages() {
               )}
             </div>
           ) : (
-            <div className="divide-y divide-neutral-100">
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
               {conversations.map((convo, i) => {
                 const unreadCount = userRole === "creator" ? convo.unread_count_creator : convo.unread_count_client;
                 const otherPersonName = userRole === "creator" ? convo.client_name : convo.creator_name;
@@ -212,7 +218,7 @@ export default function Messages() {
                   >
                     <Link
                       to={createPageUrl("Conversation") + `?id=${convo.id}`}
-                      className="flex items-center gap-3 p-4 hover:bg-neutral-50 transition"
+                      className="flex items-center gap-3 p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition"
                     >
                       <ProfileAvatar 
                         photoUrl={otherPersonImage}
@@ -221,15 +227,15 @@ export default function Messages() {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-semibold text-neutral-900 truncate">
+                          <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate">
                             {otherPersonName || "User"}
                           </h3>
-                          <span className="text-xs text-neutral-400 ml-2 flex-shrink-0">
+                          <span className="text-xs text-neutral-400 dark:text-neutral-500 ml-2 flex-shrink-0">
                             {convo.last_message_at ? moment(convo.last_message_at).fromNow() : moment(convo.created_date).fromNow()}
                           </span>
                         </div>
                         <div className="flex items-center justify-between mt-1">
-                          <p className="text-sm text-neutral-600 truncate">
+                          <p className="text-sm text-neutral-600 dark:text-neutral-400 truncate">
                             {convo.last_message || "Start a conversation"}
                           </p>
                           {unreadCount > 0 && (
@@ -254,11 +260,11 @@ export default function Messages() {
         <>
           {pendingRequests.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-5">
-              <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
                 <CheckCircle2 className="w-7 h-7 text-neutral-400" />
               </div>
-              <h3 className="font-medium text-neutral-700">All caught up</h3>
-              <p className="text-sm text-neutral-500 text-center mt-2 max-w-sm">
+              <h3 className="font-medium text-neutral-700 dark:text-neutral-300">All caught up</h3>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center mt-2 max-w-sm">
                 {userRole === "creator" ? "New booking requests will appear here." : "Your sent requests will appear here."}
               </p>
             </div>
@@ -267,10 +273,10 @@ export default function Messages() {
               {pendingRequests.map((req) => (
                 <div
                   key={req.id}
-                  className="rounded-2xl bg-white border border-neutral-200 shadow-sm overflow-hidden"
+                  className="rounded-2xl bg-white dark:bg-[hsl(222,18%,13%)] border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden"
                 >
                   {/* Card Header */}
-                  <div className="p-4 bg-neutral-50 border-b border-neutral-100">
+                  <div className="p-4 bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-100 dark:border-neutral-700">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <ProfileAvatar 
@@ -279,10 +285,10 @@ export default function Messages() {
                           size="sm"
                         />
                         <div>
-                          <h3 className="text-sm font-semibold text-neutral-900">
+                          <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
                             {userRole === "creator" ? req.sender_name : req.creator_name}
                           </h3>
-                          <p className="text-xs text-neutral-500">
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400">
                             {req.created_date && format(new Date(req.created_date), "MMM d, yyyy")}
                           </p>
                         </div>
@@ -337,7 +343,7 @@ export default function Messages() {
 
                     {/* Message Preview */}
                     <div>
-                      <p className="text-sm text-neutral-700 leading-relaxed line-clamp-2">
+                      <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed line-clamp-2">
                         {req.message}
                       </p>
                     </div>
@@ -370,5 +376,6 @@ export default function Messages() {
         </>
       )}
     </div>
+    </PullToRefresh>
   );
 }

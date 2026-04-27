@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PullToRefresh from "../components/lensly/PullToRefresh";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import { ArrowLeft, Heart, MapPin, Globe, Instagram, Camera, Send, Flag, AlertCircle, Star, Edit3 } from "lucide-react";
@@ -138,9 +139,13 @@ export default function CreatorProfile() {
     }
   };
 
+  const handleRefresh = async () => {
+    await loadCreator();
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-neutral-300 border-t-blue-500 animate-spin" />
       </div>
     );
@@ -148,7 +153,7 @@ export default function CreatorProfile() {
 
   if (!creator) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 p-5">
+      <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] flex flex-col items-center justify-center gap-4 p-5">
         <h2 className="text-lg font-semibold">Creator not found</h2>
         <Link to={createPageUrl("Discover")} className="text-blue-500 text-sm">
           Back to Discover
@@ -161,7 +166,8 @@ export default function CreatorProfile() {
   const featuredCategories = creator.featured_categories?.slice(0, 2) || creator.categories?.slice(0, 2) || [];
 
   return (
-    <div className="min-h-screen bg-white pb-28">
+    <PullToRefresh onRefresh={handleRefresh}>
+    <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] pb-28">
       {/* Hero Cover */}
       <div className="relative aspect-[4/5] md:aspect-[16/9] max-h-[500px] bg-neutral-900">
         <img
@@ -243,7 +249,7 @@ export default function CreatorProfile() {
 
       {/* Content */}
       <div className="px-5 mt-6">
-        <div className="bg-white rounded-2xl shadow-xl p-5 border border-neutral-100">
+        <div className="bg-white dark:bg-[hsl(222,18%,13%)] rounded-2xl shadow-xl p-5 border border-neutral-100 dark:border-neutral-800">
           {averageRating > 0 && (
             <div className="mb-4">
               <StarRating rating={averageRating} count={reviewCount} size="md" />
@@ -252,7 +258,7 @@ export default function CreatorProfile() {
 
           {/* Areas */}
           <div className="mb-4">
-            <div className="flex items-center gap-1.5 text-sm text-neutral-600">
+            <div className="flex items-center gap-1.5 text-sm text-neutral-600 dark:text-neutral-400">
               <MapPin className="w-4 h-4 text-neutral-400" />
               <span>Operates in: {(creator.service_areas || []).join(" · ")}</span>
             </div>
@@ -329,7 +335,7 @@ export default function CreatorProfile() {
         </div>
 
         {/* Additional Details */}
-        <div className="mt-5 bg-white rounded-2xl shadow-sm p-5 border border-neutral-100">
+        <div className="mt-5 bg-white dark:bg-[hsl(222,18%,13%)] rounded-2xl shadow-sm p-5 border border-neutral-100 dark:border-neutral-800">
           {/* Categories */}
           {creator.categories?.length > 0 && (
             <div className="mb-4">
@@ -421,21 +427,21 @@ export default function CreatorProfile() {
 
         {/* Bio */}
         {creator.bio && (
-          <div className="mt-6 bg-white rounded-2xl shadow-sm p-5 border border-neutral-100">
+          <div className="mt-6 bg-white dark:bg-[hsl(222,18%,13%)] rounded-2xl shadow-sm p-5 border border-neutral-100 dark:border-neutral-800">
             <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">About</h3>
-            <p className="text-sm text-neutral-600 leading-relaxed">{creator.bio}</p>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">{creator.bio}</p>
           </div>
         )}
 
         {/* Reviews */}
         {reviews.length > 0 && (
-          <div className="mt-6 bg-white rounded-2xl shadow-sm p-5 border border-neutral-100">
+          <div className="mt-6 bg-white dark:bg-[hsl(222,18%,13%)] rounded-2xl shadow-sm p-5 border border-neutral-100 dark:border-neutral-800">
             <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-4">
               Reviews ({reviewCount})
             </h3>
             <div className="space-y-4">
               {reviews.map((review) => (
-                <div key={review.id} className="pb-4 border-b border-neutral-100 last:border-0 last:pb-0">
+                <div key={review.id} className="pb-4 border-b border-neutral-100 dark:border-neutral-800 last:border-0 last:pb-0">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <ProfileAvatar 
@@ -444,10 +450,10 @@ export default function CreatorProfile() {
                         size="sm"
                       />
                       <div>
-                        <p className="text-sm font-medium text-neutral-900">
+                        <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                           {review.client_name?.split(" ")[0]} {review.client_name?.split(" ")[1]?.charAt(0)}.
                         </p>
-                        <p className="text-xs text-neutral-400">
+                        <p className="text-xs text-neutral-400 dark:text-neutral-500">
                           {new Date(review.created_date).toLocaleDateString()}
                         </p>
                       </div>
@@ -466,7 +472,7 @@ export default function CreatorProfile() {
                     </div>
                   </div>
                   {review.review_text && (
-                    <p className="text-sm text-neutral-600 leading-relaxed mt-2">
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mt-2">
                       {review.review_text}
                     </p>
                   )}
@@ -489,7 +495,7 @@ export default function CreatorProfile() {
 
         {/* Social Links */}
         {(creator.instagram_handle || creator.website_url) && (
-          <div className="mt-4 bg-white rounded-2xl shadow-sm p-5 border border-neutral-100">
+          <div className="mt-4 bg-white dark:bg-[hsl(222,18%,13%)] rounded-2xl shadow-sm p-5 border border-neutral-100 dark:border-neutral-800">
             <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-3">Connect</h3>
             <div className="flex flex-wrap gap-3">
               {creator.instagram_handle && (
@@ -497,7 +503,7 @@ export default function CreatorProfile() {
                   href={`https://instagram.com/${creator.instagram_handle}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-2 bg-neutral-100 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-200 transition"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-neutral-100 dark:bg-neutral-800 rounded-xl text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
                 >
                   <Instagram className="w-3.5 h-3.5" /> @{creator.instagram_handle}
                 </a>
@@ -507,7 +513,7 @@ export default function CreatorProfile() {
                   href={creator.website_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-2 bg-neutral-100 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-200 transition"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-neutral-100 dark:bg-neutral-800 rounded-xl text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
                 >
                   <Globe className="w-3.5 h-3.5" /> Website
                 </a>
@@ -549,5 +555,6 @@ export default function CreatorProfile() {
         initialIndex={activePortfolioIndex}
       />
       </div>
+      </PullToRefresh>
       );
       }

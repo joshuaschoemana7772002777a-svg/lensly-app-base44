@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PullToRefresh from "../components/lensly/PullToRefresh";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -211,9 +212,19 @@ export default function EditProfile() {
 
 
 
+  const handleRefresh = async () => {
+    const user = await base44.auth.me();
+    const creatorProfiles = await base44.entities.CreatorProfile.filter({ created_by: user.email });
+    if (creatorProfiles.length > 0) {
+      const existingProfile = creatorProfiles[0];
+      setProfile(existingProfile);
+      setDraftCoverUrl(existingProfile.draftCoverPhotoUrl || existingProfile.publishedCoverPhotoUrl || existingProfile.profile_image);
+    }
+  };
+
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-5">
+      <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] flex flex-col items-center justify-center p-5">
         <div className="w-20 h-20 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
           <Camera className="w-8 h-8 text-neutral-300" />
         </div>
@@ -230,7 +241,7 @@ export default function EditProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-neutral-300 border-t-neutral-600 animate-spin" />
       </div>
     );
@@ -257,15 +268,16 @@ export default function EditProfile() {
   const completedSteps = steps.filter(s => s.complete).length;
 
   return (
-    <div className="min-h-screen bg-white pb-32">
+    <PullToRefresh onRefresh={handleRefresh}>
+    <div className="min-h-screen bg-white dark:bg-[hsl(222,18%,10%)] pb-32">
       {/* Success Banner - Only show if profile is published and has been saved at least once */}
       {profile?.status === "published" && profile?.publishedAt && (
         <div className="px-5 pt-4 pb-2">
           <div className="p-3 rounded-xl bg-green-50 border border-green-200 flex items-start gap-3">
             <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-medium text-green-900">Profile is visible on Discover</p>
-              <p className="text-[10px] text-green-700 mt-0.5">Clients can find and contact you</p>
+              <p className="text-xs font-medium text-green-900 dark:text-green-300">Profile is visible on Discover</p>
+              <p className="text-[10px] text-green-700 dark:text-green-400 mt-0.5">Clients can find and contact you</p>
             </div>
           </div>
         </div>
@@ -274,11 +286,11 @@ export default function EditProfile() {
       <div className="px-5 pt-6 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-neutral-900">
+            <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
               {isOnboarding ? "Complete Your Profile" : "Edit Profile"}
             </h1>
             {isOnboarding && (
-              <p className="text-xs text-neutral-500 mt-1">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
                 {completedSteps} of {steps.length} steps completed
               </p>
             )}
@@ -584,8 +596,11 @@ export default function EditProfile() {
         )}
       </div>
 
+    </div>
+    </PullToRefresh>
+
       {/* Save Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-xl border-t border-neutral-100 z-30">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-[hsl(222,18%,10%)]/95 backdrop-blur-xl border-t border-neutral-100 dark:border-neutral-800 z-30">
         <Button
             onClick={handleSave}
             disabled={saving || !profile?.display_name || !profile?.profile_photo || !draftCoverUrl || !profile?.categories?.length || !profile?.featured_categories?.length || !profile?.service_areas?.length || !profile?.starting_price}
@@ -609,6 +624,5 @@ export default function EditProfile() {
           window.location.href = createPageUrl("Home");
         }}
       />
-    </div>
   );
 }
