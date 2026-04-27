@@ -599,22 +599,22 @@ export default function EditProfile() {
     </div>
     </PullToRefresh>
 
-      {/* Save Button */}
+      {/* Save Button — fixed, outside scroll area */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-[hsl(222,18%,10%)]/95 backdrop-blur-xl border-t border-neutral-100 dark:border-neutral-800 z-30">
         <Button
-            onClick={handleSave}
-            disabled={saving || !profile?.display_name || !profile?.profile_photo || !draftCoverUrl || !profile?.categories?.length || !profile?.featured_categories?.length || !profile?.service_areas?.length || !profile?.starting_price}
-            className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
-          >
-            {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : saved ? (
-              <CheckCircle2 className="w-4 h-4 mr-2 text-green-400" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
-            )}
-            {saved ? (isOnboarding && isProfileComplete ? "Welcome to Lensly!" : !isOnboarding && isProfileComplete ? "Profile updated" : "Saved!") : saving ? "Saving..." : (isOnboarding && isProfileComplete ? "Save & Go Live" : "Save Profile")}
-          </Button>
+          onClick={handleSave}
+          disabled={saving || !profile?.display_name || !profile?.profile_photo || !draftCoverUrl || !profile?.categories?.length || !profile?.featured_categories?.length || !profile?.service_areas?.length || !profile?.starting_price}
+          className="w-full h-14 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-medium text-base"
+        >
+          {saving ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          ) : saved ? (
+            <CheckCircle2 className="w-4 h-4 mr-2 text-green-400" />
+          ) : (
+            <Save className="w-4 h-4 mr-2" />
+          )}
+          {saved ? (isOnboarding && isProfileComplete ? "Welcome to Lensly!" : !isOnboarding && isProfileComplete ? "Profile updated" : "Saved!") : saving ? "Saving..." : (isOnboarding && isProfileComplete ? "Save & Go Live" : "Save Profile")}
+        </Button>
       </div>
 
       <OnboardingSuccessModal
