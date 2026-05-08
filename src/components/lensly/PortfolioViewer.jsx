@@ -20,6 +20,14 @@ export default function PortfolioViewer({
   useEffect(() => {
     if (!isOpen) return;
 
+    // Push a dummy history entry so the back gesture hits it first
+    window.history.pushState({ portfolioViewer: true }, "");
+
+    const handlePopState = (e) => {
+      // Back gesture / back button — close the viewer instead of leaving the page
+      onClose();
+    };
+
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowLeft" && activeIndex > 0) setActiveIndex(activeIndex - 1);
@@ -30,14 +38,20 @@ export default function PortfolioViewer({
       e.preventDefault();
     };
 
+    window.addEventListener("popstate", handlePopState);
     document.addEventListener("keydown", handleKeyDown);
     document.body.style.overflow = "hidden";
     document.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => {
+      window.removeEventListener("popstate", handlePopState);
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "auto";
       document.removeEventListener("wheel", handleWheel);
+      // If the viewer was closed programmatically (not via back), remove the pushed entry
+      if (window.history.state?.portfolioViewer) {
+        window.history.back();
+      }
     };
   }, [isOpen, activeIndex, portfolio.length, onClose]);
 

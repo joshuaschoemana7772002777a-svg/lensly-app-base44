@@ -4,6 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Home, Search, Heart, Camera, Mail, Settings, Bell } from "lucide-react";
 import FirstOpenConsentBanner from "./components/lensly/FirstOpenConsentBanner";
+import { useTabHistory, getTabForPath } from "@/lib/TabHistoryContext";
 
 const NAV_ITEMS = [
   { name: "Home", icon: Home, page: "Home" },
@@ -15,8 +16,38 @@ const NAV_ITEMS = [
 export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { updateTabPath, getTabPath, saveScroll, getScroll } = useTabHistory();
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [pendingRequests, setPendingRequests] = useState(0);
+
+  // Track current path per tab
+  useEffect(() => {
+    const tab = getTabForPath(location.pathname);
+    if (tab) updateTabPath(tab, location.pathname + location.search);
+  }, [location.pathname, location.search]);
+
+  // Save scroll position on unmount / path change
+  useEffect(() => {
+    const scrollEl = document.getElementById("root") || window;
+    const getY = () => (scrollEl === window ? window.scrollY : scrollEl.scrollTop);
+
+    const saveCurrent = () => {
+      saveScroll(location.pathname + location.search, getY());
+    };
+
+    return () => { saveCurrent(); };
+  }, [location.pathname, location.search]);
+
+  // Restore scroll position when navigating to a path
+  useEffect(() => {
+    const key = location.pathname + location.search;
+    const y = getScroll(key);
+    const scrollEl = document.getElementById("root") || window;
+    requestAnimationFrame(() => {
+      if (scrollEl === window) window.scrollTo(0, y);
+      else scrollEl.scrollTop = y;
+    });
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     loadUnreadCounts();
@@ -47,7 +78,7 @@ export default function Layout({ children, currentPageName }) {
     setPendingRequests(requests.length);
   };
 
-  const hideNav = currentPageName === "CreatorProfile" || currentPageName === "EditProfile" || currentPageName === "Conversation" || currentPageName === "Login";
+  const hideNav = ["/CreatorProfile", "/EditProfile", "/Conversation", "/Login"].some(p => location.pathname.startsWith(p));
 
 
 
@@ -142,7 +173,8 @@ export default function Layout({ children, currentPageName }) {
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-[hsl(222,18%,10%)]/90 backdrop-blur-xl border-t border-neutral-100 dark:border-neutral-800" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
             {NAV_ITEMS.map((item) => {
-              const isActive = currentPageName === item.page;
+              const activeTab = getTabForPath(location.pathname);
+              const isActive = activeTab === item.page;
               const Icon = item.icon;
               
               let badgeCount = 0;
@@ -150,15 +182,21 @@ export default function Layout({ children, currentPageName }) {
               
               const showBadge = badgeCount > 0;
               
-              const targetUrl = createPageUrl(item.page);
+              const tabRootUrl = createPageUrl(item.page);
               return (
                 <button
                   key={item.page}
                   onClick={() => {
                     if (isActive) {
-                      navigate(targetUrl, { replace: true });
+                      // Re-tapping active tab → scroll to top and reset to tab root
+                      navigate(tabRootUrl, { replace: true });
+                      const scrollEl = document.getElementById("root") || window;
+                      if (scrollEl === window) window.scrollTo({ top: 0, behavior: "smooth" });
+                      else scrollEl.scrollTo({ top: 0, behavior: "smooth" });
                     } else {
-                      navigate(targetUrl);
+                      // Switch to last remembered path for this tab
+                      const lastPath = getTabPath(item.page);
+                      navigate(lastPath);
                     }
                   }}
                   className={`flex flex-col items-center gap-0.5 px-3 py-1 transition-colors relative ${

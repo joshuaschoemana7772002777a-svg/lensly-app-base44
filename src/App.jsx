@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Suspense } from 'react';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { TabHistoryProvider } from '@/lib/TabHistoryContext';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -103,8 +104,10 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <NavigationTracker />
-          <AuthenticatedApp />
+          <TabHistoryProvider>
+            <NavigationTracker />
+            <AuthenticatedApp />
+          </TabHistoryProvider>
         </Router>
         <Toaster />
       </QueryClientProvider>

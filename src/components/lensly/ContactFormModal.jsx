@@ -31,62 +31,47 @@ export default function ContactFormModal({ open, onClose, creator }) {
     setSending(true);
     setAbuseError(null);
 
-    try {
-      const user = await base44.auth.me();
+    // Pre-flight abuse check (fast — local DB query)
+    const user = await base44.auth.me();
+    const abuseCheck = await checkRequestAbuseLimit(user.email, creator.id, form.message);
+    if (!abuseCheck.allowed) {
+      setAbuseError(abuseCheck.message);
+      setSending(false);
+      return;
+    }
 
-      // Check for abuse patterns
-      const abuseCheck = await checkRequestAbuseLimit(
-        user.email,
-        creator.id,
-        form.message
-      );
+    // Optimistic: show success immediately, fire all async work in background
+    setSending(false);
+    setSent(true);
 
-      if (!abuseCheck.allowed) {
-        setAbuseError(abuseCheck.message);
-        setSending(false);
-        return;
-      }
+    const formSnapshot = { ...form };
+    setTimeout(() => {
+      setSent(false);
+      setForm({ category: "", service_area: "", preferred_date: "", message: "" });
+      setAbuseError(null);
+      onClose();
+    }, 2000);
 
+    // Background work — non-blocking
+    (async () => {
       const request = await base44.entities.ContactRequest.create({
-        ...form,
+        ...formSnapshot,
         creator_profile_id: creator.id,
         creator_name: creator.display_name,
         sender_name: user.full_name,
         sender_email: user.email,
       });
-
-      // Track request activity
-      await trackRequestActivity(
-        user.email,
-        creator.id,
-        request.id,
-        form.message,
-        form.category
-      );
-
-      // Notify creator of new request (with throttling)
+      await trackRequestActivity(user.email, creator.id, request.id, formSnapshot.message, formSnapshot.category);
       await createNotification({
         recipientEmail: creator.created_by,
         type: "request_new",
         title: "New Request",
-        message: `${user.full_name} sent you a request for ${form.category || "a shoot"}.`,
+        message: `${user.full_name} sent you a request for ${formSnapshot.category || "a shoot"}.`,
         linkUrl: createPageUrl("MyRequests"),
         relatedId: request.id,
         senderName: user.full_name,
       });
-
-      setSending(false);
-      setSent(true);
-      setTimeout(() => {
-        setSent(false);
-        setForm({ category: "", service_area: "", preferred_date: "", message: "" });
-        setAbuseError(null);
-        onClose();
-      }, 2000);
-    } catch (error) {
-      console.error("Error sending request:", error);
-      setSending(false);
-    }
+    })();
   };
 
   return (
