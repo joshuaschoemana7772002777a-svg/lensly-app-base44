@@ -27,7 +27,6 @@ export default function EditProfile() {
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [coverImageError, setCoverImageError] = useState(null);
-  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [draftCoverUrl, setDraftCoverUrl] = useState(null);
 
   useEffect(() => {
@@ -218,6 +217,7 @@ export default function EditProfile() {
     if (creatorProfiles.length > 0) {
       const existingProfile = creatorProfiles[0];
       setProfile(existingProfile);
+      setIsOnboarding(!existingProfile.is_published);
       setDraftCoverUrl(existingProfile.draftCoverPhotoUrl || existingProfile.publishedCoverPhotoUrl || existingProfile.profile_image);
     }
   };

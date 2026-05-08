@@ -1,0 +1,41 @@
+{
+  "name": "AbuseFlag",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of flagged user"
+    },
+    "flag_type": {
+      "type": "string",
+      "enum": [
+        "soft_flag",
+        "rate_limited",
+        "manual_review"
+      ],
+      "description": "Type of flag"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for flag"
+    },
+    "unique_creators_count": {
+      "type": "number",
+      "description": "Number of unique creators messaged"
+    },
+    "time_window_minutes": {
+      "type": "number",
+      "description": "Time window in minutes"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this flag expires"
+    }
+  },
+  "required": [
+    "user_email",
+    "flag_type",
+    "reason"
+  ]
+}

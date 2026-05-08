@@ -1,0 +1,62 @@
+{
+  "name": "ContactRequest",
+  "type": "object",
+  "properties": {
+    "creator_profile_id": {
+      "type": "string",
+      "description": "ID of the creator being contacted"
+    },
+    "creator_name": {
+      "type": "string",
+      "description": "Name of the creator"
+    },
+    "sender_name": {
+      "type": "string",
+      "description": "Name of the person sending the request"
+    },
+    "sender_email": {
+      "type": "string",
+      "description": "Email of sender"
+    },
+    "category": {
+      "type": "string",
+      "description": "Shoot type / category of work needed"
+    },
+    "service_area": {
+      "type": "string",
+      "description": "Operating area for the shoot"
+    },
+    "message": {
+      "type": "string",
+      "description": "Details about the request"
+    },
+    "preferred_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Preferred date for the shoot"
+    },
+    "budget": {
+      "type": "number",
+      "description": "Client's budget in ZAR"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "read",
+        "accepted",
+        "declined",
+        "messaged"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "creator_profile_id",
+    "sender_name",
+    "sender_email",
+    "category",
+    "service_area",
+    "message"
+  ]
+}

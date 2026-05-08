@@ -1,0 +1,50 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "userRole": {
+      "type": "string",
+      "enum": [
+        "client",
+        "creator"
+      ],
+      "description": "User's chosen role: client or creator"
+    },
+    "termsAcceptedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the user accepted the terms"
+    },
+    "termsVersion": {
+      "type": "string",
+      "description": "Which version of terms was accepted, e.g. v1.0"
+    },
+    "roleChosenAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When user first chose their role"
+    },
+    "roleLastChangedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When user last changed their role"
+    },
+    "profilePhotoUrl": {
+      "type": "string",
+      "description": "Profile photo URL"
+    },
+    "profileInitials": {
+      "type": "string",
+      "description": "User initials for avatar fallback"
+    }
+  },
+  "required": [
+    "userRole",
+    "termsAcceptedAt",
+    "termsVersion",
+    "roleChosenAt",
+    "roleLastChangedAt",
+    "profilePhotoUrl",
+    "profileInitials"
+  ]
+}

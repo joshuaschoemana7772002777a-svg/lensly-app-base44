@@ -142,7 +142,7 @@ export default function Conversation() {
   };
 
   const calculateReplyTime = (msgs, convo) => {
-    const creatorEmail = convo.created_by;
+    const creatorEmail = convo.creator_email || convo.created_by;
     const clientEmail = convo.client_email;
     const replyTimes = [];
     for (let i = 0; i < msgs.length - 1; i++) {
@@ -216,7 +216,7 @@ export default function Conversation() {
         ? trackMessagingActivity(user.email, conversation.creator_profile_id, trimmed, conversationId)
         : Promise.resolve(),
       createNotification({
-        recipientEmail: userRole === "creator" ? conversation.client_email : conversation.created_by,
+        recipientEmail: userRole === "creator" ? conversation.client_email : conversation.creator_email || conversation.created_by,
         type: "message_new",
         title: "New Message",
         message: userRole === "creator"

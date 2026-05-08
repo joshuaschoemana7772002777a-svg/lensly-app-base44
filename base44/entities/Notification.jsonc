@@ -1,0 +1,69 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "recipient_email": {
+      "type": "string",
+      "description": "Email of the user receiving the notification"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "request_new",
+        "request_accepted",
+        "request_declined",
+        "message_new"
+      ],
+      "description": "Type of notification"
+    },
+    "title": {
+      "type": "string",
+      "description": "Notification title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notification message"
+    },
+    "link_url": {
+      "type": "string",
+      "description": "Deep link to relevant page"
+    },
+    "related_id": {
+      "type": "string",
+      "description": "ID of related request or conversation"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether notification has been read"
+    },
+    "sender_name": {
+      "type": "string",
+      "description": "Name of the person who triggered the notification"
+    },
+    "is_grouped": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a grouped notification"
+    },
+    "grouped_count": {
+      "type": "number",
+      "description": "Number of items in grouped notification"
+    },
+    "push_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether push notification was sent"
+    },
+    "suppressed_reason": {
+      "type": "string",
+      "description": "Reason if push was suppressed (throttle, quiet hours, daily cap)"
+    }
+  },
+  "required": [
+    "recipient_email",
+    "type",
+    "title",
+    "message"
+  ]
+}

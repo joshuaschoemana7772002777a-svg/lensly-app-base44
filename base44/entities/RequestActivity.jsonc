@@ -1,0 +1,31 @@
+{
+  "name": "RequestActivity",
+  "type": "object",
+  "properties": {
+    "sender_email": {
+      "type": "string",
+      "description": "Email of request sender"
+    },
+    "creator_profile_id": {
+      "type": "string",
+      "description": "ID of creator receiving request"
+    },
+    "request_id": {
+      "type": "string",
+      "description": "ID of the contact request"
+    },
+    "message_hash": {
+      "type": "string",
+      "description": "Hash of request message for duplicate detection"
+    },
+    "category": {
+      "type": "string",
+      "description": "Request category"
+    }
+  },
+  "required": [
+    "sender_email",
+    "creator_profile_id",
+    "request_id"
+  ]
+}

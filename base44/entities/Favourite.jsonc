@@ -1,0 +1,21 @@
+{
+  "name": "Favourite",
+  "type": "object",
+  "properties": {
+    "creator_profile_id": {
+      "type": "string",
+      "description": "ID of the favourited creator profile"
+    },
+    "creator_name": {
+      "type": "string",
+      "description": "Cached creator display name"
+    },
+    "creator_image": {
+      "type": "string",
+      "description": "Cached creator profile image"
+    }
+  },
+  "required": [
+    "creator_profile_id"
+  ]
+}

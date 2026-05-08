@@ -1,0 +1,77 @@
+{
+  "name": "Conversation",
+  "type": "object",
+  "properties": {
+    "creator_profile_id": {
+      "type": "string",
+      "description": "ID of the creator in this conversation"
+    },
+    "creator_name": {
+      "type": "string",
+      "description": "Cached creator name"
+    },
+    "creator_image": {
+      "type": "string",
+      "description": "Cached creator profile image"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Email of the client"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Name of the client"
+    },
+    "contact_request_id": {
+      "type": "string",
+      "description": "Associated contact request if started from one"
+    },
+    "last_message": {
+      "type": "string",
+      "description": "Preview of last message"
+    },
+    "last_message_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of last message"
+    },
+    "first_message_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of first message ever sent \u2014 used to unlock reviews after 7 days"
+    },
+    "unread_count_client": {
+      "type": "number",
+      "default": 0,
+      "description": "Unread messages for client"
+    },
+    "unread_count_creator": {
+      "type": "number",
+      "default": 0,
+      "description": "Unread messages for creator"
+    },
+    "client_cleared_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When client last cleared their chat view"
+    },
+    "creator_cleared_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When creator last cleared their chat view"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "closed"
+      ],
+      "default": "active",
+      "description": "Conversation status (legacy \u2014 treat all as active)"
+    }
+  },
+  "required": [
+    "creator_profile_id",
+    "client_email"
+  ]
+}

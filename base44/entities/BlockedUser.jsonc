@@ -1,0 +1,22 @@
+{
+  "name": "BlockedUser",
+  "type": "object",
+  "properties": {
+    "blocker_email": {
+      "type": "string",
+      "description": "Email of user who blocked"
+    },
+    "blocked_email": {
+      "type": "string",
+      "description": "Email of blocked user"
+    },
+    "blocked_profile_id": {
+      "type": "string",
+      "description": "Creator profile ID if applicable"
+    }
+  },
+  "required": [
+    "blocker_email",
+    "blocked_email"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "Review",
+  "type": "object",
+  "properties": {
+    "conversation_id": {
+      "type": "string",
+      "description": "ID of the conversation this review is for"
+    },
+    "creator_profile_id": {
+      "type": "string",
+      "description": "ID of the creator being reviewed"
+    },
+    "creator_name": {
+      "type": "string",
+      "description": "Cached creator name"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Email of the reviewer"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Name of the reviewer"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Star rating 1-5"
+    },
+    "review_text": {
+      "type": "string",
+      "maxLength": 300,
+      "description": "Optional written review"
+    },
+    "is_reported": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether review has been reported"
+    }
+  },
+  "required": [
+    "conversation_id",
+    "creator_profile_id",
+    "client_email",
+    "rating"
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "name": "CreatorProfile",
+  "type": "object",
+  "properties": {
+    "display_name": {
+      "type": "string",
+      "description": "Creator's display name"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Short biography"
+    },
+    "profile_photo": {
+      "type": "string",
+      "description": "Profile Photo URL - circular identity image"
+    },
+    "profile_image": {
+      "type": "string",
+      "description": "Cover photo URL (fallback)"
+    },
+    "draftCoverPhotoUrl": {
+      "type": "string",
+      "description": "Draft cover photo - visible only in Edit Profile"
+    },
+    "publishedCoverPhotoUrl": {
+      "type": "string",
+      "description": "Published cover photo - visible on Discover and public profile"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Categories: Corporate, Brand / Commercial, Weddings, Events, Lifestyle, Social Media Content"
+    },
+    "featured_categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 2,
+      "description": "1-2 featured categories to display prominently"
+    },
+    "service_areas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Operating areas: Sandton, Johannesburg, Pretoria, Cape Town"
+    },
+    "starting_price": {
+      "type": "number",
+      "description": "Starting from price in ZAR"
+    },
+    "portfolio_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Primary playback URL (MP4 for videos, image URL for photos)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video"
+            ]
+          },
+          "caption": {
+            "type": "string"
+          },
+          "thumbnail_url": {
+            "type": "string",
+            "description": "Poster/thumbnail image URL (Mux-generated for videos)"
+          },
+          "crop": {
+            "type": "object",
+            "properties": {
+              "focalX": {
+                "type": "number"
+              },
+              "focalY": {
+                "type": "number"
+              },
+              "zoom": {
+                "type": "number"
+              },
+              "version": {
+                "type": "number"
+              }
+            }
+          },
+          "asset_id": {
+            "type": "string",
+            "description": "Mux asset ID"
+          },
+          "mux_playback_id": {
+            "type": "string",
+            "description": "Mux playback ID"
+          },
+          "mux_playback_url": {
+            "type": "string",
+            "description": "HLS streaming URL from Mux"
+          },
+          "mux_mp4_url": {
+            "type": "string",
+            "description": "MP4 download/play URL from Mux"
+          },
+          "mux_mov_url": {
+            "type": "string",
+            "description": "MOV download/play URL from Mux"
+          },
+          "mux_upload_id": {
+            "type": "string",
+            "description": "Mux direct upload ID (used for polling)"
+          },
+          "mux_status": {
+            "type": "string",
+            "enum": [
+              "uploading",
+              "preparing",
+              "ready",
+              "errored"
+            ],
+            "description": "Mux asset processing status"
+          }
+        }
+      },
+      "description": "Portfolio images and videos"
+    },
+    "featuredPortfolioItemId": {
+      "type": "string",
+      "description": "ID of the featured portfolio item to show on cards"
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the profile is live"
+    },
+    "publishedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the profile was first published"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "disabled"
+      ],
+      "default": "draft",
+      "description": "Profile status"
+    },
+    "is_hidden": {
+      "type": "boolean",
+      "default": false,
+      "description": "Hidden by admin for content violations"
+    },
+    "creator_type": {
+      "type": "string",
+      "enum": [
+        "photographer",
+        "videographer",
+        "both"
+      ],
+      "description": "Type of creator"
+    },
+    "contact_email": {
+      "type": "string",
+      "description": "Contact email"
+    },
+    "instagram_handle": {
+      "type": "string",
+      "description": "Instagram username"
+    },
+    "website_url": {
+      "type": "string",
+      "description": "Website URL"
+    }
+  },
+  "required": [
+    "display_name",
+    "profile_photo",
+    "categories",
+    "service_areas"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "MessagingActivity",
+  "type": "object",
+  "properties": {
+    "sender_email": {
+      "type": "string",
+      "description": "Email of message sender"
+    },
+    "creator_profile_id": {
+      "type": "string",
+      "description": "ID of creator being messaged"
+    },
+    "message_hash": {
+      "type": "string",
+      "description": "Hash of message content for duplicate detection"
+    },
+    "conversation_id": {
+      "type": "string",
+      "description": "ID of conversation"
+    }
+  },
+  "required": [
+    "sender_email",
+    "creator_profile_id"
+  ]
+}

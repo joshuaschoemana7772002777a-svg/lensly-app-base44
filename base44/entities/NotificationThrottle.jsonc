@@ -1,0 +1,42 @@
+{
+  "name": "NotificationThrottle",
+  "type": "object",
+  "properties": {
+    "recipient_email": {
+      "type": "string",
+      "description": "Email of recipient"
+    },
+    "notification_type": {
+      "type": "string",
+      "description": "Type of notification"
+    },
+    "related_id": {
+      "type": "string",
+      "description": "Related conversation/request ID"
+    },
+    "last_notification_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When last notification was sent"
+    },
+    "suppressed_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of notifications suppressed in current window"
+    },
+    "daily_push_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Push notifications sent today"
+    },
+    "last_reset_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last date counters were reset"
+    }
+  },
+  "required": [
+    "recipient_email",
+    "notification_type"
+  ]
+}

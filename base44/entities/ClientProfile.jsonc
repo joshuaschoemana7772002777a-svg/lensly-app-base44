@@ -1,0 +1,34 @@
+{
+  "name": "ClientProfile",
+  "type": "object",
+  "properties": {
+    "displayName": {
+      "type": "string",
+      "description": "Client's full name"
+    },
+    "phoneOptional": {
+      "type": "string",
+      "description": "Phone number (optional)"
+    },
+    "profilePhotoUrl": {
+      "type": "string",
+      "description": "Profile Photo URL - circular identity image"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Short bio (optional)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "disabled"
+      ],
+      "default": "active",
+      "description": "Profile status"
+    }
+  },
+  "required": [
+    "displayName"
+  ]
+}

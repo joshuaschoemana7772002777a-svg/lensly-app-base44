@@ -1,0 +1,51 @@
+{
+  "name": "Report",
+  "type": "object",
+  "properties": {
+    "reporter_email": {
+      "type": "string",
+      "description": "Email of user filing the report"
+    },
+    "reported_user_email": {
+      "type": "string",
+      "description": "Email of reported user"
+    },
+    "reported_profile_id": {
+      "type": "string",
+      "description": "ID of reported creator profile"
+    },
+    "reported_message_id": {
+      "type": "string",
+      "description": "ID of reported message"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "inappropriate_content",
+        "spam",
+        "harassment",
+        "fake_profile",
+        "scam_or_fraud",
+        "other"
+      ],
+      "description": "Reason for report"
+    },
+    "details": {
+      "type": "string",
+      "description": "Additional details"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "reviewed",
+        "resolved"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "reporter_email",
+    "reason"
+  ]
+}
