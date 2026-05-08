@@ -47,23 +47,24 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import CommunityGuidelines from './pages/CommunityGuidelines';
-import Conversation from './pages/Conversation';
-import CreateRequest from './pages/CreateRequest';
-import CreatorProfile from './pages/CreatorProfile';
-import Discover from './pages/Discover';
-import EditClientProfile from './pages/EditClientProfile';
-import EditProfile from './pages/EditProfile';
-import Favourites from './pages/Favourites';
-import Home from './pages/Home';
-import Inbox from './pages/Inbox';
-import Messages from './pages/Messages';
-import MyRequests from './pages/MyRequests';
-import Notifications from './pages/Notifications';
-import Privacy from './pages/Privacy';
-import Settings from './pages/Settings';
-import Terms from './pages/Terms';
-import Updates from './pages/Updates';
+import { lazy } from 'react';
+const CommunityGuidelines = lazy(() => import('./pages/CommunityGuidelines'));
+const Conversation = lazy(() => import('./pages/Conversation'));
+const CreateRequest = lazy(() => import('./pages/CreateRequest'));
+const CreatorProfile = lazy(() => import('./pages/CreatorProfile'));
+const Discover = lazy(() => import('./pages/Discover'));
+const EditClientProfile = lazy(() => import('./pages/EditClientProfile'));
+const EditProfile = lazy(() => import('./pages/EditProfile'));
+const Favourites = lazy(() => import('./pages/Favourites'));
+const Home = lazy(() => import('./pages/Home'));
+const Inbox = lazy(() => import('./pages/Inbox'));
+const Messages = lazy(() => import('./pages/Messages'));
+const MyRequests = lazy(() => import('./pages/MyRequests'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Updates = lazy(() => import('./pages/Updates'));
 import __Layout from './Layout.jsx';
 
 

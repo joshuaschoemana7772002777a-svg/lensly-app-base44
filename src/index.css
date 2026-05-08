@@ -113,12 +113,19 @@
   body {
     @apply bg-background text-foreground;
     color-scheme: light dark;
+    background-color: white;
   }
 
-  /* Ensure dark mode background propagates */
+  /* Ensure dark mode background propagates to root to prevent flash */
   @media (prefers-color-scheme: dark) {
     html, body, #root {
       background-color: hsl(222, 18%, 10%);
+    }
+  }
+
+  @media (prefers-color-scheme: light) {
+    html, body, #root {
+      background-color: white;
     }
   }
 }

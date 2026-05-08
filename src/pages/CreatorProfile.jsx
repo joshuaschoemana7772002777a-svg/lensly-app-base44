@@ -125,17 +125,18 @@ export default function CreatorProfile() {
       base44.auth.redirectToLogin(window.location.href);
       return;
     }
-    if (isFavourite) {
+    // Optimistic update
+    const prev = isFavourite;
+    setIsFavourite(!prev);
+    if (prev) {
       const favs = await base44.entities.Favourite.filter({ creator_profile_id: creatorId });
       if (favs.length > 0) await base44.entities.Favourite.delete(favs[0].id);
-      setIsFavourite(false);
     } else {
       await base44.entities.Favourite.create({
         creator_profile_id: creator.id,
         creator_name: creator.display_name,
         creator_image: creator.profile_image,
       });
-      setIsFavourite(true);
     }
   };
 

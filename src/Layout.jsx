@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Home, Search, Heart, Camera, Mail, Settings, Bell } from "lucide-react";
@@ -13,6 +13,8 @@ const NAV_ITEMS = [
 ];
 
 export default function Layout({ children, currentPageName }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [pendingRequests, setPendingRequests] = useState(0);
 
@@ -148,10 +150,17 @@ export default function Layout({ children, currentPageName }) {
               
               const showBadge = badgeCount > 0;
               
+              const targetUrl = createPageUrl(item.page);
               return (
-                <Link
+                <button
                   key={item.page}
-                  to={createPageUrl(item.page)}
+                  onClick={() => {
+                    if (isActive) {
+                      navigate(targetUrl, { replace: true });
+                    } else {
+                      navigate(targetUrl);
+                    }
+                  }}
                   className={`flex flex-col items-center gap-0.5 px-3 py-1 transition-colors relative ${
                     isActive ? "text-blue-500" : "text-neutral-400 dark:text-neutral-500"
                   }`}
@@ -165,7 +174,7 @@ export default function Layout({ children, currentPageName }) {
                     )}
                   </div>
                   <span className="text-[10px] font-medium">{item.name}</span>
-                </Link>
+                </button>
               );
             })}
           </div>

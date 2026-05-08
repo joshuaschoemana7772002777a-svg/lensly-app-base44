@@ -212,17 +212,22 @@ export default function Discover() {
       base44.auth.redirectToLogin(window.location.href);
       return;
     }
-    if (favouriteIds.has(creator.id)) {
+    // Optimistic update
+    const wasFav = favouriteIds.has(creator.id);
+    setFavouriteIds(prev => {
+      const next = new Set(prev);
+      wasFav ? next.delete(creator.id) : next.add(creator.id);
+      return next;
+    });
+    if (wasFav) {
       const favs = await base44.entities.Favourite.filter({ creator_profile_id: creator.id });
       if (favs.length > 0) await base44.entities.Favourite.delete(favs[0].id);
-      setFavouriteIds(prev => { const next = new Set(prev); next.delete(creator.id); return next; });
     } else {
       await base44.entities.Favourite.create({
         creator_profile_id: creator.id,
         creator_name: creator.display_name,
         creator_image: creator.profile_image,
       });
-      setFavouriteIds(prev => new Set(prev).add(creator.id));
     }
   };
 
