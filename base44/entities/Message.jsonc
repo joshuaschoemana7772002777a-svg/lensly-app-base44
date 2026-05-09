@@ -28,5 +28,38 @@
     "conversation_id",
     "sender_email",
     "content"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.sender_email": "{{user.email}}"
+        },
+        {
+          "conversation_id": {
+            "$in": [
+              "{{user.conversation_ids_as_creator}}",
+              "{{user.conversation_ids_as_client}}"
+            ]
+          }
+        }
+      ]
+    },
+    "read": {
+      "conversation_id": {
+        "$in": [
+          "{{user.conversation_ids_as_creator}}",
+          "{{user.conversation_ids_as_client}}"
+        ]
+      }
+    },
+    "update": {
+      "data.sender_email": "{{user.email}}"
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
