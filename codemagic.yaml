@@ -4,7 +4,7 @@ workflows:
 
     environment:
       vars:
-        BUNDLE_ID: "com.lensly.app"
+        BUNDLE_ID: "com.base699b110a371758e340a213c3.app"
 
     scripts:
       - name: Install dependencies
@@ -33,10 +33,12 @@ workflows:
 
           xcodebuild -project App.xcodeproj \
           -scheme App \
-          -sdk iphoneos \     
+          -sdk iphoneos \
           -configuration Release \
           -allowProvisioningUpdates \
           DEVELOPMENT_TEAM=2KPTRNK48L \
           CODE_SIGN_STYLE=Automatic
-  artifacts:
-  - ios/build/**/*.ipa
+
+    artifacts:
+      - ios/build/**/*.ipa
+      - ios/App/build/**/*.ipa
