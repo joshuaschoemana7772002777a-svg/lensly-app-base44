@@ -17,16 +17,23 @@ workflows:
     scripts:
       - name: Install dependencies
         script: npm ci
+      - name: Install Capacitor packages
+        script: npm install @capacitor/core @capacitor/cli @capacitor/ios
       - name: Build web assets
         script: npm run build
-      - name: Install Capacitor CLI
-        script: npm install -g @capacitor/cli
+      - name: Add iOS platform if not present
+        script: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          else
+            echo "iOS folder already exists, skipping cap add ios"
+          fi
+      - name: Sync Capacitor
+        script: npx cap sync ios
       - name: Install CocoaPods
         script: |
           cd ios/App
           pod install
-      - name: Capacitor sync
-        script: npx cap sync ios
       - name: Set build number
         script: |
           LATEST=$(app-store-connect get-latest-app-store-build-number "$BUNDLE_ID" --platform=IOS 2>/dev/null || echo "0")
