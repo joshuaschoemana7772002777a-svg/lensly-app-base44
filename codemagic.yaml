@@ -33,7 +33,11 @@ workflows:
 
           xcodebuild -project App.xcodeproj \
           -scheme App \
-          -sdk iphoneos \
-          -configuration Release
+          -sdk iphoneos \     
+          -configuration Release \
+          -allowProvisioningUpdates \
+          DEVELOPMENT_TEAM=2KPTRNK48L \
+          CODE_SIGN_STYLE=Automatic
+          
 artifacts:
   - ios/build/**/*.ipa
