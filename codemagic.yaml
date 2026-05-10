@@ -1,0 +1,15 @@
+workflows:
+  ios-workflow:
+    name: iOS Workflow
+    environment:
+      vars:
+        BUNDLE_ID: "com.lensly.app"
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+      - name: Build web assets
+        script: |
+          npm run build
+    artifacts:
+      - build/**
