@@ -29,6 +29,7 @@ workflows:
       - name: Build iOS app
         script: |
           cd ios/App
+
           xcodebuild -workspace App.xcworkspace \
           -scheme App \
           -sdk iphoneos \
