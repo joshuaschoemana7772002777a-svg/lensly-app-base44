@@ -3,6 +3,10 @@ workflows:
     name: iOS Workflow
 
     environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.base699b110a371758e340a213c3.app
+
       vars:
         BUNDLE_ID: "com.base699b110a371758e340a213c3.app"
 
