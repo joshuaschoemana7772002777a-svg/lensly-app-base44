@@ -38,6 +38,5 @@ workflows:
           -allowProvisioningUpdates \
           DEVELOPMENT_TEAM=2KPTRNK48L \
           CODE_SIGN_STYLE=Automatic
-          
-artifacts:
+  artifacts:
   - ios/build/**/*.ipa
