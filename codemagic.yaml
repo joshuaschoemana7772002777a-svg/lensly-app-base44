@@ -5,6 +5,8 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.base699b110a371758e340a213c3.app
+      app_store_connect:                  # ← Codemagic handles all signing automatically
+        api_key: Env_AppStoreConnect      # ← Name of the key you added in Codemagic
       vars:
         BUNDLE_ID: "com.base699b110a371758e340a213c3.app"
     scripts:
