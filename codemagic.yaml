@@ -1,15 +1,12 @@
 workflows:
   ios-workflow:
     name: iOS Workflow
-
     environment:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.base699b110a371758e340a213c3.app
-
       vars:
         BUNDLE_ID: "com.base699b110a371758e340a213c3.app"
-
     scripts:
       - name: Install dependencies
         script: |
@@ -30,16 +27,27 @@ workflows:
         script: |
           npx cap sync ios
 
-      - name: Build iOS app
+      - name: Set up code signing  # ← THIS WAS MISSING — applies your provisioning profile
         script: |
-          cd ios/App
-          ls
+          xcode-project use-profiles
 
-          xcodebuild -project App.xcodeproj \
-          -scheme App \
-          -sdk iphoneos \
-          -configuration Release \
+      - name: Archive iOS app
+        script: |
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+            archive \
+            CODE_SIGNING_ALLOWED=YES
+
+      - name: Export IPA  # ← THIS WAS MISSING — converts archive to .ipa
+        script: |
+          xcode-project build-ipa \
+            --workspace ios/App/App.xcworkspace \
+            --scheme App
 
     artifacts:
-      - ios/build/**/*.ipa
-      - ios/App/build/**/*.ipa
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
