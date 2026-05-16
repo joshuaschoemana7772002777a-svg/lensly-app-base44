@@ -6,7 +6,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.base699b110a371758e340a213c3.app
       integrations:
-        app_store_connect: Env_AppStoreConnect  # ← must match the name you gave the key in Codemagic
+        app_store_connect: Lensly Codemagic
       vars:
         BUNDLE_ID: "com.base699b110a371758e340a213c3.app"
     scripts:
