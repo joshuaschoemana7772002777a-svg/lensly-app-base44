@@ -29,7 +29,7 @@ workflows:
         script: |
           npx cap sync ios
 
-      - name: Set up code signing  # ← THIS WAS MISSING — applies your provisioning profile
+      - name: Set up code signing
         script: |
           xcode-project use-profiles
 
@@ -44,7 +44,7 @@ workflows:
             archive \
             CODE_SIGNING_ALLOWED=YES
 
-      - name: Export IPA  # ← THIS WAS MISSING — converts archive to .ipa
+      - name: Export IPA
         script: |
           xcode-project build-ipa \
             --workspace ios/App/App.xcworkspace \
