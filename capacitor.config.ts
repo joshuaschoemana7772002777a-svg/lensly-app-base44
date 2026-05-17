@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.base699b110a371758e340a213c3.app',
+  appId: 'com.lensly.app',
   appName: 'Lensly',
   webDir: 'dist',
   server: {
