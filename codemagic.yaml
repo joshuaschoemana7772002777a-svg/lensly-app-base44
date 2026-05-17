@@ -6,9 +6,9 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.base699b110a371758e340a213c3.app
+        bundle_identifier: com.lensly.app
       vars:
-        BUNDLE_ID: "com.base699b110a371758e340a213c3.app"
+        BUNDLE_ID: "com.lensly.app"
     scripts:
       - name: Install dependencies
         script: |
