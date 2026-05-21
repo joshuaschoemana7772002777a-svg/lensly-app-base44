@@ -13,10 +13,6 @@ workflows:
         BUNDLE_ID: "com.lensly.app"
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_API_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
     scripts:
       - name: Install dependencies
         script: npm ci
@@ -54,6 +50,6 @@ workflows:
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
     publishing:
       app_store_connect:
-        auth: environment_variable
+        auth: integration
         submit_to_testflight: true
         submit_to_app_store: false
