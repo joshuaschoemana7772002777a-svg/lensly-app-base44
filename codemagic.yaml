@@ -4,8 +4,11 @@ workflows:
     max_build_duration: 60
     environment:
       node: 18.17.0
-      xcode: latest
+      xcode: 16.2
       cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.lensly.app
       vars:
         BUNDLE_ID: "com.lensly.app"
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
@@ -48,8 +51,9 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
     publishing:
       app_store_connect:
-        auth: integration
+        auth: environment_variable
         submit_to_testflight: true
         submit_to_app_store: false
