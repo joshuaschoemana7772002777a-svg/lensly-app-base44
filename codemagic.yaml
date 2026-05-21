@@ -1,55 +1,55 @@
 workflows:
-  ios-workflow:
-    name: iOS Workflow
-    integrations:
-      app_store_connect: Lensly Codemagic
+  ios-app-store:
+    name: Lensly iOS App Store
+    max_build_duration: 60
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.lensly.app
+      node: 18.17.0
+      xcode: latest
+      cocoapods: default
       vars:
         BUNDLE_ID: "com.lensly.app"
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_API_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
     scripts:
       - name: Install dependencies
-        script: |
-          npm install
-          npm install @capacitor/core @capacitor/cli @capacitor/ios
-
+        script: npm ci
+      - name: Install Capacitor packages
+        script: npm install @capacitor/core @capacitor/cli @capacitor/ios
       - name: Build web assets
-        script: |
-          npm run build
-
+        script: npm run build
       - name: Add iOS platform if not present
         script: |
           if [ ! -d "ios" ]; then
             npx cap add ios
+          else
+            echo "iOS folder already exists, skipping cap add ios"
           fi
-
       - name: Sync Capacitor
+        script: npx cap sync ios
+      - name: Install CocoaPods
         script: |
-          npx cap sync ios
-
-      - name: Set up code signing
+          cd ios/App
+          pod install
+      - name: Set build number
+        script: |
+          LATEST=$(app-store-connect get-latest-app-store-build-number "$BUNDLE_ID" --platform=IOS 2>/dev/null || echo "0")
+          agvtool new-version -all $((LATEST + 1))
+        working_directory: ios/App
+      - name: Build iOS
         script: |
           xcode-project use-profiles
-
-      - name: Archive iOS app
-        script: |
-          xcodebuild \
-            -workspace ios/App/App.xcworkspace \
-            -scheme App \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
-            archive \
-            CODE_SIGNING_ALLOWED=YES
-
-      - name: Export IPA
-        script: |
           xcode-project build-ipa \
-            --workspace ios/App/App.xcworkspace \
-            --scheme App
-
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false
