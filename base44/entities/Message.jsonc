@@ -33,7 +33,7 @@
     "create": {
       "$or": [
         {
-          "data.sender_email": "{{user.email}}"
+          "sender_email": "{{user.email}}"
         },
         {
           "conversation_id": {
@@ -54,7 +54,7 @@
       }
     },
     "update": {
-      "data.sender_email": "{{user.email}}"
+      "sender_email": "{{user.email}}"
     },
     "delete": {
       "user_condition": {
