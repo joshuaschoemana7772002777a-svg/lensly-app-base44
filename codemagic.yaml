@@ -2,6 +2,8 @@ workflows:
   ios-app-store:
     name: Lensly iOS App Store
     max_build_duration: 60
+    integrations:
+      app_store_connect: Base44
     environment:
       node: 22.11.0
       xcode: 16.2
