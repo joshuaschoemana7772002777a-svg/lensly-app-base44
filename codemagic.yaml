@@ -5,7 +5,6 @@ workflows:
     environment:
       node: 22.11.0
       xcode: 16.2
-      cocoapods: default
       vars:
         BUNDLE_ID: "com.lensly.app"
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
@@ -28,10 +27,6 @@ workflows:
           fi
       - name: Sync Capacitor
         script: npx cap sync ios
-      - name: Install CocoaPods
-        script: |
-          cd ios/App
-          pod install
       - name: Set up code signing
         script: |
           keychain initialize
