@@ -29,6 +29,9 @@ workflows:
           fi
       - name: Sync Capacitor
         script: npx cap sync ios
+      - name: Patch AppDelegate for Capacitor SPM compatibility
+        script: |
+          perl -i -0pe 's/\n    func application\(_ application: UIApplication, continue userActivity:.*?\n    \}\n//s' ios/App/App/AppDelegate.swift
       - name: Ensure shared Xcode scheme exists
         script: |
           SCHEME_DIR="ios/App/App.xcodeproj/xcshareddata/xcschemes"
