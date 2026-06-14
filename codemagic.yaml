@@ -8,9 +8,6 @@ workflows:
       node: 18.17.0
       xcode: 16.2
       cocoapods: default
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.lensly.app
       vars:
         BUNDLE_ID: "com.lensly.app"
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
@@ -37,6 +34,14 @@ workflows:
         script: |
           cd ios/App
           pod install
+      - name: Set up code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Set build number
         script: |
           LATEST=$(app-store-connect get-latest-app-store-build-number "$BUNDLE_ID" --platform=IOS 2>/dev/null || echo "0")
@@ -44,7 +49,6 @@ workflows:
         working_directory: ios/App
       - name: Build iOS
         script: |
-          xcode-project use-profiles
           xcode-project build-ipa \
             --workspace "$XCODE_WORKSPACE" \
             --scheme "$XCODE_SCHEME"
