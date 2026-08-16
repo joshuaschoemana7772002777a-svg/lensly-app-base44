@@ -1,55 +1,161 @@
 workflows:
-  ios-workflow:
-    name: iOS Workflow
+  ios-app-store:
+    name: Lensly iOS App Store
+    max_build_duration: 60
     integrations:
-      app_store_connect: Lensly Codemagic
+      app_store_connect: Base44
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.lensly.app
+      node: 22.11.0
+      xcode: 16.2
       vars:
         BUNDLE_ID: "com.lensly.app"
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+        VITE_BASE44_APP_ID: "699b110a371758e340a213c3"
+        VITE_BASE44_APP_BASE_URL: "https://getlenslyapp.com"
     scripts:
       - name: Install dependencies
-        script: |
-          npm install
-          npm install @capacitor/core @capacitor/cli @capacitor/ios
-
+        script: npm ci
+      - name: Install Capacitor packages
+        script: npm install @capacitor/core @capacitor/cli @capacitor/ios
       - name: Build web assets
-        script: |
-          npm run build
-
+        script: npm run build
       - name: Add iOS platform if not present
         script: |
           if [ ! -d "ios" ]; then
             npx cap add ios
+          else
+            echo "iOS folder already exists, skipping cap add ios"
           fi
-
       - name: Sync Capacitor
+        script: npx cap sync ios
+      - name: Patch AppDelegate for Capacitor SPM compatibility
         script: |
-          npx cap sync ios
-
+          perl -i -0pe 's/\n    func application\(_ application: UIApplication, continue userActivity:.*?\n    \}\n//s' ios/App/App/AppDelegate.swift
+      - name: Ensure shared Xcode scheme exists
+        script: |
+          SCHEME_DIR="ios/App/App.xcodeproj/xcshareddata/xcschemes"
+          SCHEME_FILE="$SCHEME_DIR/App.xcscheme"
+          if [ ! -f "$SCHEME_FILE" ]; then
+            mkdir -p "$SCHEME_DIR"
+            cat > "$SCHEME_FILE" <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <Scheme
+             LastUpgradeVersion = "1620"
+             version = "1.7">
+             <BuildAction
+                parallelizeBuildables = "YES"
+                buildImplicitDependencies = "YES">
+                <BuildActionEntries>
+                   <BuildActionEntry
+                      buildForTesting = "YES"
+                      buildForRunning = "YES"
+                      buildForProfiling = "YES"
+                      buildForArchiving = "YES"
+                      buildForAnalyzing = "YES">
+                      <BuildableReference
+                         BuildableIdentifier = "primary"
+                         BlueprintIdentifier = "504EC3031FED79650016851F"
+                         BuildableName = "App.app"
+                         BlueprintName = "App"
+                         ReferencedContainer = "container:App.xcodeproj">
+                      </BuildableReference>
+                   </BuildActionEntry>
+                </BuildActionEntries>
+             </BuildAction>
+             <TestAction
+                buildConfiguration = "Debug"
+                selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+                selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+                shouldUseLaunchSchemeArgsEnv = "YES">
+                <Testables>
+                </Testables>
+             </TestAction>
+             <LaunchAction
+                buildConfiguration = "Debug"
+                selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+                selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+                launchStyle = "0"
+                useCustomWorkingDirectory = "NO"
+                ignoresPersistentStateOnLaunch = "NO"
+                debugDocumentVersioning = "YES"
+                debugServiceExtension = "internal"
+                allowLocationSimulation = "YES">
+                <BuildableProductRunnable
+                   runnableDebuggingMode = "0">
+                   <BuildableReference
+                      BuildableIdentifier = "primary"
+                      BlueprintIdentifier = "504EC3031FED79650016851F"
+                      BuildableName = "App.app"
+                      BlueprintName = "App"
+                      ReferencedContainer = "container:App.xcodeproj">
+                   </BuildableReference>
+                </BuildableProductRunnable>
+             </LaunchAction>
+             <ProfileAction
+                buildConfiguration = "Release"
+                shouldUseLaunchSchemeArgsEnv = "YES"
+                savedToolIdentifier = ""
+                useCustomWorkingDirectory = "NO"
+                debugDocumentVersioning = "YES">
+                <BuildableProductRunnable
+                   runnableDebuggingMode = "0">
+                   <BuildableReference
+                      BuildableIdentifier = "primary"
+                      BlueprintIdentifier = "504EC3031FED79650016851F"
+                      BuildableName = "App.app"
+                      BlueprintName = "App"
+                      ReferencedContainer = "container:App.xcodeproj">
+                   </BuildableReference>
+                </BuildableProductRunnable>
+             </ProfileAction>
+             <AnalyzeAction
+                buildConfiguration = "Debug">
+             </AnalyzeAction>
+             <ArchiveAction
+                buildConfiguration = "Release"
+                revealArchiveInOrganizer = "YES">
+             </ArchiveAction>
+          </Scheme>
+          EOF
+          fi
       - name: Set up code signing
         script: |
-          xcode-project use-profiles
-
-      - name: Archive iOS app
+          keychain initialize
+          if [ -n "${CERTIFICATE_PRIVATE_KEY:-}" ]; then
+            CERT_KEY_ARG="@env:CERTIFICATE_PRIVATE_KEY"
+          else
+            openssl genrsa -out /tmp/certificate_private_key.pem 2048
+            CERT_KEY_ARG="@file:/tmp/certificate_private_key.pem"
+          fi
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --certificate-key "$CERT_KEY_ARG" \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles --archive-method app-store --code-signing-setup-verbose-logging
+      - name: Debug signing settings
         script: |
-          xcodebuild \
-            -workspace ios/App/App.xcworkspace \
-            -scheme App \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
-            archive \
-            CODE_SIGNING_ALLOWED=YES
-
-      - name: Export IPA
+          echo "--- Provisioning profiles ---"
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/" || true
+          echo "--- pbxproj signing settings ---"
+          grep -E "CODE_SIGN_STYLE|PROVISIONING_PROFILE|DEVELOPMENT_TEAM|CODE_SIGN_IDENTITY|PRODUCT_BUNDLE_IDENTIFIER|ProvisioningStyle" ios/App/App.xcodeproj/project.pbxproj || true
+      - name: Set build number
+        script: |
+          LATEST=$(app-store-connect get-latest-app-store-build-number "$BUNDLE_ID" --platform=IOS 2>/dev/null || echo "0")
+          agvtool new-version -all $((LATEST + 1))
+        working_directory: ios/App
+      - name: Build iOS
         script: |
           xcode-project build-ipa \
-            --workspace ios/App/App.xcworkspace \
-            --scheme App
-
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        expire_build_submitted_for_review: true
